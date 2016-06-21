@@ -1,6 +1,6 @@
 #include "geometries.h"
-#include <GL/glew.h>
-#include <QDebug>
+
+#include <flextGL.h>
 
 Geometry *Geometries::cube(float size) {
   float vertices[] = {

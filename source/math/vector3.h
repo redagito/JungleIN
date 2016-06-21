@@ -1,8 +1,7 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
-#include <GL/glew.h>
-#include <QString>
+#include <string>
 
 class Vector3 {
 public:
@@ -35,7 +34,7 @@ public:
   Vector3 operator*(const float s) const;
   void operator*=(const float s);
 
-  QString toString();
+  std::string toString();
 };
 
 #endif // VECTOR3_H

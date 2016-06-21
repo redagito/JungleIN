@@ -1,6 +1,8 @@
 #include "vector3.h"
+
 #include <cmath>
 #include <limits>
+#include <sstream>
 
 const Vector3 Vector3::X = Vector3(1.0, 0.0, 0.0);
 const Vector3 Vector3::Y = Vector3(0.0, 1.0, 0.0);
@@ -99,7 +101,8 @@ void Vector3::operator*=(float s) {
   z *= s;
 }
 
-QString Vector3::toString() {
-  return "Vector3(" + QString::number(x) + ", " + QString::number(y) + ", " +
-         QString::number(z) + ")";
+std::string Vector3::toString() {
+  std::stringstream ss;
+  ss << "Vector3(" << x << ", " << y << ", " << z << ")";
+  return ss.str();
 }

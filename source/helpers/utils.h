@@ -1,22 +1,17 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <QMainWindow>
-#include <QWidget>
-
-class MainWindow;
+#include <string>
 
 /*!
  * Utils
- * Fonctions diverses et variées (mais utiles)
+ * Fonctions diverses et variï¿½es (mais utiles)
  * @static
  */
 class Utils {
 public:
-  static char *getFileContent(QString path);
+  static char *getFileContent(std::string path);
 
-  static MainWindow *MAIN;
-  static QWidget *WINDOW;
   static bool USE_ANISO;
   static unsigned int MAX_ANISO;
   static int QUALITY;

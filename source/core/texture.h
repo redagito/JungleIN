@@ -16,7 +16,7 @@
 class Texture {
 public:
   Texture();
-  Texture(QString path, unsigned int _index = 0);
+  Texture(std::string path, unsigned int _index = 0);
   Texture(unsigned int _index);
 
   ~Texture();
@@ -27,7 +27,7 @@ public:
   void setupForFramebuffer(unsigned int _width, unsigned int _height,
                            unsigned int _format,
                            unsigned int _globalFormat = GL_RGBA);
-  void load(QString path);
+  void load(std::string path);
   void resize(unsigned int _width, unsigned int _height);
 
   void setFilters(unsigned int min, unsigned int mag);
