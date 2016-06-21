@@ -2,9 +2,9 @@
 #include <QMessageBox>
 #include "../helpers/utils.h"
 
-QHash<QString, Shader *> ShaderLibrary::shaders;
+std::unordered_map<std::string, Shader *> ShaderLibrary::shaders;
 
-Shader *ShaderLibrary::getShader(QString name) {
+Shader *ShaderLibrary::getShader(std::string name) {
   if (shaders.contains(name))
     return shaders.value(name);
 
@@ -14,8 +14,8 @@ Shader *ShaderLibrary::getShader(QString name) {
   exit(-1);
 }
 
-Shader *ShaderLibrary::addShader(QString name, QString shaderPrefix,
-                                 QStringList attributes, QStringList uniforms) {
+Shader *ShaderLibrary::addShader(std::string name, std::string shaderPrefix,
+                                 std::vector<std::string> attributes, std::vector<std::string> uniforms) {
   if (shaders.contains(name)) {
     QMessageBox::warning(Utils::WINDOW, "Warning",
                          "Duplicate shader '" + name + "' in ShaderLibrary.");

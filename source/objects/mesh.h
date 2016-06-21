@@ -1,11 +1,12 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "object3d.h"
-#include "../materials/material.h"
-#include "../core/geometry.h"
+#include "objects/object3d.h"
+#include "materials/material.h"
+#include "core/geometry.h"
 #include "instance.h"
-#include <QList>
+
+#include <vector>
 
 /*!
  * Mesh extends Object3D
@@ -31,7 +32,7 @@ public:
   void removeInstance(int id);
   void clearInstances();
   Instance *getInstance(int id);
-  QList<Instance *> &getInstances();
+  std::vector<Instance *> &getInstances();
   float getScaleRdn();
   void setScaleRdn(float sRdn);
   float getHeightRdn();
@@ -78,7 +79,7 @@ protected:
   float pourcentage;
   unsigned int instanceType;
 
-  QList<Instance *> instances;
+  std::vector<Instance *> instances;
 };
 
 #endif // MESH_H

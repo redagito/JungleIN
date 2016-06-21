@@ -1,12 +1,12 @@
 #include "shadowbuffer.h"
 
-ShadowBuffer::ShadowBuffer(QString texname, int width, int height) {
+ShadowBuffer::ShadowBuffer(std::string texname, int width, int height) {
   this->width = width;
   this->height = height;
   uid = 0;
-  texturesNames = QStringList();
+  texturesNames = std::vector<std::string>();
   texturesNames.append(texname);
-  textures = QList<Texture *>();
+  textures = std::vector<Texture *>();
 }
 
 void ShadowBuffer::init(unsigned int textureUnitOffset) {

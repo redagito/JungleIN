@@ -2,6 +2,7 @@
 #define TEXTURE_H
 
 #include <string>
+#include <vector>
 
 #include <flextGL.h>
 
@@ -27,7 +28,7 @@ public:
   void setupForFramebuffer(unsigned int _width, unsigned int _height,
                            unsigned int _format,
                            unsigned int _globalFormat = GL_RGBA);
-  void load(std::string path);
+  bool load(std::string path);
   void resize(unsigned int _width, unsigned int _height);
 
   void setFilters(unsigned int min, unsigned int mag);
@@ -56,7 +57,7 @@ private:
   static float borderColor[];
   static float borderColorB[];
 
-  QImage image;
+  std::vector<unsigned char> image;
   bool hasImage;
   unsigned int height;
   unsigned int width;

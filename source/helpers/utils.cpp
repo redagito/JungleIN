@@ -1,7 +1,7 @@
 #include "utils.h"
 
 #include <stdio.h>
-#include <QDebug>
+#include <iostream>
 #include <QTime>
 #include "../ui/mainwindow.h"
 
@@ -13,7 +13,7 @@ int Utils::QUALITY = 1;
 
 double Utils::TARGET_FPS = 32.0;
 
-char *Utils::getFileContent(QString path) {
+char *Utils::getFileContent(std::string path) {
   FILE *fp;
   char *content = NULL;
   long length;

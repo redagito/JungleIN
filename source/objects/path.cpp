@@ -1,8 +1,8 @@
 #include "path.h"
 #include "ground.h"
-#include <QDebug>
+#include <iostream>
 
-Path::Path(QString file) {
+Path::Path(std::string file) {
   // load the heightmap picture
   image = QImage(file);
   // init the size of the loaded picture

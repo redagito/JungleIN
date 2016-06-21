@@ -1,10 +1,13 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
-#include <QStringList>
-#include <GL/glew.h>
-#include "../core/texture.h"
-#include "shader.h"
+#include <vector>
+#include <string>
+
+#include <flextGL.h>
+
+#include "core/texture.h"
+#include "render/shader.h"
 
 /*!
  * FrameBuffer
@@ -13,7 +16,7 @@
 class FrameBuffer {
 public:
   FrameBuffer(bool storeDepth = false);
-  FrameBuffer(QStringList textures, unsigned int _width = RT_SIZE_DEFAULT,
+  FrameBuffer(std::vector<std::string> textures, unsigned int _width = RT_SIZE_DEFAULT,
               unsigned int _height = RT_SIZE_DEFAULT, bool storeDepth = false);
   ~FrameBuffer();
 
@@ -28,7 +31,7 @@ public:
 
   unsigned int getAttachementFromIndex(unsigned int index);
 
-  Texture *getTexture(QString name);
+  Texture *getTexture(std::string name);
   unsigned int getWidth();
   unsigned int getHeight();
 
@@ -43,8 +46,8 @@ protected:
   bool hasDepth;
   unsigned int depthBuffer;
 
-  QStringList texturesNames;
-  QList<Texture *> textures;
+  std::vector<std::string> texturesNames;
+  std::vector<Texture *> textures;
 
   unsigned int size;
   unsigned int *drawBuffers;

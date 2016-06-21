@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-#include <QDebug>
+#include <iostream>
 #include <QImage>
 #include <QGLWidget>
 
@@ -164,7 +164,7 @@ void Mesh::clearInstances() {
 
 Instance *Mesh::getInstance(int id) { return instances.at(id); }
 
-QList<Instance *> &Mesh::getInstances() { return instances; }
+std::vector<Instance *> &Mesh::getInstances() { return instances; }
 
 float Mesh::getScaleRdn() { return scaleRdn; }
 

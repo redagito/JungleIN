@@ -1,5 +1,8 @@
 #include "texture.h"
 
+#include <iostream>
+#include <lodepng.h>
+
 const unsigned int Texture::LINEAR = GL_LINEAR;
 const unsigned int Texture::NEAREST = GL_NEAREST;
 const unsigned int Texture::MIPMAP = GL_LINEAR_MIPMAP_LINEAR;
@@ -17,7 +20,7 @@ Texture::Texture() {
   globalFormat = GL_RGBA;
 }
 
-Texture::Texture(QString path, unsigned int _index) {
+Texture::Texture(std::string path, unsigned int _index) {
   load(path);
   gluid = 0;
   glunit = unitFromIndex(_index);
@@ -43,12 +46,14 @@ Texture::Texture(unsigned int _index) {
 
 Texture::~Texture() { glDeleteTextures(1, &gluid); }
 
-void Texture::load(QString path) {
-  image = QGLWidget::convertToGLFormat(QImage(path));
-  height = image.height();
-  width = image.width();
+bool Texture::load(std::string path) {
+	if (lodepng::decode(image, width, height, path) != 0) {
+		std::cout << "Failed to load " << path << std::endl;
+		return false;
+	}
   format = GL_RGBA;
   hasImage = true;
+  return true;
 }
 
 void Texture::setupForFramebuffer(unsigned int _width, unsigned int _height,
@@ -74,17 +79,19 @@ void Texture::init() {
 
   if (hasImage) {
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
-                 GL_UNSIGNED_BYTE, image.bits());
+                 GL_UNSIGNED_BYTE, image.data());
 
-    if (minFilter == Texture::MIPMAP)
-      glGenerateMipmap(GL_TEXTURE_2D);
+	if (minFilter == Texture::MIPMAP) {
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    if (Utils::USE_ANISO)
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                      Utils::MAX_ANISO);
+	if (Utils::USE_ANISO) {
+		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+		//	Utils::MAX_ANISO);
+	}
   } else {
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
                  GL_UNSIGNED_BYTE, NULL);
@@ -111,11 +118,13 @@ void Texture::bind() {
 }
 
 void Texture::update() {
-  if (Utils::USE_ANISO)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                    Utils::MAX_ANISO);
-  else
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0);
+	if (Utils::USE_ANISO) {
+		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+		//	Utils::MAX_ANISO);
+	}
+  else {
+    //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0);
+  }
 }
 
 void Texture::resize(unsigned int _width, unsigned int _height) {

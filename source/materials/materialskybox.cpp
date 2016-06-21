@@ -1,5 +1,5 @@
 #include "materialskybox.h"
-#include <QDebug>
+#include <iostream>
 
 MaterialSkyBox::MaterialSkyBox(TextureCube *textureCube)
     : Material("rt_skybox") {

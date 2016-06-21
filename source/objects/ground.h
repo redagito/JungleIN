@@ -1,13 +1,13 @@
 #ifndef GROUND_H
 #define GROUND_H
 
-#include <QImage>
 #include <math.h>
 
-#include "../materials/materialground.h"
+#include "materials/materialground.h"
 #include "math/vector3.h"
 #include "mesh.h"
 #include "path.h"
+#include "core/Image.h"
 
 class Ground : public Mesh {
 
@@ -16,10 +16,10 @@ private:
   int numberVerticesZ;
   Vector3 *normals;
   Path *path;
-  QList<Vector3 *> rockPos;
+  std::vector<Vector3 *> rockPos;
 
 public:
-  Ground(QString path, MaterialGround *mat);
+  Ground(std::string path, MaterialGround *mat);
   ~Ground();
 
   void setVectorToFloat(Vector3 normals, float *normalsF, int i);
@@ -31,7 +31,7 @@ public:
   float getYApprox(float x, float z, float prevY);
   Vector3 randomMapPos(double height = 0, bool isRock = false);
   bool containInBoundingBox(double x, double z);
-  QList<Vector3 *> getRockPos();
+  std::vector<Vector3 *> getRockPos();
   void removeRockPos();
 
   static const float MAP_SIZE;

@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "../helpers/utils.h"
-#include <QDebug>
+#include <iostream>
 
 MainWindow::MainWindow() {
   Utils::MAIN = this;

@@ -1,7 +1,9 @@
 #ifndef SHADERLIBRARY_H
 #define SHADERLIBRARY_H
 
-#include <QHash>
+#include <unordered_map>
+#include <string>
+
 #include "shader.h"
 
 /*!
@@ -12,13 +14,13 @@
  */
 class ShaderLibrary {
 public:
-  static Shader *getShader(QString name);
-  static Shader *addShader(QString name, QString shaderPrefix,
-                           QStringList attributes, QStringList uniforms);
+  static Shader *getShader(std::string name);
+  static Shader *addShader(std::string name, std::string shaderPrefix,
+                           std::vector<std::string> attributes, std::vector<std::string> uniforms);
   static void clear();
 
 private:
-  static QHash<QString, Shader *> shaders;
+  static std::unordered_map<std::string, Shader *> shaders;
 };
 
 #endif // SHADERLIBRARY_H

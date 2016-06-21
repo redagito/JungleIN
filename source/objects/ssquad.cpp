@@ -1,5 +1,5 @@
 #include "ssquad.h"
-#include <GL/glew.h>
+#include <flextGL.h>
 
 SSQuad::SSQuad() { vbuffer = 0; }
 

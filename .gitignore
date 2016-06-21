@@ -1,0 +1,11 @@
+/CMakeFiles
+/junglein.dir
+/Win32
+/.vs
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+/CMakeCache.txt
+/cmake_install.cmake
+/junglein.sdf
+/junglein.sln

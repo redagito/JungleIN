@@ -1,7 +1,7 @@
 #include "material.h"
 #include "../render/shaderlibrary.h"
 
-Material::Material(QString shader) {
+Material::Material(std::string shader) {
   this->shader = ShaderLibrary::getShader(shader);
 }
 

@@ -1,8 +1,8 @@
 #include "camera.h"
-#include <QDebug>
+#include <iostream>
 #include <cmath>
 
-#define DEG_TO_RAD M_PI / 180.0
+#define DEG_TO_RAD 3.141592653 / 180.0
 
 Camera::Camera() : Object3D() {
   leftKey = false;

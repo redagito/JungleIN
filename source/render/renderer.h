@@ -62,7 +62,6 @@ private:
   void transmitNormalMatrix();
   void transmitViewMatrix();
 
-  QElapsedTimer timer;
   float delta;
   bool active;
 

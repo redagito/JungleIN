@@ -1,7 +1,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "../render/shader.h"
+#include "render/shader.h"
 
 /*!
  * Material
@@ -11,7 +11,7 @@
  */
 class Material {
 public:
-  Material(QString shader);
+  Material(std::string shader);
   Material(Shader *shader);
 
   Shader *getShader();

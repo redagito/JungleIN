@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "../objects/mesh.h"
+#include "objects/mesh.h"
 
 class ObjLoader {
 public:

@@ -1,21 +1,33 @@
 #include "geometry.h"
 
+#include <cstring>
+
 #include <flextGL.h>
 
 const unsigned int Geometry::TRIANGLES = GL_TRIANGLES;
 const unsigned int Geometry::QUADS = GL_QUADS;
 const unsigned int Geometry::POINTS = GL_POINTS;
 
-Geometry::Geometry(float *vertices, int *indices, int nbVertices, int nbIndices)
-    : verticesTab(0), indicesTab(0), texCoordsTab(0), normalsTab(0) {
-  verticesTab = new float[nbVertices];
-  indicesTab = new int[nbIndices];
+Geometry::Geometry(float* vertices, int* indices, int numVertices, int numIndices) {
+	verticesTab = std::vector<float>(&vertices[0], &vertices[numVertices]);
+	indicesTab = std::vector<unsigned int>(&indices[0], &indices[numIndices]);
 
-  memcpy(verticesTab, vertices, nbVertices * sizeof(float));
-  memcpy(indicesTab, indices, nbIndices * sizeof(int));
+	verticesCount = numVertices;
+	indicesCount = numIndices;
 
-  this->verticesCount = nbVertices;
-  this->indicesCount = nbIndices;
+	hNormals = false;
+	hTexCoords = false;
+
+	primitive = Geometry::TRIANGLES;
+}
+
+Geometry::Geometry(std::vector<float> vertices, std::vector<unsigned int> indices)
+{
+	verticesTab = vertices;
+  indicesTab = indices;
+
+  verticesCount = vertices.size();
+  indicesCount = indices.size();
 
   hNormals = false;
   hTexCoords = false;
@@ -23,13 +35,13 @@ Geometry::Geometry(float *vertices, int *indices, int nbVertices, int nbIndices)
   primitive = Geometry::TRIANGLES;
 }
 
-float *Geometry::getVertices() { return verticesTab; }
+float *Geometry::getVertices() { return verticesTab.data(); }
 
-int *Geometry::getIndices() { return indicesTab; }
+unsigned int *Geometry::getIndices() { return indicesTab.data(); }
 
-float *Geometry::getTexCoords() { return texCoordsTab; }
+float *Geometry::getTexCoords() { return texCoordsTab.data(); }
 
-float *Geometry::getNormals() { return normalsTab; }
+float *Geometry::getNormals() { return normalsTab.data(); }
 
 int Geometry::getVerticesCount() { return verticesCount; }
 
@@ -37,16 +49,25 @@ int Geometry::getIndicesCount() { return indicesCount; }
 
 int Geometry::getTexCoordsCount() { return texCoordsCount; }
 
-void Geometry::setTexCoords(float *texCoords) {
-  texCoordsCount = this->verticesCount / 3 * 2;
-  texCoordsTab = new float[texCoordsCount];
-  memcpy(texCoordsTab, texCoords, texCoordsCount * sizeof(float));
+void Geometry::setTexCoords(float* texCoords) {
+	texCoordsCount = verticesCount / 3 * 2;
+	texCoordsTab = std::vector<float>(&texCoords[0], &texCoords[verticesCount / 3 * 2]);
+	hTexCoords = true;
+}
+
+void Geometry::setNormals(float* normals) {
+	normalsTab = std::vector<float>(&normals[0], &normals[verticesCount]);
+	hNormals = true;
+}
+
+void Geometry::setTexCoords(std::vector<float> texCoords) {
+	texCoordsCount = texCoords.size();
+  texCoordsTab = texCoords;
   hTexCoords = true;
 }
 
-void Geometry::setNormals(float *normals) {
-  normalsTab = new float[verticesCount];
-  memcpy(normalsTab, normals, verticesCount * sizeof(float));
+void Geometry::setNormals(std::vector<float> normals) {
+	normalsTab = normals;
   hNormals = true;
 }
 

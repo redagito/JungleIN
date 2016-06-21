@@ -1,13 +1,13 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <GL/glew.h>
+#include <flextGL.h>
 #include <QGLWidget>
 
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QMessageBox>
-#include <QDebug>
+#include <iostream>
 #include <QSound>
 
 #include "../helpers/utils.h"

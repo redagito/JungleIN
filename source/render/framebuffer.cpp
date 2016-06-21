@@ -1,25 +1,25 @@
 #include "framebuffer.h"
 
-#include <GL/glew.h>
-#include <QDebug>
+#include <flextGL.h>
+#include <iostream>
 
 const int FrameBuffer::RT_SIZE_DEFAULT = 1024;
 
 FrameBuffer::FrameBuffer(bool storeDepth) {
   uid = 0;
   hasDepth = storeDepth;
-  texturesNames = QStringList();
-  textures = QList<Texture *>();
+  texturesNames = std::vector<std::string>();
+  textures = std::vector<Texture *>();
   width = FrameBuffer::RT_SIZE_DEFAULT;
   height = FrameBuffer::RT_SIZE_DEFAULT;
 }
 
-FrameBuffer::FrameBuffer(QStringList targets, unsigned int _width,
+FrameBuffer::FrameBuffer(std::vector<std::string> targets, unsigned int _width,
                          unsigned int _height, bool storeDepth) {
   uid = 0;
   hasDepth = storeDepth;
   texturesNames = targets;
-  textures = QList<Texture *>();
+  textures = std::vector<Texture *>();
   width = _width;
   height = _height;
 }
@@ -138,7 +138,7 @@ unsigned int FrameBuffer::getAttachementFromIndex(unsigned int index) {
   }
 }
 
-Texture *FrameBuffer::getTexture(QString name) {
+Texture *FrameBuffer::getTexture(std::string name) {
   return textures.at(texturesNames.indexOf(name));
 }
 

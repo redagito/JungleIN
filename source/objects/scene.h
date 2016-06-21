@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include <QList>
+#include <vector>
 #include "mesh.h"
 #include "sun.h"
 #include "camera.h"
@@ -12,9 +12,9 @@ class Scene : public Object3D {
 public:
   Scene();
 
-  QList<Mesh *> getMeshes();
+  std::vector<Mesh *> getMeshes();
   Sun *getSun();
-  QList<Camera *> getCameras();
+  std::vector<Camera *> getCameras();
   SkyBox *getSky();
   Ground *getGround();
 
@@ -45,9 +45,9 @@ public:
   const Vector3 &getCameraZ();
 
 private:
-  QList<Mesh *> meshes;
+  std::vector<Mesh *> meshes;
   Sun *sun;
-  QList<Camera *> cameras;
+  std::vector<Camera *> cameras;
   SkyBox *sky;
   Ground *ground;
 

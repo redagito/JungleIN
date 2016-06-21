@@ -2,8 +2,8 @@
 
 #include "shaderlibrary.h"
 #include "../helpers/utils.h"
-#include <GL/glew.h>
-#include <QDebug>
+#include <flextGL.h>
+#include <iostream>
 
 PostComposer::PostComposer(FrameBuffer *inputFBO) {
   width = inputFBO->getWidth();
@@ -17,17 +17,17 @@ PostComposer::PostComposer(FrameBuffer *inputFBO) {
 
   inputBuffer = inputFBO;
   readBuffer =
-      new FrameBuffer(QStringList() << "texScene", width, height, false);
+      new FrameBuffer(std::vector<std::string>() << "texScene", width, height, false);
   readBuffer->init(0, true);
   writeBuffer =
-      new FrameBuffer(QStringList() << "texScene", width, height, false);
+      new FrameBuffer(std::vector<std::string>() << "texScene", width, height, false);
   writeBuffer->init(0, true);
   readHalfBuffer =
-      new FrameBuffer(QStringList() << "texScene", width / halfBuffersRatio,
+      new FrameBuffer(std::vector<std::string>() << "texScene", width / halfBuffersRatio,
                       height / halfBuffersRatio, false);
   readHalfBuffer->init(1, true);
   writeHalfBuffer =
-      new FrameBuffer(QStringList() << "texScene", width / halfBuffersRatio,
+      new FrameBuffer(std::vector<std::string>() << "texScene", width / halfBuffersRatio,
                       height / halfBuffersRatio, false);
   writeHalfBuffer->init(1, true);
 

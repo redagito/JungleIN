@@ -1,5 +1,5 @@
 #include "materialbasic.h"
-#include <QDebug>
+#include <iostream>
 
 MaterialBasic::MaterialBasic(const Vector3 &_color) : Material("rt_basic") {
   color.copy(_color);

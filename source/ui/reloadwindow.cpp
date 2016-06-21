@@ -1,5 +1,5 @@
 #include "reloadwindow.h"
-#include <QDebug>
+#include <iostream>
 
 ReloadWindow::ReloadWindow() {
   this->density = SceneBuilder::NB_INSTANCE;

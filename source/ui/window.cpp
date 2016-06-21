@@ -28,7 +28,7 @@ void Window::initializeGL() {
     QMessageBox::critical(
         this, "Erreur",
         "Echec de l'initialization de GLEW: " +
-            QString(reinterpret_cast<const char *>(glewGetErrorString(error))));
+            std::string(reinterpret_cast<const char *>(glewGetErrorString(error))));
     exit(-1);
   }
 

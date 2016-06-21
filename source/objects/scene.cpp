@@ -26,11 +26,11 @@ void Scene::update(float delta) {
   sun->update(cameraPostion, cameraZ);
 }
 
-QList<Mesh *> Scene::getMeshes() { return meshes; }
+std::vector<Mesh *> Scene::getMeshes() { return meshes; }
 
 Sun *Scene::getSun() { return sun; }
 
-QList<Camera *> Scene::getCameras() { return cameras; }
+std::vector<Camera *> Scene::getCameras() { return cameras; }
 
 SkyBox *Scene::getSky() { return sky; }
 

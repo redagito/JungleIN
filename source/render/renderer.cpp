@@ -36,7 +36,7 @@ void Renderer::init(Scene *_scene, unsigned int w, unsigned int h) {
   width = w;
   height = h;
 
-  mainFBO = new FrameBuffer(QStringList() << "texScene"
+  mainFBO = new FrameBuffer(std::vector<std::string>() << "texScene"
                                           << "texThreshold",
                             w, h, true);
   mainFBO->init(0, true);
@@ -393,11 +393,11 @@ void Renderer::setRatio(float r) {
 }
 
 void Renderer::loadShaders() {
-  ShaderLibrary::addShader("rt_basic", "shaders/rt_basic", QStringList()
+  ShaderLibrary::addShader("rt_basic", "shaders/rt_basic", std::vector<std::string>()
                                                                << "position"
                                                                << "normal"
                                                                << "texcoord",
-                           QStringList() << "mvp"
+                           std::vector<std::string>() << "mvp"
                                          << "normalMatrix"
                                          << "viewMatrix"
                                          << "lightDir"
@@ -411,17 +411,17 @@ void Renderer::loadShaders() {
                                          << "shadowMatrixCascade"
                                          << "cascadeShadow");
 
-  ShaderLibrary::addShader("rt_sun", "shaders/rt_sun", QStringList()
+  ShaderLibrary::addShader("rt_sun", "shaders/rt_sun", std::vector<std::string>()
                                                            << "position"
                                                            << "texcoord",
-                           QStringList() << "mvp"
+                           std::vector<std::string>() << "mvp"
                                          << "texDiffuse"
                                          << "texAlpha");
 
-  ShaderLibrary::addShader("rt_ground", "shaders/rt_ground", QStringList()
+  ShaderLibrary::addShader("rt_ground", "shaders/rt_ground", std::vector<std::string>()
                                                                  << "position"
                                                                  << "normal",
-                           QStringList() << "mvp"
+                           std::vector<std::string>() << "mvp"
                                          << "normalMatrix"
                                          << "viewMatrix"
                                          << "lightDir"
@@ -441,84 +441,84 @@ void Renderer::loadShaders() {
                                          << "shadowMatrixCascade"
                                          << "cascadeShadow");
 
-  ShaderLibrary::addShader("rt_shadow", "shaders/rt_shadow", QStringList()
+  ShaderLibrary::addShader("rt_shadow", "shaders/rt_shadow", std::vector<std::string>()
                                                                  << "position"
                                                                  << "texcoord",
-                           QStringList() << "mvp"
+                           std::vector<std::string>() << "mvp"
                                          << "texAlpha"
                                          << "useAlpha");
 
   ShaderLibrary::addShader("rt_skybox", "shaders/rt_skybox",
-                           QStringList() << "position",
-                           QStringList() << "mvp"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "mvp"
                                          << "texCube");
 
   ShaderLibrary::addShader("ss_compose", "shaders/ss_compose",
-                           QStringList() << "position",
-                           QStringList() << "texScene");
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene");
 
   ShaderLibrary::addShader("ss_display", "shaders/ss_display",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "gammaRGB"
                                          << "aspect");
 
   ShaderLibrary::addShader("ss_fxaa", "shaders/ss_fxaa",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "resolution");
 
   ShaderLibrary::addShader("ss_lenseflare_p1", "shaders/ss_lenseflare_p1",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "flareThreshold");
 
   ShaderLibrary::addShader("ss_lenseflare_p2", "shaders/ss_lenseflare_p2",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "flareSamples"
                                          << "flareDispersal"
                                          << "flareHaloWidth"
                                          << "flareChromaDispertion");
 
   ShaderLibrary::addShader("ss_lenseflare_p3", "shaders/ss_lenseflare_p3",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "texFlare"
                                          << "texDirt"
                                          << "flareIntensity");
 
   ShaderLibrary::addShader("ss_blur_linearh", "shaders/ss_blur_linearh",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "resolution");
 
   ShaderLibrary::addShader("ss_blur_linearv", "shaders/ss_blur_linearv",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "resolution");
 
   ShaderLibrary::addShader("ss_distortion", "shaders/ss_distortion",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "resolution");
 
   ShaderLibrary::addShader("ss_godrays_p1", "shaders/ss_godrays_p1",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "lightPos");
 
   ShaderLibrary::addShader("ss_godrays_p2", "shaders/ss_godrays_p2",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "texGodrays");
 
   ShaderLibrary::addShader("ss_bloom_p1", "shaders/ss_bloom_p1",
-                           QStringList() << "position",
-                           QStringList() << "texScene");
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene");
 
   ShaderLibrary::addShader("ss_bloom_p2", "shaders/ss_bloom_p2",
-                           QStringList() << "position",
-                           QStringList() << "texScene"
+                           std::vector<std::string>() << "position",
+                           std::vector<std::string>() << "texScene"
                                          << "texBloom");
 }

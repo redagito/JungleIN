@@ -1,4 +1,4 @@
-#include <QDebug>
+#include <iostream>
 
 #include "ground.h"
 #include <cmath>
@@ -9,7 +9,7 @@ float Ground::MAP_MIN = -120.0;
 float Ground::MAP_MAX = 120.0;
 const float Ground::MAX_HEIGHT = 10.0;
 
-Ground::Ground(QString path, MaterialGround *mat) : Mesh(NULL, NULL) {
+Ground::Ground(std::string path, MaterialGround *mat) : Mesh(NULL, NULL) {
   this->path = new Path("resources/path/path.png");
 
   // temporary array initialized here, and then given to a Geometry
@@ -316,7 +316,7 @@ bool Ground::containInBoundingBox(double x, double z) {
   return false;
 }
 
-QList<Vector3 *> Ground::getRockPos() { return this->rockPos; }
+std::vector<Vector3 *> Ground::getRockPos() { return this->rockPos; }
 
 void Ground::removeRockPos() {
   foreach (Vector3 *v, rockPos)

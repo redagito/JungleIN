@@ -5,7 +5,7 @@
 
 class ShadowBuffer : public FrameBuffer {
 public:
-  ShadowBuffer(QString texname, int width, int height);
+  ShadowBuffer(std::string texname, int width, int height);
   void init(unsigned int textureUnitOffset = 0);
 };
 

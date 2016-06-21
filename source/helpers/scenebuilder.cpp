@@ -260,7 +260,7 @@ void SceneBuilder::reloadGo(int density, int spacing) {
   Ground::MAP_MIN = -spacing;
   scene2->setRenderAble(false);
 
-  foreach (Mesh *mesh, scene2->getMeshes()) {
+  for (Mesh *mesh : scene2->getMeshes()) {
     if (mesh->getInstanceType() != Mesh::INSTANCE_NONE) {
       mesh->clearInstances();
       createInstances(mesh, ground2, density * mesh->getPourcentage());

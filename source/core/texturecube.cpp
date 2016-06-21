@@ -1,11 +1,11 @@
 #include "texturecube.h"
 
-#include <QDebug>
+#include <iostream>
 
 /*!
  * Pathes order : px, nx, py, ny, pz, nz
  */
-TextureCube::TextureCube(QString texDir, QString ext, unsigned int _index,
+TextureCube::TextureCube(std::string texDir, std::string ext, unsigned int _index,
                          unsigned int _size) {
   gluid = 0;
   glunit = Texture::unitFromIndex(_index);
@@ -19,18 +19,19 @@ TextureCube::~TextureCube() {
   images.clear();
 }
 
-void TextureCube::load(QString texDir, QString ext) {
-  images.append(QGLWidget::convertToGLFormat(QImage(texDir + "px" + ext)));
-  images.append(QGLWidget::convertToGLFormat(QImage(texDir + "nx" + ext)));
-  images.append(QGLWidget::convertToGLFormat(QImage(texDir + "py" + ext)));
-  images.append(QGLWidget::convertToGLFormat(QImage(texDir + "ny" + ext)));
-  images.append(QGLWidget::convertToGLFormat(QImage(texDir + "pz" + ext)));
-  images.append(QGLWidget::convertToGLFormat(QImage(texDir + "nz" + ext)));
+bool TextureCube::load(std::string texDir, std::string ext) {
+	images.push_back(Image(texDir + "px" + ext));
+	images.push_back(Image(texDir + "nx" + ext));
+	images.push_back(Image(texDir + "py" + ext));
+	images.push_back(Image(texDir + "ny" + ext));
+	images.push_back(Image(texDir + "pz" + ext));
+	images.push_back(Image(texDir + "nz" + ext));
+	return true;
 }
 
 void TextureCube::init() {
   if (images.size() != 6) {
-    qDebug() << "Incomplete cube map textures.";
+    std::cout << "Incomplete cube map textures." << std::endl;
     return;
   }
 
@@ -47,17 +48,17 @@ void TextureCube::init() {
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
   glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, size, size, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, images.at(0).bits());
+               GL_RGBA, GL_UNSIGNED_BYTE, images.at(0).getData());
   glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, size, size, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, images.at(1).bits());
+               GL_RGBA, GL_UNSIGNED_BYTE, images.at(1).getData());
   glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, size, size, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, images.at(2).bits());
+               GL_RGBA, GL_UNSIGNED_BYTE, images.at(2).getData());
   glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, size, size, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, images.at(3).bits());
+               GL_RGBA, GL_UNSIGNED_BYTE, images.at(3).getData());
   glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, size, size, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, images.at(4).bits());
+               GL_RGBA, GL_UNSIGNED_BYTE, images.at(4).getData());
   glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, size, size, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, images.at(5).bits());
+               GL_RGBA, GL_UNSIGNED_BYTE, images.at(5).getData());
 }
 
 void TextureCube::bind() {

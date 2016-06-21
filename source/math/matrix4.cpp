@@ -1,7 +1,7 @@
 
 
 #include "matrix4.h"
-#include <QDebug>
+#include <iostream>
 #include <cmath>
 #include <limits>
 
