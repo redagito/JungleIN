@@ -7,7 +7,6 @@
 Camera::Camera() : Object3D() {
   leftKey = false;
   rightKey = false;
-  ;
   upKey = false;
   downKey = false;
 
@@ -36,7 +35,7 @@ void Camera::reset() {
   yaw = 0.0;
   pitch = 0.0;
   position.set(0, 6, -1);
-  qDebug() << "Reset Camera";
+  std::cout << "Reset Camera" << std::endl;
 }
 
 void Camera::setPerspective(float fov, float ratio, float near, float far) {

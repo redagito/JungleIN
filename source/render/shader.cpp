@@ -20,7 +20,8 @@ Shader::~Shader() {
   delete[] fragment;
 }
 
-Shader &Shader::load(std::string shaderPrefix, std::vector<std::string> attributes,
+Shader &Shader::load(std::string shaderPrefix,
+                     std::vector<std::string> attributes,
                      std::vector<std::string> uniforms) {
   ;
   vertex = Utils::getFileContent(shaderPrefix + ".vs");
@@ -34,7 +35,7 @@ Shader &Shader::load(std::string shaderPrefix, std::vector<std::string> attribut
 
 Shader &Shader::setup() {
   if (vertex == NULL || fragment == NULL) {
-	  std::cout << "Error: Unable to load shader " << name << std::endl;
+    std::cout << "Error: Unable to load shader " << name << std::endl;
     exit(-1);
   }
 
@@ -51,8 +52,9 @@ Shader &Shader::setup() {
   if (status != GL_TRUE) {
     glGetShaderiv(vshader, GL_INFO_LOG_LENGTH, &logSize);
     glGetShaderInfoLog(vshader, logSize, &logSize, log);
-	std::cout << "Error: Unable to compile vertex shader of " << name << std::endl;
-	std::cout << log << std::endl;
+    std::cout << "Error: Unable to compile vertex shader of " << name
+              << std::endl;
+    std::cout << log << std::endl;
     exit(-1);
   }
   glAttachShader(pProgram, vshader);
@@ -63,8 +65,9 @@ Shader &Shader::setup() {
   if (status != GL_TRUE) {
     glGetShaderiv(fshader, GL_INFO_LOG_LENGTH, &logSize);
     glGetShaderInfoLog(fshader, logSize, &logSize, log);
-	std::cout << "Error: Unable to compile fragment shader of " << name << std::endl;
-	std::cout << log << std::endl;
+    std::cout << "Error: Unable to compile fragment shader of " << name
+              << std::endl;
+    std::cout << log << std::endl;
     exit(-1);
   }
   glAttachShader(pProgram, fshader);
@@ -74,8 +77,9 @@ Shader &Shader::setup() {
   if (status != GL_TRUE) {
     glGetProgramiv(pProgram, GL_INFO_LOG_LENGTH, &logSize);
     glGetProgramInfoLog(pProgram, logSize, &logSize, log);
-	std::cout << "Error: Unable to link program shader of " << name << std::endl;
-	std::cout << log << std::endl;
+    std::cout << "Error: Unable to link program shader of " << name
+              << std::endl;
+    std::cout << log << std::endl;
     exit(-1);
   }
 
@@ -84,15 +88,17 @@ Shader &Shader::setup() {
   return *this;
 }
 
-Shader &Shader::setupLocations(std::vector<std::string> _attributes, std::vector<std::string> _uniforms) {
+Shader &Shader::setupLocations(std::vector<std::string> _attributes,
+                               std::vector<std::string> _uniforms) {
   bind();
 
-  foreach (std::string attribute, _attributes)
-    attributes.insert(attribute, glGetAttribLocation(uid, attribute.toAscii()));
+  for (std::string attribute : _attributes) {
+    attributes[attribute] = glGetAttribLocation(uid, attribute.c_str());
+  }
 
-  foreach (std::string uniform, _uniforms)
-    uniforms.insert(uniform, glGetUniformLocation(uid, uniform.toAscii()));
-
+  for (std::string uniform : _uniforms) {
+    uniforms[uniform] = glGetUniformLocation(uid, uniform.c_str());
+  }
   return *this;
 }
 
@@ -104,50 +110,52 @@ Shader &Shader::bind() {
 
 std::string &Shader::getName() { return name; }
 
-unsigned int Shader::attribute(std::string name) { return attributes.value(name); }
+unsigned int Shader::attribute(std::string name) { return attributes.at(name); }
 
-unsigned int Shader::uniform(std::string name) { return uniforms.value(name); }
+unsigned int Shader::uniform(std::string name) { return uniforms.at(name); }
 
-bool Shader::hasAttribute(std::string name) { return attributes.contains(name); }
+bool Shader::hasAttribute(std::string name) {
+  return attributes.count(name) != 0;
+}
 
-bool Shader::hasUniform(std::string name) { return uniforms.contains(name); }
+bool Shader::hasUniform(std::string name) { return uniforms.count(name) != 0; }
 
 void Shader::transmitUniform(std::string name, const Texture *tex) {
-  glUniform1i(uniforms.value(name, -1), tex->index);
+  glUniform1i(value(uniforms, name, -1), tex->index);
 }
 
 void Shader::transmitUniform(std::string name, const TextureCube *tex) {
-  glUniform1i(uniforms.value(name, -1), tex->index);
+  glUniform1i(value(uniforms, name, -1), tex->index);
 }
 
 void Shader::transmitUniform(std::string name, int i) {
-  glUniform1i(uniforms.value(name, -1), i);
+  glUniform1i(value(uniforms, name, -1), i);
 }
 
 void Shader::transmitUniform(std::string name, float f) {
-  glUniform1f(uniforms.value(name, -1), f);
+  glUniform1f(value(uniforms, name, -1), f);
 }
 
 void Shader::transmitUniform(std::string name, float f1, float f2) {
-  glUniform2f(uniforms.value(name, -1), f1, f2);
+  glUniform2f(value(uniforms, name, -1), f1, f2);
 }
 
 void Shader::transmitUniform(std::string name, float f1, float f2, float f3) {
-  glUniform3f(uniforms.value(name, -1), f1, f2, f3);
+  glUniform3f(value(uniforms, name, -1), f1, f2, f3);
 }
 
 void Shader::transmitUniform(std::string name, const Vector3 &vec3) {
-  glUniform3f(uniforms.value(name, -1), vec3.x, vec3.y, vec3.z);
+  glUniform3f(value(uniforms, name, -1), vec3.x, vec3.y, vec3.z);
 }
 
 void Shader::transmitUniform(std::string name, const Matrix3 &mat3) {
-  glUniformMatrix3fv(uniforms.value(name, -1), 1, GL_TRUE, mat3.array);
+  glUniformMatrix3fv(value(uniforms, name, -1), 1, GL_TRUE, mat3.array);
 }
 
 void Shader::transmitUniform(std::string name, const Matrix4 &mat4) {
-  glUniformMatrix4fv(uniforms.value(name, -1), 1, GL_TRUE, mat4.array);
+  glUniformMatrix4fv(value(uniforms, name, -1), 1, GL_TRUE, mat4.array);
 }
 
 void Shader::transmitUniform(std::string name, bool b) {
-  glUniform1i(uniforms.value(name, -1), b ? 1 : 0);
+  glUniform1i(value(uniforms, name, -1), b ? 1 : 0);
 }

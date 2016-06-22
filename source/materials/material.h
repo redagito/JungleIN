@@ -5,14 +5,15 @@
 
 /*!
  * Material
- * Un material correspond à un shader et contient une structure d'attributs pour
- * stocker ses paramètres.
+ * Un material correspond ï¿½ un shader et contient une structure d'attributs pour
+ * stocker ses paramï¿½tres.
  * @abstract
  */
 class Material {
 public:
   Material(std::string shader);
   Material(Shader *shader);
+  virtual ~Material() {}
 
   Shader *getShader();
 

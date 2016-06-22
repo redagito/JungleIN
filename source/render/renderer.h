@@ -62,6 +62,7 @@ private:
   void transmitNormalMatrix();
   void transmitViewMatrix();
 
+  Timer timer;
   float delta;
   bool active;
 

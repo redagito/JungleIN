@@ -30,11 +30,11 @@ public:
   void setSky(SkyBox *sky);
   void setGround(Ground *ground);
 
-  void removeMesh(Mesh *mesh);
-  void removeCamera(Camera *camera);
+  // void removeMesh(Mesh *mesh);
+  // void removeCamera(Camera *camera);
 
-  void removeMeshAt(int index);
-  void removeCameraAt(int index);
+  // void removeMeshAt(int index);
+  // void removeCameraAt(int index);
 
   void update(float delta);
   void init();

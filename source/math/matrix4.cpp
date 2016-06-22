@@ -1,6 +1,7 @@
 
 
 #include "matrix4.h"
+
 #include <iostream>
 #include <cmath>
 #include <limits>
@@ -481,9 +482,10 @@ Matrix4 &Matrix4::zero() {
 void Matrix4::log() {
   for (int idx = 0; idx < 4; idx++) {
     for (int idy = 0; idy < 4; idy++) {
-      qDebug() << data[idx][idy] << "\t";
+      std::cout << data[idx][idy] << "\t";
     }
-    qDebug() << "--\n";
+    std::cout << std::endl;
+    std::cout << "--" << std::endl;
   }
 }
 

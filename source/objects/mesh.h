@@ -10,7 +10,7 @@
 
 /*!
  * Mesh extends Object3D
- * Un object 3D contenant une géométrie et un matérial.
+ * Un object 3D contenant une gï¿½omï¿½trie et un matï¿½rial.
  */
 class Mesh : public Object3D {
 public:
@@ -29,7 +29,7 @@ public:
   bool castsShadows();
 
   Instance *newInstance();
-  void removeInstance(int id);
+  // void removeInstance(int id);
   void clearInstances();
   Instance *getInstance(int id);
   std::vector<Instance *> &getInstances();

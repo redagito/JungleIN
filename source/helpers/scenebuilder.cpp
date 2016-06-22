@@ -6,8 +6,8 @@ int SceneBuilder::NB_INSTANCE = 1400;
 
 Scene *SceneBuilder::build() {
   Camera *camera = new Camera();
-  camera->setMouse(QCursor::pos().x(), QCursor::pos().y());
-  camera->setMouse(QCursor::pos().x(), QCursor::pos().y());
+  // camera->setMouse(QCursor::pos().x(), QCursor::pos().y());
+  camera->setMouse(0, 0);
   camera->reset();
 
   SkyBox *skyBox = new SkyBox(

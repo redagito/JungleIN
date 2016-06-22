@@ -15,17 +15,19 @@
  * Shader
  * Stock un glProgram (vertex+fragment).
  * Utiliser bind pour utiliser le shader lors du rendu.
- * Utiliser attribute(string) et uniform(string) pour accéder aux locations.
+ * Utiliser attribute(string) et uniform(string) pour accï¿½der aux locations.
  */
 class Shader {
 public:
   Shader(std::string name);
   ~Shader();
 
-  Shader &load(std::string shader, std::vector<std::string> attributes, std::vector<std::string> uniforms);
+  Shader &load(std::string shader, std::vector<std::string> attributes,
+               std::vector<std::string> uniforms);
   Shader &bind();
   Shader &setup();
-  Shader &setupLocations(std::vector<std::string> _attributes, std::vector<std::string> _uniforms);
+  Shader &setupLocations(std::vector<std::string> _attributes,
+                         std::vector<std::string> _uniforms);
 
   std::string &getName();
 
@@ -47,13 +49,13 @@ public:
   void transmitUniform(std::string name, bool b);
 
 private:
-	std::string name;
+  std::string name;
   unsigned int uid;
   const char *vertex;
   const char *fragment;
 
-  std::unordered_map<std::string, unsigned int> attributes;
-  std::unordered_map<std::string, unsigned int> uniforms;
+  std::unordered_map<std::string, int> attributes;
+  std::unordered_map<std::string, int> uniforms;
 };
 
 #endif // SHADER_H

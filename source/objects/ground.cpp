@@ -20,10 +20,10 @@ Ground::Ground(std::string path, MaterialGround *mat) : Mesh(NULL, NULL) {
   int i = 0;
 
   // load the heightmap picture
-  QImage img = QImage(path);
+  Image img(path);
   // init the size of the loaded picture
-  this->numberVerticesX = img.width();
-  this->numberVerticesZ = img.height();
+  this->numberVerticesX = img.getWidth();
+  this->numberVerticesZ = img.getHeight();
 
   // init the array's sizes
   verticesTab = new float[this->numberVerticesX * this->numberVerticesZ * 3];
@@ -54,10 +54,11 @@ Ground::Ground(std::string path, MaterialGround *mat) : Mesh(NULL, NULL) {
           (std::sqrt(curx * curx + cury * cury) / maxlen) * poolIntensity;
 
       // get the color of the pixel
-      QRgb color = img.pixel(x, z);
+      auto color = img.getPixel(x, z);
       // the (0,0,0) point is at the center of the map
       verticesTab[i] = (MAP_SIZE * x / (numberVerticesX - 1)) - MAP_SIZE / 2;
-      verticesTab[i + 1] = MAX_HEIGHT * poolEffect * qGray(color) / 255;
+      verticesTab[i + 1] =
+          MAX_HEIGHT * poolEffect * ((color.r + color.g + color.b) / 3) / 255;
       verticesTab[i + 2] =
           (MAP_SIZE * z / (numberVerticesZ - 1)) - MAP_SIZE / 2;
 
@@ -299,7 +300,7 @@ Vector3 Ground::randomMapPos(double height, bool isRock) {
            samples-- > 0);
 
   if (isRock)
-    rockPos.append(new Vector3(x, 0, z));
+    rockPos.push_back(new Vector3(x, 0, z));
 
   double y = getY(x, z) + height;
   return Vector3(x, y, z);
@@ -307,7 +308,7 @@ Vector3 Ground::randomMapPos(double height, bool isRock) {
 
 bool Ground::containInBoundingBox(double x, double z) {
 
-  foreach (Vector3 *rock, this->rockPos) {
+  for (Vector3 *rock : this->rockPos) {
     if ((rock->x - x) * (rock->x - x) + (rock->z - z) * (rock->z - z) < 40) {
       return true;
     }
@@ -319,8 +320,9 @@ bool Ground::containInBoundingBox(double x, double z) {
 std::vector<Vector3 *> Ground::getRockPos() { return this->rockPos; }
 
 void Ground::removeRockPos() {
-  foreach (Vector3 *v, rockPos)
+  for (Vector3 *v : rockPos) {
     delete v;
+  }
   rockPos.clear();
 }
 

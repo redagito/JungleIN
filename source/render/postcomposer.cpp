@@ -1,7 +1,8 @@
 #include "postcomposer.h"
 
 #include "shaderlibrary.h"
-#include "../helpers/utils.h"
+#include "helpers/utils.h"
+
 #include <flextGL.h>
 #include <iostream>
 
@@ -16,19 +17,19 @@ PostComposer::PostComposer(FrameBuffer *inputFBO) {
   halfBuffersRatio = 2;
 
   inputBuffer = inputFBO;
-  readBuffer =
-      new FrameBuffer(std::vector<std::string>() << "texScene", width, height, false);
+  readBuffer = new FrameBuffer(std::vector<std::string>() << "texScene", width,
+                               height, false);
   readBuffer->init(0, true);
-  writeBuffer =
-      new FrameBuffer(std::vector<std::string>() << "texScene", width, height, false);
+  writeBuffer = new FrameBuffer(std::vector<std::string>() << "texScene", width,
+                                height, false);
   writeBuffer->init(0, true);
-  readHalfBuffer =
-      new FrameBuffer(std::vector<std::string>() << "texScene", width / halfBuffersRatio,
-                      height / halfBuffersRatio, false);
+  readHalfBuffer = new FrameBuffer(std::vector<std::string>() << "texScene",
+                                   width / halfBuffersRatio,
+                                   height / halfBuffersRatio, false);
   readHalfBuffer->init(1, true);
-  writeHalfBuffer =
-      new FrameBuffer(std::vector<std::string>() << "texScene", width / halfBuffersRatio,
-                      height / halfBuffersRatio, false);
+  writeHalfBuffer = new FrameBuffer(std::vector<std::string>() << "texScene",
+                                    width / halfBuffersRatio,
+                                    height / halfBuffersRatio, false);
   writeHalfBuffer->init(1, true);
 
   quad = new SSQuad();

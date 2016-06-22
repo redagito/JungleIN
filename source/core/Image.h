@@ -3,20 +3,28 @@
 #include <string>
 #include <vector>
 
-class Image
-{
+class Image {
 public:
-	Image();
-	Image(const std::string& file);
-	bool load(const std::string& path);
+  struct RGBA {
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+    unsigned char a;
+  };
 
-	const unsigned char* getData() const;
+  Image();
+  Image(const std::string &file);
+  bool load(const std::string &path);
 
-	unsigned int getWidth() const;
-	unsigned int getHeight() const;
+  const unsigned char *getData() const;
+
+  unsigned int getWidth() const;
+  unsigned int getHeight() const;
+
+  RGBA getPixel(unsigned x, unsigned y) const;
 
 private:
-	unsigned int m_width = 0;
-	unsigned int m_height = 0;
-	std::vector<unsigned char> m_data;
+  unsigned int m_width = 0;
+  unsigned int m_height = 0;
+  std::vector<unsigned char> m_data;
 };

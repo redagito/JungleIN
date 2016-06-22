@@ -1,8 +1,8 @@
 #include "mesh.h"
 
 #include <iostream>
-#include <QImage>
-#include <QGLWidget>
+
+#include "core/Image.h"
 
 const unsigned int Mesh::INSTANCE_NONE = 0;
 const unsigned int Mesh::INSTANCE_PALM = 1;
@@ -46,8 +46,9 @@ void Mesh::initVBO() {
   glGenBuffers(1, &indices);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, nbI * sizeof(int), 0, GL_STATIC_DRAW);
-  int *ind = (int *)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-  int *indData = this->getGeometry()->getIndices();
+  unsigned int *ind =
+      (unsigned int *)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+  unsigned int *indData = this->getGeometry()->getIndices();
   for (int i = 0; i < nbI; i++) {
     ind[i] = indData[i];
   }
@@ -127,7 +128,7 @@ void Mesh::debugDrawWithVBO() {
   glBindBuffer(GL_ARRAY_BUFFER, vertices);
   glVertexAttribPointer(locVertices, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-  glDrawArrays(GL_POINTS, NULL, geometry->getIndicesCount());
+  glDrawArrays(GL_POINTS, 0, geometry->getIndicesCount());
 
   glDisableVertexAttribArray(locVertices);
 }
@@ -142,23 +143,24 @@ bool Mesh::castsShadows() { return castShadows; }
 
 Instance *Mesh::newInstance() {
   Instance *instance = new Instance(this, instances.size());
-  instances.append(instance);
+  instances.push_back(instance);
 
   return instance;
 }
 
-void Mesh::removeInstance(int id) {
-  Instance *instance = instances.at(id);
-  if (instance == 0)
-    return;
-
-  delete instance;
-  instances.removeAt(id);
-}
+// void Mesh::removeInstance(int id) {
+//  Instance *instance = instances.at(id);
+//  if (instance == 0)
+//    return;
+//
+//  delete instance;
+//  instances.removeAt(id);
+//}
 
 void Mesh::clearInstances() {
-  foreach (Instance *i, instances)
+  for (Instance *i : instances) {
     delete i;
+  }
   instances.clear();
 }
 
@@ -173,8 +175,9 @@ void Mesh::setScaleRdn(float sRdn) { this->scaleRdn = sRdn; }
 float Mesh::getHeightRdn() { return this->heightRdn; }
 
 Mesh::~Mesh() {
-  foreach (Instance *i, instances)
+  for (Instance *i : instances) {
     delete i;
+  }
 
   instances.clear();
 

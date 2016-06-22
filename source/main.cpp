@@ -3,6 +3,8 @@
 #include <flextGL.h>
 #include <GLFW/glfw3.h>
 
+#include "helpers/utils.h"
+
 int main(int argc, char *argv[]) {
   if (!glfwInit()) {
     std::cout << "Failed to initialize GLFW." << std::endl;
@@ -36,6 +38,7 @@ int main(int argc, char *argv[]) {
   }
 
   glfwShowWindow(window);
+  Utils::window = window;
 
   while (glfwWindowShouldClose(window) == 0) {
     glfwPollEvents();

@@ -5,7 +5,7 @@ ShadowBuffer::ShadowBuffer(std::string texname, int width, int height) {
   this->height = height;
   uid = 0;
   texturesNames = std::vector<std::string>();
-  texturesNames.append(texname);
+  texturesNames.push_back(texname);
   textures = std::vector<Texture *>();
 }
 
@@ -27,7 +27,7 @@ void ShadowBuffer::init(unsigned int textureUnitOffset) {
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                          tex->gluid, 0);
 
-  textures.append(tex);
+  textures.push_back(tex);
 
   drawBuffers[0] = GL_NONE;
 

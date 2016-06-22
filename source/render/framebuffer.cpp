@@ -1,7 +1,9 @@
 #include "framebuffer.h"
 
-#include <flextGL.h>
 #include <iostream>
+#include <flextGL.h>
+
+#include "helpers/utils.h"
 
 const int FrameBuffer::RT_SIZE_DEFAULT = 1024;
 
@@ -25,8 +27,9 @@ FrameBuffer::FrameBuffer(std::vector<std::string> targets, unsigned int _width,
 }
 
 FrameBuffer::~FrameBuffer() {
-  foreach (Texture *tex, textures)
+  for (Texture *tex : textures) {
     delete tex;
+  }
   textures.clear();
 
   delete drawBuffers;
@@ -42,7 +45,7 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 
   int bcount = texturesNames.size() + (hasDepth ? 1 : 0);
   if (bcount <= 0) {
-    qDebug() << "Empty framebuffer.";
+    std::cout << "Empty framebuffer." << std::endl;
     return;
   } else {
     size = bcount;
@@ -74,7 +77,7 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
       glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D,
                              tex->gluid, 0);
 
-      textures.append(tex);
+      textures.push_back(tex);
       drawBuffers[bcount++] = attachment;
     }
   }
@@ -99,8 +102,9 @@ void FrameBuffer::resize(unsigned int _width, unsigned int _height) {
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
   }
 
-  foreach (Texture *tex, textures)
+  for (Texture *tex : textures) {
     tex->resize(width, height);
+  }
 }
 
 void FrameBuffer::resizeViewport() { glViewport(0, 0, width, height); }
@@ -139,7 +143,7 @@ unsigned int FrameBuffer::getAttachementFromIndex(unsigned int index) {
 }
 
 Texture *FrameBuffer::getTexture(std::string name) {
-  return textures.at(texturesNames.indexOf(name));
+  return textures.at(indexOf(texturesNames, name));
 }
 
 unsigned int FrameBuffer::getWidth() { return width; }
