@@ -1,5 +1,9 @@
 #include "renderer.h"
 
+#include <iostream>
+
+#include "Debug.h"
+
 #define MAX_SHADOW_WIDTH_1 2048
 #define MAX_SHADOW_WIDTH_0 2048
 
@@ -32,6 +36,7 @@ Renderer::Renderer() {
 
 void Renderer::init(Scene *_scene, unsigned int w, unsigned int h) {
   shadowMat = new MaterialShadow();
+  PRINT_GL_ERROR();
 
   width = w;
   height = h;
@@ -39,17 +44,24 @@ void Renderer::init(Scene *_scene, unsigned int w, unsigned int h) {
   mainFBO = new FrameBuffer(std::vector<std::string>() << "texScene"
                                                        << "texThreshold",
                             w, h, true);
+  PRINT_GL_ERROR();
   mainFBO->init(0, true);
+  PRINT_GL_ERROR();
 
   shadowFBO =
       new ShadowBuffer("texShadow", MAX_SHADOW_WIDTH_1, MAX_SHADOW_WIDTH_1);
+  PRINT_GL_ERROR();
   shadowFBO->init(7);
+  PRINT_GL_ERROR();
 
   shadowFBOCascade = new ShadowBuffer("texShadowCascade", MAX_SHADOW_WIDTH_1,
                                       MAX_SHADOW_WIDTH_1);
+  PRINT_GL_ERROR();
   shadowFBOCascade->init(8);
+  PRINT_GL_ERROR();
 
   postComposer = new PostComposer(mainFBO);
+  PRINT_GL_ERROR();
 
   scene = _scene;
   __camera = scene->getCurrentCamera();
@@ -61,6 +73,7 @@ void Renderer::init(Scene *_scene, unsigned int w, unsigned int h) {
   matrixView = __camera->getMatrix();
   matrixModel.identity();
   xform.push(matrixModel);
+  PRINT_GL_ERROR();
 }
 
 void Renderer::start() {
@@ -71,6 +84,7 @@ void Renderer::start() {
 void Renderer::stop() { active = false; }
 
 void Renderer::render() {
+	PRINT_GL_ERROR();
   // t.start();
 
   if (!active || !scene->getRenderAble())
@@ -79,22 +93,31 @@ void Renderer::render() {
   delta = timer.restart() / Utils::TARGET_FPS;
 
   scene->update(delta);
+  PRINT_GL_ERROR();
   __lightDir = __sun->getLight()->getDirection();
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  PRINT_GL_ERROR();
   glClearDepth(1.0f);
+  PRINT_GL_ERROR();
 
   renderShadow();
+  PRINT_GL_ERROR();
 
   mainFBO->bind();
+  PRINT_GL_ERROR();
   mainFBO->resizeViewport();
+  PRINT_GL_ERROR();
   mainFBO->clear();
+  PRINT_GL_ERROR();
 
   matrixProj = __camera->getProjection();
   matrixView = __camera->getMatrix();
 
   drawSky();
+  PRINT_GL_ERROR();
   drawSun();
+  PRINT_GL_ERROR();
 
   // matrixProj = __sun->getLight()->getProjMatrix();
   // matrixView = __sun->getLight()->getViewMatrix();
@@ -102,18 +125,24 @@ void Renderer::render() {
   pushMatrix(scene->getMatrix());
 
   drawGround();
+  PRINT_GL_ERROR();
+
   drawMeshes();
+  PRINT_GL_ERROR();
 
   popMatrix();
 
   mainFBO->unbind();
+  PRINT_GL_ERROR();
 
   postComposer->render();
+  PRINT_GL_ERROR();
 
   Texture::needsUpdate = false;
 
   Utils::calculFPS();
-
+  PRINT_GL_ERROR();
+  
   // postComposer->debugQuad(shadowFBOCascade->getTexture("texShadowCascade"));
 }
 

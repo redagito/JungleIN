@@ -1,10 +1,10 @@
-
-
 #include "matrix4.h"
 
 #include <iostream>
 #include <cmath>
 #include <limits>
+
+#include "math/Math.h"
 
 Matrix4::Matrix4() { identity(); }
 
@@ -64,7 +64,7 @@ Matrix4 &Matrix4::lookAt(const Vector3 &eye, const Vector3 &target,
 
   z = (target - eye).normalize();
   if (z.isZero())
-    z.z = 0.1;
+    z.z = 0.1f;
 
   x.cross(z, up).normalize();
   y.cross(x, z).normalize();
@@ -122,7 +122,7 @@ Matrix4 &Matrix4::lookAt2(const Vector3 &eye, const Vector3 &target,
 
 Matrix4 &Matrix4::setPerspective(float fov, float ratio, float near,
                                  float far) {
-  float thetaY = 0.5f * (M_PI * fov / 180.0f);
+  float thetaY = 0.5f * (Pi * fov / 180.0f);
   float tanThetaY = std::tan(thetaY);
   float tanThetaX = tanThetaY * ratio;
   float halfW = tanThetaX * near;
@@ -190,7 +190,7 @@ Matrix4 &Matrix4::setOrthogonal(float left, float right, float top,
 Matrix4 &Matrix4::setRotationMatrix(float angle, const Vector3 &xyz) {
   float x = xyz.x, y = xyz.y, z = xyz.z;
 
-  float rAngle = M_PI * angle / 180.0f;
+  float rAngle = Pi * angle / 180.0f;
   float c = std::cos(rAngle);
   float s = std::sin(rAngle);
 

@@ -2,10 +2,12 @@
 
 #include <cmath>
 
+#include "math/Math.h"
+
 #define SUN_ANGLE_STEP 0.001
-#define SUN_YAW_OFFSET M_PI / 10.0
+#define SUN_YAW_OFFSET Pi / 10.0
 #define SUN_YAW_START -SUN_YAW_OFFSET
-#define SUN_YAW_END M_PI + SUN_YAW_OFFSET
+#define SUN_YAW_END Pi + SUN_YAW_OFFSET
 
 Sun::Sun(MaterialSun *mat) : Mesh() {
   geometry = Geometries::quad(2.0);
@@ -14,7 +16,7 @@ Sun::Sun(MaterialSun *mat) : Mesh() {
   lightDistance = 150.0;
   lightTargetOffset = 13;
   sunDistance = 6.0;
-  yaw = M_PI / 3.0;
+  yaw = Pi / 3.0;
   speed = 0.0;
 }
 

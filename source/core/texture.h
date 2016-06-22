@@ -31,7 +31,7 @@ public:
   bool load(std::string path);
   void resize(unsigned int _width, unsigned int _height);
 
-  void setFilters(unsigned int min, unsigned int mag);
+  void setFilters(GLint min, GLint mag);
 
   static void resetUnit(int textureUnitOffset = 0);
   static Texture fromNextUnit();
@@ -48,10 +48,6 @@ public:
 
   static bool needsUpdate;
 
-  static const unsigned int LINEAR;
-  static const unsigned int NEAREST;
-  static const unsigned int MIPMAP;
-
 private:
   static unsigned int unitCount;
   static float borderColor[];
@@ -61,8 +57,8 @@ private:
   bool hasImage;
   unsigned int height;
   unsigned int width;
-  unsigned int minFilter;
-  unsigned int magFilter;
+  GLint minFilter = GL_LINEAR;
+  GLint magFilter = GL_LINEAR;
   unsigned int format;
   unsigned int globalFormat;
 };

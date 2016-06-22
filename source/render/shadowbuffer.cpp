@@ -21,7 +21,7 @@ void ShadowBuffer::init(unsigned int textureUnitOffset) {
   Texture *tex = Texture::newFromNextUnit();
   tex->setupForFramebuffer(width, height, GL_DEPTH_COMPONENT,
                            GL_DEPTH_COMPONENT);
-  tex->setFilters(Texture::LINEAR, Texture::LINEAR);
+  tex->setFilters(GL_LINEAR, GL_LINEAR);
   tex->init();
   tex->bind();
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,

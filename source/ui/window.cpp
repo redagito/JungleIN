@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #include "helpers/utils.h"
+#include "render/Debug.h"
 
 void APIENTRY errorCallback(GLenum source, GLenum type, GLuint id,
                             GLenum severity, GLsizei length,
@@ -34,6 +35,7 @@ void Window::run() {
     glfwPollEvents();
 
     paintGL();
+	PRINT_GL_ERROR();
 
     glfwSwapBuffers(Utils::window);
   }
@@ -73,8 +75,11 @@ void Window::initializeGL() {
     return;
   }
 
+  PRINT_GL_ERROR();
   glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+  PRINT_GL_ERROR();
   glDebugMessageCallback(&errorCallback, nullptr);
+  PRINT_GL_ERROR();
 
   Utils::window = window;
   glfwShowWindow(window);
@@ -92,18 +97,26 @@ void Window::initializeGL() {
   //  }
 
   initializeObjects();
+  PRINT_GL_ERROR();
 }
 
 void Window::initializeObjects() {
   renderer = new Renderer();
+  PRINT_GL_ERROR();
   renderer->loadShaders();
+  PRINT_GL_ERROR();
 
   scene = SceneBuilder::build();
+  PRINT_GL_ERROR();
   scene->init();
+  PRINT_GL_ERROR();
   scene->setRenderAble(true);
+  PRINT_GL_ERROR();
 
   renderer->init(scene, 1024, 768);
+  PRINT_GL_ERROR();
   renderer->start();
+  PRINT_GL_ERROR();
 }
 
 void Window::paintGL() { renderer->render(); }
@@ -171,6 +184,7 @@ void Window::resizeGL(int w, int h) { renderer->resize(w, h); }
 void Window::exQuality(int value) {
   Utils::QUALITY = value;
   renderer->getPostComposer()->resizeHalfBuffers();
+  PRINT_GL_ERROR();
 }
 
 void Window::exResetCamera() { scene->getCurrentCamera()->reset(); }

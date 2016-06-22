@@ -1,11 +1,14 @@
 #include "texture.h"
 
 #include <iostream>
+
 #include <lodepng.h>
 
-const unsigned int Texture::LINEAR = GL_LINEAR;
-const unsigned int Texture::NEAREST = GL_NEAREST;
-const unsigned int Texture::MIPMAP = GL_LINEAR_MIPMAP_LINEAR;
+#include "render/Debug.h"
+
+//const unsigned int Texture::LINEAR = GL_LINEAR;
+//const unsigned int Texture::NEAREST = GL_NEAREST;
+//const unsigned int Texture::MIPMAP = GL_LINEAR_MIPMAP_LINEAR;
 
 Texture::Texture() {
   height = 0;
@@ -67,26 +70,34 @@ void Texture::setupForFramebuffer(unsigned int _width, unsigned int _height,
   magFilter = GL_LINEAR;
 }
 
-void Texture::setFilters(unsigned int min, unsigned int mag) {
+void Texture::setFilters(GLint min, GLint mag) {
   minFilter = min;
   magFilter = mag;
 }
 
 void Texture::init() {
+	PRINT_GL_ERROR();
   glActiveTexture(glunit);
+  PRINT_GL_ERROR();
   glGenTextures(1, &gluid);
+  PRINT_GL_ERROR();
   glBindTexture(GL_TEXTURE_2D, gluid);
+  PRINT_GL_ERROR();
 
   if (hasImage) {
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
                  GL_UNSIGNED_BYTE, image.data());
+	PRINT_GL_ERROR();
 
-	if (minFilter == Texture::MIPMAP) {
+	if (minFilter == GL_LINEAR_MIPMAP_LINEAR) {
 		glGenerateMipmap(GL_TEXTURE_2D);
+		PRINT_GL_ERROR();
 	}
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	PRINT_GL_ERROR();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	PRINT_GL_ERROR();
 
 	if (Utils::USE_ANISO) {
 		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
@@ -95,18 +106,28 @@ void Texture::init() {
   } else {
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
                  GL_UNSIGNED_BYTE, NULL);
+	PRINT_GL_ERROR();
     if (format == GL_DEPTH_COMPONENT) {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	  PRINT_GL_ERROR();
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	  PRINT_GL_ERROR();
       glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	  PRINT_GL_ERROR();
     } else {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	  PRINT_GL_ERROR();
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	  PRINT_GL_ERROR();
       glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColorB);
+	  PRINT_GL_ERROR();
     }
   }
+  PRINT_GL_ERROR();
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+  PRINT_GL_ERROR();
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+  PRINT_GL_ERROR();
 }
 
 void Texture::bind() {
@@ -162,26 +183,5 @@ Texture Texture::fromNextUnit() { return Texture(unitCount++); }
 Texture *Texture::newFromNextUnit() { return new Texture(unitCount++); }
 
 unsigned int Texture::unitFromIndex(unsigned int index) {
-  switch (index) {
-  case 1:
-    return GL_TEXTURE1;
-  case 2:
-    return GL_TEXTURE2;
-  case 3:
-    return GL_TEXTURE3;
-  case 4:
-    return GL_TEXTURE4;
-  case 5:
-    return GL_TEXTURE5;
-  case 6:
-    return GL_TEXTURE6;
-  case 7:
-    return GL_TEXTURE7;
-  case 8:
-    return GL_TEXTURE8;
-  case 9:
-    return GL_TEXTURE9;
-  default:
-    return GL_TEXTURE0;
-  }
+	return GL_TEXTURE0 + index;
 }

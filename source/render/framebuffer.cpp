@@ -4,6 +4,7 @@
 #include <flextGL.h>
 
 #include "helpers/utils.h"
+#include "render/Debug.h"
 
 const int FrameBuffer::RT_SIZE_DEFAULT = 1024;
 
@@ -41,7 +42,9 @@ void FrameBuffer::clear() {
 
 void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
   glGenFramebuffers(1, &uid);
+  PRINT_GL_ERROR();
   glBindFramebuffer(GL_FRAMEBUFFER, uid);
+  PRINT_GL_ERROR();
 
   int bcount = texturesNames.size() + (hasDepth ? 1 : 0);
   if (bcount <= 0) {
@@ -56,15 +59,19 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 
   if (hasDepth) {
     glGenRenderbuffers(1, &depthBuffer);
+	PRINT_GL_ERROR();
     glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	PRINT_GL_ERROR();
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	PRINT_GL_ERROR();
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                               GL_RENDERBUFFER, depthBuffer);
+	PRINT_GL_ERROR();
   }
 
   if (texturesNames.size() > 0) {
     Texture::resetUnit(textureUnitOffset);
-    for (int i = 0; i < texturesNames.size(); ++i) {
+    for (size_t i = 0; i < texturesNames.size(); ++i) {
       Texture *tex = Texture::newFromNextUnit();
       tex->setupForFramebuffer(width, height, GL_RGB32F);
       if (linearFilter)
@@ -76,14 +83,18 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 
       glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D,
                              tex->gluid, 0);
+	  PRINT_GL_ERROR();
 
       textures.push_back(tex);
       drawBuffers[bcount++] = attachment;
     }
   }
+  PRINT_GL_ERROR();
 
   glDrawBuffers(size, drawBuffers);
+  PRINT_GL_ERROR();
   unbind();
+  PRINT_GL_ERROR();
 }
 
 void FrameBuffer::bind() {

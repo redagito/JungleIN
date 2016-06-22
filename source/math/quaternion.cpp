@@ -3,6 +3,8 @@
 #include <cmath>
 #include <limits>
 
+#include "math/Math.h"
+
 Quaternion::Quaternion(float x, float y, float z, float w) {
   this->x = x;
   this->y = y;
@@ -33,7 +35,7 @@ Quaternion &Quaternion::copy(const Quaternion &v) {
  * http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
  */
 Quaternion &Quaternion::setFromVector(const Vector3 &v) {
-  float c = M_PI / 360, x = v.x * c, y = v.y * c, z = v.z * c,
+  float c = Pi / 360, x = v.x * c, y = v.y * c, z = v.z * c,
 
         c1 = std::cos(y), s1 = std::sin(y), c2 = std::cos(-z),
         s2 = std::sin(-z), c3 = std::cos(x), s3 = std::sin(x),
