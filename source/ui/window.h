@@ -21,6 +21,8 @@ public:
   Window();
   ~Window();
 
+  void run();
+
   //  void keyPressEvent(QKeyEvent *event);
   //  void keyReleaseEvent(QKeyEvent *event);
   //

@@ -397,7 +397,7 @@ void Renderer::setRatio(float r) {
 }
 
 void Renderer::loadShaders() {
-  ShaderLibrary::addShader("rt_basic", "shaders/rt_basic",
+  ShaderLibrary::addShader("rt_basic", "data/shaders/rt_basic",
                            std::vector<std::string>() << "position"
                                                       << "normal"
                                                       << "texcoord",
@@ -415,14 +415,14 @@ void Renderer::loadShaders() {
                                                       << "shadowMatrixCascade"
                                                       << "cascadeShadow");
 
-  ShaderLibrary::addShader("rt_sun", "shaders/rt_sun",
+  ShaderLibrary::addShader("rt_sun", "data/shaders/rt_sun",
                            std::vector<std::string>() << "position"
                                                       << "texcoord",
                            std::vector<std::string>() << "mvp"
                                                       << "texDiffuse"
                                                       << "texAlpha");
 
-  ShaderLibrary::addShader("rt_ground", "shaders/rt_ground",
+  ShaderLibrary::addShader("rt_ground", "data/shaders/rt_ground",
                            std::vector<std::string>() << "position"
                                                       << "normal",
                            std::vector<std::string>() << "mvp"
@@ -445,39 +445,39 @@ void Renderer::loadShaders() {
                                                       << "shadowMatrixCascade"
                                                       << "cascadeShadow");
 
-  ShaderLibrary::addShader("rt_shadow", "shaders/rt_shadow",
+  ShaderLibrary::addShader("rt_shadow", "data/shaders/rt_shadow",
                            std::vector<std::string>() << "position"
                                                       << "texcoord",
                            std::vector<std::string>() << "mvp"
                                                       << "texAlpha"
                                                       << "useAlpha");
 
-  ShaderLibrary::addShader("rt_skybox", "shaders/rt_skybox",
+  ShaderLibrary::addShader("rt_skybox", "data/shaders/rt_skybox",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "mvp"
                                                       << "texCube");
 
-  ShaderLibrary::addShader("ss_compose", "shaders/ss_compose",
+  ShaderLibrary::addShader("ss_compose", "data/shaders/ss_compose",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene");
 
-  ShaderLibrary::addShader("ss_display", "shaders/ss_display",
+  ShaderLibrary::addShader("ss_display", "data/shaders/ss_display",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "gammaRGB"
                                                       << "aspect");
 
-  ShaderLibrary::addShader("ss_fxaa", "shaders/ss_fxaa",
+  ShaderLibrary::addShader("ss_fxaa", "data/shaders/ss_fxaa",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "resolution");
 
-  ShaderLibrary::addShader("ss_lenseflare_p1", "shaders/ss_lenseflare_p1",
+  ShaderLibrary::addShader("ss_lenseflare_p1", "data/shaders/ss_lenseflare_p1",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "flareThreshold");
 
-  ShaderLibrary::addShader("ss_lenseflare_p2", "shaders/ss_lenseflare_p2",
+  ShaderLibrary::addShader("ss_lenseflare_p2", "data/shaders/ss_lenseflare_p2",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>()
                                << "texScene"
@@ -486,43 +486,43 @@ void Renderer::loadShaders() {
                                << "flareHaloWidth"
                                << "flareChromaDispertion");
 
-  ShaderLibrary::addShader("ss_lenseflare_p3", "shaders/ss_lenseflare_p3",
+  ShaderLibrary::addShader("ss_lenseflare_p3", "data/shaders/ss_lenseflare_p3",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "texFlare"
                                                       << "texDirt"
                                                       << "flareIntensity");
 
-  ShaderLibrary::addShader("ss_blur_linearh", "shaders/ss_blur_linearh",
+  ShaderLibrary::addShader("ss_blur_linearh", "data/shaders/ss_blur_linearh",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "resolution");
 
-  ShaderLibrary::addShader("ss_blur_linearv", "shaders/ss_blur_linearv",
+  ShaderLibrary::addShader("ss_blur_linearv", "data/shaders/ss_blur_linearv",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "resolution");
 
-  ShaderLibrary::addShader("ss_distortion", "shaders/ss_distortion",
+  ShaderLibrary::addShader("ss_distortion", "data/shaders/ss_distortion",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "resolution");
 
-  ShaderLibrary::addShader("ss_godrays_p1", "shaders/ss_godrays_p1",
+  ShaderLibrary::addShader("ss_godrays_p1", "data/shaders/ss_godrays_p1",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "lightPos");
 
-  ShaderLibrary::addShader("ss_godrays_p2", "shaders/ss_godrays_p2",
+  ShaderLibrary::addShader("ss_godrays_p2", "data/shaders/ss_godrays_p2",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "texGodrays");
 
-  ShaderLibrary::addShader("ss_bloom_p1", "shaders/ss_bloom_p1",
+  ShaderLibrary::addShader("ss_bloom_p1", "data/shaders/ss_bloom_p1",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene");
 
-  ShaderLibrary::addShader("ss_bloom_p2", "shaders/ss_bloom_p2",
+  ShaderLibrary::addShader("ss_bloom_p2", "data/shaders/ss_bloom_p2",
                            std::vector<std::string>() << "position",
                            std::vector<std::string>() << "texScene"
                                                       << "texBloom");

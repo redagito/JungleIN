@@ -10,7 +10,7 @@ float Ground::MAP_MAX = 120.0;
 const float Ground::MAX_HEIGHT = 10.0;
 
 Ground::Ground(std::string path, MaterialGround *mat) : Mesh(NULL, NULL) {
-  this->path = new Path("resources/path/path.png");
+  this->path = new Path("data/resources/path/path.png");
 
   // temporary array initialized here, and then given to a Geometry
   float *verticesTab;
