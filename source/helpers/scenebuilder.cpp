@@ -18,10 +18,10 @@ Scene *SceneBuilder::build() {
   Texture::resetUnit();
   Texture *sunDiffuse = Texture::newFromNextUnit();
   Texture *sunAlpha = Texture::newFromNextUnit();
-  sunDiffuse->load("data/resources/maps/sun/sun_1k.jpg");
+  sunDiffuse->load("data/resources/maps/sun/sun_1k.png");
   sunDiffuse->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   sunDiffuse->init();
-  sunAlpha->load("data/resources/maps/sun/sun_1k_alpha.jpg");
+  sunAlpha->load("data/resources/maps/sun/sun_1k_alpha.png");
   sunAlpha->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   sunAlpha->init();
   MaterialSun *sunMat = new MaterialSun(sunDiffuse, sunAlpha);
@@ -33,13 +33,13 @@ Scene *SceneBuilder::build() {
   Texture *groundMoss = Texture::newFromNextUnit();
   Texture *groundEarth = Texture::newFromNextUnit();
   Texture *groundShatter = Texture::newFromNextUnit();
-  groundMoss->load("data/resources/maps/ground/moss.jpg");
+  groundMoss->load("data/resources/maps/ground/moss.png");
   groundMoss->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   groundMoss->init();
-  groundEarth->load("data/resources/maps/ground/earth.jpg");
+  groundEarth->load("data/resources/maps/ground/earth.png");
   groundEarth->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   groundEarth->init();
-  groundShatter->load("data/resources/maps/ground/shatter.jpg");
+  groundShatter->load("data/resources/maps/ground/shatter.png");
   groundShatter->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   groundShatter->init();
   // normals
@@ -67,10 +67,10 @@ Scene *SceneBuilder::build() {
   Texture *rock1Diffuse = Texture::newFromNextUnit();
   Texture *rock1Alpha = Texture::newFromNextUnit();
   Mesh *rock1 = ObjLoader::loadObj("data/resources/meshes/rock1/rock1.obj");
-  rock1Diffuse->load("data/resources/maps/rock1/rock1_1k.jpg");
+  rock1Diffuse->load("data/resources/maps/rock1/rock1_1k.png");
   rock1Diffuse->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   rock1Diffuse->init();
-  rock1Alpha->load("data/resources/maps/noalpha.jpg");
+  rock1Alpha->load("data/resources/maps/noalpha.png");
   rock1Alpha->setFilters(Texture::NEAREST, Texture::NEAREST);
   rock1Alpha->init();
   ((MaterialBasic *)(rock1->getMaterial()))->setDiffuse(rock1Diffuse);
@@ -91,10 +91,10 @@ Scene *SceneBuilder::build() {
   Texture *palmAlpha = Texture::newFromNextUnit();
   Mesh *palm =
       ObjLoader::loadObj("data/resources/meshes/palmtree/palmtree.obj");
-  palmDiffuse->load("data/resources/maps/palmtree/palmtree_1k.jpg");
+  palmDiffuse->load("data/resources/maps/palmtree/palmtree_1k.png");
   palmDiffuse->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   palmDiffuse->init();
-  palmAlpha->load("data/resources/maps/palmtree/palmtree_1k_alpha.jpg");
+  palmAlpha->load("data/resources/maps/palmtree/palmtree_1k_alpha.png");
   palmAlpha->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   palmAlpha->init();
   ((MaterialBasic *)(palm->getMaterial()))->setDiffuse(palmDiffuse);
@@ -115,10 +115,10 @@ Scene *SceneBuilder::build() {
   Texture *htreeAlpha = Texture::newFromNextUnit();
   Mesh *htree =
       ObjLoader::loadObj("data/resources/meshes/hightree/hightree.obj");
-  htreeDiffuse->load("data/resources/maps/hightree/hightree_1k.jpg");
+  htreeDiffuse->load("data/resources/maps/hightree/hightree_1k.png");
   htreeDiffuse->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   htreeDiffuse->init();
-  htreeAlpha->load("data/resources/maps/hightree/hightree_1k_alpha.jpg");
+  htreeAlpha->load("data/resources/maps/hightree/hightree_1k_alpha.png");
   htreeAlpha->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   htreeAlpha->init();
   ((MaterialBasic *)(htree->getMaterial()))->setDiffuse(htreeDiffuse);
@@ -139,10 +139,10 @@ Scene *SceneBuilder::build() {
   Texture *btreeAlpha = Texture::newFromNextUnit();
   Mesh *btree =
       ObjLoader::loadObj("data/resources/meshes/bamboopalm/bamboopalm.obj");
-  btreeDiffuse->load("data/resources/maps/bamboopalm/bamboopalm_1k.jpg");
+  btreeDiffuse->load("data/resources/maps/bamboopalm/bamboopalm_1k.png");
   btreeDiffuse->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   btreeDiffuse->init();
-  btreeAlpha->load("data/resources/maps/bamboopalm/bamboopalm_1k_alpha.jpg");
+  btreeAlpha->load("data/resources/maps/bamboopalm/bamboopalm_1k_alpha.png");
   btreeAlpha->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   btreeAlpha->init();
   ((MaterialBasic *)(btree->getMaterial()))->setDiffuse(btreeDiffuse);
@@ -163,10 +163,10 @@ Scene *SceneBuilder::build() {
   Texture *gpalmAlpha = Texture::newFromNextUnit();
   Mesh *gpalm =
       ObjLoader::loadObj("data/resources/meshes/groundpalm/groundpalm.obj");
-  gpalmDiffuse->load("data/resources/maps/groundpalm/groundpalm_1k.jpg");
+  gpalmDiffuse->load("data/resources/maps/groundpalm/groundpalm_1k.png");
   gpalmDiffuse->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   gpalmDiffuse->init();
-  gpalmAlpha->load("data/resources/maps/groundpalm/groundpalm_1k_alpha.jpg");
+  gpalmAlpha->load("data/resources/maps/groundpalm/groundpalm_1k_alpha.png");
   gpalmAlpha->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   gpalmAlpha->init();
   ((MaterialBasic *)(gpalm->getMaterial()))->setDiffuse(gpalmDiffuse);
@@ -186,10 +186,10 @@ Scene *SceneBuilder::build() {
   Texture* splant1Alpha = Texture::newFromNextUnit();
   Mesh* splant1 =
   ObjLoader::loadObj("data/resources/meshes/smallplant1/smallplant1.obj");
-  splant1Diffuse->load("data/resources/maps/smallplant1/smallplant1.jpg");
+  splant1Diffuse->load("data/resources/maps/smallplant1/smallplant1.png");
   splant1Diffuse->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   splant1Diffuse->init();
-  splant1Alpha->load("data/resources/maps/smallplant1/smallplant1_alpha.jpg");
+  splant1Alpha->load("data/resources/maps/smallplant1/smallplant1_alpha.png");
   splant1Alpha->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   splant1Alpha->init();
   ((MaterialBasic*)(splant1->getMaterial()))->setDiffuse(splant1Diffuse);
@@ -203,10 +203,10 @@ Scene *SceneBuilder::build() {
   Texture *bush1Diffuse = Texture::newFromNextUnit();
   Texture *bush1Alpha = Texture::newFromNextUnit();
   Mesh *bush1 = ObjLoader::loadObj("data/resources/meshes/bush1/bush1.obj");
-  bush1Diffuse->load("data/resources/maps/bush1/bush1_1k.jpg");
+  bush1Diffuse->load("data/resources/maps/bush1/bush1_1k.png");
   bush1Diffuse->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   bush1Diffuse->init();
-  bush1Alpha->load("data/resources/maps/bush1/bush1_1k_alpha.jpg");
+  bush1Alpha->load("data/resources/maps/bush1/bush1_1k_alpha.png");
   bush1Alpha->setFilters(Texture::MIPMAP, Texture::MIPMAP);
   bush1Alpha->init();
   ((MaterialBasic *)(bush1->getMaterial()))->setDiffuse(bush1Diffuse);

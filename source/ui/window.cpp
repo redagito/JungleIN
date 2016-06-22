@@ -7,6 +7,12 @@
 
 #include "helpers/utils.h"
 
+void APIENTRY errorCallback(GLenum source, GLenum type, GLuint id,
+                            GLenum severity, GLsizei length,
+                            const GLchar *message, const void *userParam) {
+  std::cout << "GL Error: " << (const char *)message << std::endl;
+}
+
 Window::Window() {
   //  startTimer(30);
   //  resize(1024, 768);
@@ -67,6 +73,9 @@ void Window::initializeGL() {
     return;
   }
 
+  glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+  glDebugMessageCallback(&errorCallback, nullptr);
+
   Utils::window = window;
   glfwShowWindow(window);
 
@@ -91,6 +100,7 @@ void Window::initializeObjects() {
 
   scene = SceneBuilder::build();
   scene->init();
+  scene->setRenderAble(true);
 
   renderer->init(scene, 1024, 768);
   renderer->start();
@@ -219,5 +229,6 @@ void Window::playBtn(bool active) {
 
 void Window::reGenerate() {
   ReloadWindow *test = new ReloadWindow();
+  test->reGenerate();
   // test->show();
 }

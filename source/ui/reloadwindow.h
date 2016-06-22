@@ -17,8 +17,8 @@ public:
   void reGenerate();
 
 private:
-  unsigned int density;
-  unsigned int spacing;
+  unsigned int density = 1000;
+  unsigned int spacing = 20;
 };
 
 #endif // RELOADWINDOW_H
