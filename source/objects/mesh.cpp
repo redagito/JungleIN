@@ -1,8 +1,10 @@
 #include "mesh.h"
 
 #include <iostream>
+#include <cassert>
 
 #include "core/Image.h"
+#include "render/Debug.h"
 
 const unsigned int Mesh::INSTANCE_NONE = 0;
 const unsigned int Mesh::INSTANCE_PALM = 1;
@@ -98,29 +100,50 @@ void Mesh::initVBO() {
 
 void Mesh::drawWithVBO() {
   glEnableVertexAttribArray(locVertices);
+  PRINT_GL_ERROR();
+
+  assert(vertices != 0);
   glBindBuffer(GL_ARRAY_BUFFER, vertices);
+  PRINT_GL_ERROR();
   glVertexAttribPointer(locVertices, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  PRINT_GL_ERROR();
 
   if (hasNormals) {
+    assert(normals != 0);
     glEnableVertexAttribArray(locNormals);
+    PRINT_GL_ERROR();
     glBindBuffer(GL_ARRAY_BUFFER, normals);
+    PRINT_GL_ERROR();
     glVertexAttribPointer(locNormals, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    PRINT_GL_ERROR();
   }
   if (hasTexCoords) {
+    assert(texcoords != 0);
     glEnableVertexAttribArray(locTexCoords);
+    PRINT_GL_ERROR();
     glBindBuffer(GL_ARRAY_BUFFER, texcoords);
+    PRINT_GL_ERROR();
     glVertexAttribPointer(locTexCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    PRINT_GL_ERROR();
   }
 
+  assert(indices != 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
+  PRINT_GL_ERROR();
   glDrawElements(geometry->getPrimitive(), geometry->getIndicesCount(),
                  GL_UNSIGNED_INT, 0);
+  PRINT_GL_ERROR();
 
   glDisableVertexAttribArray(locVertices);
-  if (hasNormals)
+  PRINT_GL_ERROR();
+  if (hasNormals) {
     glDisableVertexAttribArray(locNormals);
-  if (hasTexCoords)
+  }
+  PRINT_GL_ERROR();
+  if (hasTexCoords) {
     glDisableVertexAttribArray(locTexCoords);
+  }
+  PRINT_GL_ERROR();
 }
 
 void Mesh::debugDrawWithVBO() {

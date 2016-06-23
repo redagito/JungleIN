@@ -1,12 +1,14 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include <vector>
+
 #include "objects/object3d.h"
 #include "materials/material.h"
 #include "core/geometry.h"
 #include "instance.h"
 
-#include <vector>
+#include <flextGL.h>
 
 /*!
  * Mesh extends Object3D
@@ -59,13 +61,13 @@ protected:
   Geometry *geometry;
   Material *material;
 
-  unsigned int vertices;
-  unsigned int indices;
-  unsigned int normals;
-  unsigned int texcoords;
+  GLuint vertices = 0;
+  GLuint indices = 0;
+  GLuint normals = 0;
+  GLuint texcoords = 0;
 
-  bool hasNormals;
-  bool hasTexCoords;
+  bool hasNormals = false;
+  bool hasTexCoords = false;
 
   bool castShadows;
 

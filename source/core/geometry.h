@@ -3,18 +3,20 @@
 
 #include <vector>
 
+#include <flextGL.h>
+
 /*!
  * Geometry
- * Structure de données permettant de stocker les tableaux de vertices, indices,
+ * Structure de donnï¿½es permettant de stocker les tableaux de vertices, indices,
  * etc.
  */
 class Geometry {
 public:
-  static const unsigned int TRIANGLES;
-  static const unsigned int QUADS;
-  static const unsigned int POINTS;
+  //  static const unsigned int TRIANGLES;
+  //  static const unsigned int QUADS;
+  //  static const unsigned int POINTS;
 
-  Geometry(float* vertices, int* indices, int numVertices, int numIndices);
+  Geometry(float *vertices, int *indices, int numVertices, int numIndices);
   Geometry(std::vector<float> vertices, std::vector<unsigned int> indices);
 
   float *getVertices();
@@ -26,32 +28,32 @@ public:
   int getIndicesCount();
   int getTexCoordsCount();
 
-  void setTexCoords(float* texCoords);
-  void setNormals(float* normals);
+  void setTexCoords(float *texCoords);
+  void setNormals(float *normals);
 
   void setTexCoords(std::vector<float> texCoords);
   void setNormals(std::vector<float> normals);
 
-  void setPrimitive(unsigned int glenum);
-  unsigned int getPrimitive();
+  void setPrimitive(GLenum glenum);
+  GLenum getPrimitive();
 
   bool hasNormals();
   bool hasTexCoords();
 
 private:
-	std::vector<float> verticesTab;
-	std::vector<unsigned int> indicesTab;
+  std::vector<float> verticesTab;
+  std::vector<unsigned int> indicesTab;
   std::vector<float> texCoordsTab;
   std::vector<float> normalsTab;
 
-  unsigned int primitive;
+  GLenum primitive = GL_TRIANGLES;
 
   int verticesCount;
   int indicesCount;
   int texCoordsCount;
 
-  bool hNormals;
-  bool hTexCoords;
+  bool hNormals = false;
+  bool hTexCoords = false;
 };
 
 #endif // GEOMETRY_H

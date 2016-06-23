@@ -84,7 +84,7 @@ void Renderer::start() {
 void Renderer::stop() { active = false; }
 
 void Renderer::render() {
-	PRINT_GL_ERROR();
+  PRINT_GL_ERROR();
   // t.start();
 
   if (!active || !scene->getRenderAble())
@@ -142,7 +142,7 @@ void Renderer::render() {
 
   Utils::calculFPS();
   PRINT_GL_ERROR();
-  
+
   // postComposer->debugQuad(shadowFBOCascade->getTexture("texShadowCascade"));
 }
 
@@ -150,33 +150,48 @@ void Renderer::renderShadow() {
   shadowFBO->bind();
   shadowFBO->resizeViewport();
   shadowFBO->clear();
+  PRINT_GL_ERROR();
 
   matrixProj = __sun->getLight()->getProjMatrix();
   matrixView = __sun->getLight()->getViewMatrix();
+  PRINT_GL_ERROR();
 
   pushMatrix(scene->getMatrix());
+  PRINT_GL_ERROR();
 
   drawMeshesShadow();
+  PRINT_GL_ERROR();
 
   popMatrix();
+  PRINT_GL_ERROR();
 
   shadowFBO->unbind();
+  PRINT_GL_ERROR();
 
   if (useShadowCascade) {
     shadowFBOCascade->bind();
+    PRINT_GL_ERROR();
     shadowFBOCascade->resizeViewport();
+    PRINT_GL_ERROR();
     shadowFBOCascade->clear();
+    PRINT_GL_ERROR();
 
     matrixProj = __sun->getLight()->getProjMatrixCascade();
+    PRINT_GL_ERROR();
     matrixView = __sun->getLight()->getViewMatrix();
+    PRINT_GL_ERROR();
 
     pushMatrix(scene->getMatrix());
+    PRINT_GL_ERROR();
 
     drawMeshesShadow();
+    PRINT_GL_ERROR();
 
     popMatrix();
+    PRINT_GL_ERROR();
 
     shadowFBOCascade->unbind();
+    PRINT_GL_ERROR();
   }
 }
 
@@ -298,40 +313,59 @@ void Renderer::drawMeshes() {
 
 void Renderer::drawMeshesShadow() {
   for (Mesh *m : scene->getMeshes()) {
-    if (!m->castsShadows())
+    if (!m->castsShadows()) {
       continue;
+    }
 
     __material = shadowMat;
     __shader = __material->bind();
+    PRINT_GL_ERROR();
 
     if (((MaterialBasic *)m->getMaterial())->hasAlpha()) {
+      PRINT_GL_ERROR();
       Texture *alpha = ((MaterialBasic *)m->getMaterial())->getAlpha();
+      PRINT_GL_ERROR();
       alpha->bind();
+      PRINT_GL_ERROR();
       __shader->transmitUniform("texAlpha", alpha);
+      PRINT_GL_ERROR();
       __shader->transmitUniform("useAlpha", 1);
+      PRINT_GL_ERROR();
     } else {
       __shader->transmitUniform("useAlpha", 0);
+      PRINT_GL_ERROR();
     }
 
     pushMatrix(m->getMatrix());
+    PRINT_GL_ERROR();
     calcMVP();
+    PRINT_GL_ERROR();
     transmitMVP();
+    PRINT_GL_ERROR();
 
     m->drawWithVBO();
+    PRINT_GL_ERROR();
 
     popMatrix();
+    PRINT_GL_ERROR();
 
     for (Instance *i : m->getInstances()) {
-      if (cull(i, 2000))
+      if (cull(i, 2000)) {
         continue;
+      }
 
       pushMatrix(i->getMatrix());
+      PRINT_GL_ERROR();
       calcMVP();
+      PRINT_GL_ERROR();
       transmitMVP();
+      PRINT_GL_ERROR();
 
       m->drawWithVBO();
+      PRINT_GL_ERROR();
 
       popMatrix();
+      PRINT_GL_ERROR();
     }
   }
 }
