@@ -1,6 +1,33 @@
+# Refactor of the JungleIN project
+
+## Requirements
+
+Development is done with
+* Conan 2.x
+* CMake 3.27.x
+* Visual Studio 2022 Community Edition
+
+## Building
+
+Conan install for debug and release build types
+```
+conan install . --output-folder=build --build=missing --settings=build_type=Debug && conan install . --output-folder=build --build=missing --settings=build_type=Release
+```
+
+CMake project generation
+```
+cmake --preset conan-default
+```
+
+Build in release mode
+```
+cd build
+cmake --build . --config Release
+```
+
+# Original Readme
 JungleIN
 ========
-
 ![Splash](http://bkcore.com/orion/uploads/images/teaser.junglein.jpg)
 
 [Web page of the project](http://bkcore.com/blog/3d/opengl-jungle-viewer-source-utbm.html)
