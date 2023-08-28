@@ -1,8 +1,7 @@
-#ifndef OBJECT3D_H
-#define OBJECT3D_H
+#pragma once
 
-#include "../math/matrix4.h"
-#include "../math/vector3.h"
+#include "math/matrix4.h"
+#include "math/vector3.h"
 
 /*!
  * Object3D
@@ -41,8 +40,6 @@ protected:
   Vector3 position;
   Vector3 scale;
 
-  bool needUpdate;
-  bool visible;
+  bool needUpdate = false;
+  bool visible = false;
 };
-
-#endif // OBJECT3D_H

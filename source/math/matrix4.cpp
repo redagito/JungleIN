@@ -1,6 +1,6 @@
 #include "matrix4.h"
 
-#include <iostream>
+#include <fmtlog/fmtlog.h>
 #include <cmath>
 #include <limits>
 
@@ -477,16 +477,6 @@ Matrix4 &Matrix4::zero() {
   data[3][3] = 0.0f;
 
   return *this;
-}
-
-void Matrix4::log() {
-  for (int idx = 0; idx < 4; idx++) {
-    for (int idy = 0; idy < 4; idy++) {
-      std::cout << data[idx][idy] << "\t";
-    }
-    std::cout << std::endl;
-    std::cout << "--" << std::endl;
-  }
 }
 
 Vector3 Matrix4::operator*(const Vector3 vec3) const {

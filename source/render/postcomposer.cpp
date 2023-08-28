@@ -3,8 +3,7 @@
 #include "shaderlibrary.h"
 #include "helpers/utils.h"
 
-#include <flextGL.h>
-#include <iostream>
+#include <glad/glad.h>
 
 PostComposer::PostComposer(FrameBuffer *inputFBO) {
   width = inputFBO->getWidth();

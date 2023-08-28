@@ -1,9 +1,8 @@
-#ifndef GEOMETRY_H
-#define GEOMETRY_H
+#pragma once
 
 #include <vector>
 
-#include <flextGL.h>
+#include <glad/glad.h>
 
 /*!
  * Geometry
@@ -48,12 +47,10 @@ private:
 
   GLenum primitive = GL_TRIANGLES;
 
-  int verticesCount;
-  int indicesCount;
-  int texCoordsCount;
+  int verticesCount = 0;
+  int indicesCount = 0;
+  int texCoordsCount = 0;
 
   bool hNormals = false;
   bool hTexCoords = false;
 };
-
-#endif // GEOMETRY_H

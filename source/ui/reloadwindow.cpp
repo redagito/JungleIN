@@ -1,5 +1,5 @@
 #include "reloadwindow.h"
-#include <iostream>
+#include <fmtlog/fmtlog.h>
 
 ReloadWindow::ReloadWindow() {
   this->density = SceneBuilder::NB_INSTANCE;

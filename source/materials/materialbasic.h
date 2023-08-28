@@ -1,30 +1,28 @@
-#ifndef MATERIALBASIC_H
-#define MATERIALBASIC_H
+#pragma once
 
 #include "material.h"
 
-class MaterialBasic : public Material {
+class MaterialBasic : public Material
+{
 public:
-  MaterialBasic(const Vector3 &_color = Vector3());
+	MaterialBasic(const Vector3& _color = Vector3());
 
-  void setColor(const Vector3 &_color);
-  Vector3 &getColor();
+	void setColor(const Vector3& _color);
+	Vector3& getColor();
 
-  void setDiffuse(Texture *tex);
-  void setAlpha(Texture *tex);
+	void setDiffuse(Texture* tex);
+	void setAlpha(Texture* tex);
 
-  bool hasAlpha();
+	bool hasAlpha();
 
-  Texture *getAlpha();
+	Texture* getAlpha();
 
-  Shader *bind();
+	Shader* bind();
 
 protected:
-  Vector3 color;
-  Texture *diffuse;
-  Texture *alpha;
-  bool hDiffuse;
-  bool hAlpha;
+	Vector3 color;
+	Texture* diffuse = nullptr;
+	Texture* alpha = nullptr;
+	bool hDiffuse = false;
+	bool hAlpha = false;
 };
-
-#endif // MATERIALBASIC_H

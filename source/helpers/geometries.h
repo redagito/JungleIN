@@ -1,13 +1,11 @@
-#ifndef GEOMETRIES_H
-#define GEOMETRIES_H
+#pragma once
 
-#include "../core/geometry.h"
+#include "core/geometry.h"
 
-class Geometries {
+class Geometries
+{
 public:
-  static Geometry *cube(float size = 1.0);
-  static Geometry *quad(float size);
-  static Geometry *point();
+	static Geometry* cube(float size = 1.0);
+	static Geometry* quad(float size);
+	static Geometry* point();
 };
-
-#endif // GEOMETRIES_H

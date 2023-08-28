@@ -14,15 +14,15 @@ public:
   void setHeightRange(float f);
 
 protected:
-  float size;
-  float heightRange;
+  float size = 0.f;
+  float heightRange = 0.f;
 
-  Texture *moss;
-  Texture *earth;
-  Texture *shatter;
-  Texture *mossNormal;
-  Texture *earthNormal;
-  Texture *shatterNormal;
+  Texture *moss = nullptr;
+  Texture *earth = nullptr;
+  Texture *shatter = nullptr;
+  Texture *mossNormal = nullptr;
+  Texture *earthNormal = nullptr;
+  Texture *shatterNormal = nullptr;
 };
 
 #endif // MATERIALGROUND_H

@@ -1,122 +1,202 @@
 #include "window.h"
 
-#include <iostream>
+#include <sstream>
 
-#include <flextGL.h>
+#include <fmtlog/fmtlog.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "helpers/utils.h"
-#include "render/Debug.h"
 
-void APIENTRY errorCallback(GLenum source, GLenum type, GLuint id,
-                            GLenum severity, GLsizei length,
-                            const GLchar *message, const void *userParam) {
-  std::cout << "GL Error: " << (const char *)message << std::endl;
+static void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+	const GLchar* message, const void* userParam)
+{
+	// ignore non-significant error/warning codes
+	if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
+		return;
+
+	std::stringstream ss;
+	ss << "Debug message (" << id << "): " << message << std::endl;
+
+	switch (source)
+	{
+	case GL_DEBUG_SOURCE_API:
+		ss << "Source: API";
+		break;
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+		ss << "Source: Window System";
+		break;
+	case GL_DEBUG_SOURCE_SHADER_COMPILER:
+		ss << "Source: Shader Compiler";
+		break;
+	case GL_DEBUG_SOURCE_THIRD_PARTY:
+		ss << "Source: Third Party";
+		break;
+	case GL_DEBUG_SOURCE_APPLICATION:
+		ss << "Source: Application";
+		break;
+	case GL_DEBUG_SOURCE_OTHER:
+		ss << "Source: Other";
+		break;
+	}
+	ss << std::endl;
+
+	switch (type)
+	{
+	case GL_DEBUG_TYPE_ERROR:
+		ss << "Type: Error";
+		break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+		ss << "Type: Deprecated Behaviour";
+		break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+		ss << "Type: Undefined Behaviour";
+		break;
+	case GL_DEBUG_TYPE_PORTABILITY:
+		ss << "Type: Portability";
+		break;
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		ss << "Type: Performance";
+		break;
+	case GL_DEBUG_TYPE_MARKER:
+		ss << "Type: Marker";
+		break;
+	case GL_DEBUG_TYPE_PUSH_GROUP:
+		ss << "Type: Push Group";
+		break;
+	case GL_DEBUG_TYPE_POP_GROUP:
+		ss << "Type: Pop Group";
+		break;
+	case GL_DEBUG_TYPE_OTHER:
+		ss << "Type: Other";
+		break;
+	}
+	ss << std::endl;
+
+	switch (severity)
+	{
+	case GL_DEBUG_SEVERITY_HIGH:
+		ss << "Severity: high";
+		break;
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		ss << "Severity: medium";
+		break;
+	case GL_DEBUG_SEVERITY_LOW:
+		ss << "Severity: low";
+		break;
+	case GL_DEBUG_SEVERITY_NOTIFICATION:
+		ss << "Severity: notification";
+
+		break;
+	}
+	loge("{}", ss.str());
 }
 
 Window::Window() {
-  //  startTimer(30);
-  //  resize(1024, 768);
+	//  startTimer(30);
+	//  resize(1024, 768);
 
-  //  musique = new QSound("ambiant.wav");
-  //  musique->setLoops(-1);
-  //  musique->play();
+	//  musique = new QSound("ambiant.wav");
+	//  musique->setLoops(-1);
+	//  musique->play();
 
-  //  setFocusPolicy(Qt::WheelFocus);
-  //  setWindowTitle("JungleIN");
-  //
-  //  Utils::WINDOW = this;
+	//  setFocusPolicy(Qt::WheelFocus);
+	//  setWindowTitle("JungleIN");
+	//
+	//  Utils::WINDOW = this;
 }
 
 Window::~Window() {}
 
 void Window::run() {
-  while (glfwWindowShouldClose(Utils::window) == 0) {
-    glfwPollEvents();
+	while (glfwWindowShouldClose(Utils::window) == 0) {
+		glfwPollEvents();
 
-    paintGL();
-	PRINT_GL_ERROR();
+		paintGL();
 
-    glfwSwapBuffers(Utils::window);
-  }
+		glfwSwapBuffers(Utils::window);
+	}
 }
 
 // void Window::timerEvent(QTimerEvent *) { updateGL(); }
 
 void Window::initializeGL() {
-  if (!glfwInit()) {
-    std::cout << "Failed to initialize GLFW." << std::endl;
-    return;
-  }
+	if (!glfwInit())
+	{
+		loge("Failed to initialize GLFW.");
+		return;
+	}
 
-  glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, FLEXT_MAJOR_VERSION);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, FLEXT_MINOR_VERSION);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwSetErrorCallback([](int code, const char* error) { throw std::runtime_error{error}; });
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_FALSE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-  // Create window from parameters
-  std::cout << "Creating GLFW window for OpenGL version " << FLEXT_MAJOR_VERSION
-            << ", " << FLEXT_MINOR_VERSION << std::endl;
-  auto window = glfwCreateWindow(1024, 768, "JungleIN", NULL, NULL);
-  if (window == nullptr) {
-    std::cout << "Failed to create GLFW window." << std::endl;
-    glfwTerminate();
-    return;
-  }
+	// Create window from parameters
+	auto window = glfwCreateWindow(1024, 768, "JungleIN", NULL, NULL);
+	if (window == nullptr) {
+		loge("Failed to create GLFW window.");
+		glfwTerminate();
+		return;
+	}
 
-  glfwMakeContextCurrent(window);
-  glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
+	glfwMakeContextCurrent(window);
 
-  // Load OpenGL extensions
-  if (flextInit() != GL_TRUE) {
-    glfwTerminate();
-    std::cout << "Failed to initialize flextGL." << std::endl;
-    return;
-  }
+	// Load opengl functions
+	if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0)
+	{
+		throw std::runtime_error{"Failed to init GL context"};
+	}
 
-  PRINT_GL_ERROR();
-  glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-  PRINT_GL_ERROR();
-  glDebugMessageCallback(&errorCallback, nullptr);
-  PRINT_GL_ERROR();
+	// Debug context
+	int flags;
+	glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+	if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+	{
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(glDebugOutput, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	}
 
-  Utils::window = window;
-  glfwShowWindow(window);
+	Utils::window = window;
+	glfwShowWindow(window);
 
-  //
-  //  if (!strstr((char *)glGetString(GL_EXTENSIONS),
-  //              "GL_EXT_texture_filter_anisotropic")) {
-  Utils::USE_ANISO = false;
-  Utils::MAX_ANISO = 0x0000;
-  //  } else {
-  //    Utils::USE_ANISO = true;
-  //    float maxAniso;
-  //    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAniso);
-  //    Utils::MAX_ANISO = maxAniso;
-  //  }
+	//
+	//  if (!strstr((char *)glGetString(GL_EXTENSIONS),
+	//              "GL_EXT_texture_filter_anisotropic")) {
+	Utils::USE_ANISO = false;
+	Utils::MAX_ANISO = 0x0000;
+	//  } else {
+	//    Utils::USE_ANISO = true;
+	//    float maxAniso;
+	//    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAniso);
+	//    Utils::MAX_ANISO = maxAniso;
+	//  }
 
-  initializeObjects();
-  PRINT_GL_ERROR();
+	initializeObjects();
 }
 
 void Window::initializeObjects() {
-  renderer = new Renderer();
-  PRINT_GL_ERROR();
-  renderer->loadShaders();
-  PRINT_GL_ERROR();
+	renderer = new Renderer();
+	
+	renderer->loadShaders();
+	
 
-  scene = SceneBuilder::build();
-  PRINT_GL_ERROR();
-  scene->init();
-  PRINT_GL_ERROR();
-  scene->setRenderAble(true);
-  PRINT_GL_ERROR();
+	scene = SceneBuilder::build();
+	
+	scene->init();
+	
+	scene->setRenderAble(true);
+	
 
-  renderer->init(scene, 1024, 768);
-  PRINT_GL_ERROR();
-  renderer->start();
-  PRINT_GL_ERROR();
+	renderer->init(scene, 1024, 768);
+	
+	renderer->start();
+	
 }
 
 void Window::paintGL() { renderer->render(); }
@@ -182,67 +262,67 @@ void Window::resizeGL(int w, int h) { renderer->resize(w, h); }
 //}
 
 void Window::exQuality(int value) {
-  Utils::QUALITY = value;
-  renderer->getPostComposer()->resizeHalfBuffers();
-  PRINT_GL_ERROR();
+	Utils::QUALITY = value;
+	renderer->getPostComposer()->resizeHalfBuffers();
+	
 }
 
 void Window::exResetCamera() { scene->getCurrentCamera()->reset(); }
 
 void Window::exPostFXAA(bool active) {
-  renderer->getPostComposer()->toggleFXAA(active);
+	renderer->getPostComposer()->toggleFXAA(active);
 }
 
 void Window::exPostDistord(bool active) {
-  renderer->getPostComposer()->toggleDistord(active);
+	renderer->getPostComposer()->toggleDistord(active);
 }
 
 void Window::exPostLenseFlares(bool active) {
-  renderer->getPostComposer()->toggleLenseFlares(active);
+	renderer->getPostComposer()->toggleLenseFlares(active);
 }
 
 void Window::exPostGodrays(bool active) {
-  renderer->getPostComposer()->toggleGodrays(active);
+	renderer->getPostComposer()->toggleGodrays(active);
 }
 
 void Window::exPostBloom(bool active) {
-  renderer->getPostComposer()->toggleBloom(active);
+	renderer->getPostComposer()->toggleBloom(active);
 }
 
 void Window::exFlareDisp(int value) {
-  renderer->getPostComposer()->setFlareDispersal(value / 100.0);
+	renderer->getPostComposer()->setFlareDispersal(value / 100.0);
 }
 
 void Window::exFlareIntensity(int value) {
-  renderer->getPostComposer()->setFlareIntensity(value / 100.0);
+	renderer->getPostComposer()->setFlareIntensity(value / 100.0);
 }
 
 void Window::exSunSpeed(int value) { scene->getSun()->setSpeed(value / 10.0); }
 
 void Window::exGamma(int value) {
-  renderer->getPostComposer()->setGamma(value / 100.0);
+	renderer->getPostComposer()->setGamma(value / 100.0);
 }
 
 void Window::exAnisotropy(bool active) {
-  Utils::USE_ANISO = active;
-  Texture::needsUpdate = true;
+	Utils::USE_ANISO = active;
+	Texture::needsUpdate = true;
 }
 
 void Window::exShadowCascade(bool active) {
-  renderer->toggleShadowCascade(active);
+	renderer->toggleShadowCascade(active);
 }
 
 void Window::exRenderRatio(int value) { renderer->setRatio(value / 10.0); }
 
 void Window::playBtn(bool active) {
-  //  if (active)
-  //    musique->play();
-  //  else
-  //    musique->stop();
+	//  if (active)
+	//    musique->play();
+	//  else
+	//    musique->stop();
 }
 
 void Window::reGenerate() {
-  ReloadWindow *test = new ReloadWindow();
-  test->reGenerate();
-  // test->show();
+	ReloadWindow* test = new ReloadWindow();
+	test->reGenerate();
+	// test->show();
 }

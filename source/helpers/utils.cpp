@@ -3,7 +3,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
+#include <fmtlog/fmtlog.h>
 
 GLFWwindow *Utils::window = nullptr;
 bool Utils::USE_ANISO = false;

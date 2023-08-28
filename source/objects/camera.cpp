@@ -1,5 +1,5 @@
 #include "camera.h"
-#include <iostream>
+#include <fmtlog/fmtlog.h>
 #include <cmath>
 
 #define DEG_TO_RAD 3.141592653 / 180.0
@@ -35,7 +35,7 @@ void Camera::reset() {
   yaw = 0.0;
   pitch = 0.0;
   position.set(0, 6, -1);
-  std::cout << "Reset Camera" << std::endl;
+  logi("Reset Camera");
 }
 
 void Camera::setPerspective(float fov, float ratio, float near, float far) {

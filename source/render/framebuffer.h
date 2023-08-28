@@ -1,10 +1,9 @@
-#ifndef FRAMEBUFFER_H
-#define FRAMEBUFFER_H
+#pragma once
 
 #include <vector>
 #include <string>
 
-#include <flextGL.h>
+#include <glad/glad.h>
 
 #include "core/texture.h"
 #include "render/shader.h"
@@ -38,19 +37,17 @@ public:
   static const int RT_SIZE_DEFAULT;
 
 protected:
-  unsigned int uid;
+  GLuint uid = 0;
 
-  unsigned int width;
-  unsigned int height;
+  unsigned int width = 0;
+  unsigned int height = 0;
 
-  bool hasDepth;
-  unsigned int depthBuffer;
+  bool hasDepth = false;
+  GLuint depthBuffer = 0;
 
   std::vector<std::string> texturesNames;
   std::vector<Texture *> textures;
 
-  unsigned int size;
-  unsigned int *drawBuffers;
+  unsigned int size = 0;
+  GLuint *drawBuffers = nullptr;
 };
-
-#endif // FRAMEBUFFER_H

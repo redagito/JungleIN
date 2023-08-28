@@ -1,4 +1,4 @@
-#include <iostream>
+#include <fmtlog/fmtlog.h>
 
 #include "ground.h"
 #include <cmath>

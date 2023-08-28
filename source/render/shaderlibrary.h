@@ -1,5 +1,4 @@
-#ifndef SHADERLIBRARY_H
-#define SHADERLIBRARY_H
+#pragma once
 
 #include <unordered_map>
 #include <string>
@@ -22,5 +21,3 @@ public:
 private:
   static std::unordered_map<std::string, Shader *> shaders;
 };
-
-#endif // SHADERLIBRARY_H

@@ -1,5 +1,4 @@
-#ifndef OBJLOADER_H
-#define OBJLOADER_H
+#pragma once
 
 #include <string>
 
@@ -7,7 +6,5 @@
 
 class ObjLoader {
 public:
-  static Mesh *loadObj(std::string fileName);
+	static Mesh* loadObj(std::string fileName);
 };
-
-#endif // OBJLOADER_H

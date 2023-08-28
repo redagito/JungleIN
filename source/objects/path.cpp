@@ -1,7 +1,7 @@
 #include "path.h"
 #include "ground.h"
 
-#include <iostream>
+#include <fmtlog/fmtlog.h>
 
 Path::Path(std::string file) {
   // load the heightmap picture

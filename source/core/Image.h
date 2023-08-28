@@ -12,7 +12,7 @@ public:
     unsigned char a;
   };
 
-  Image();
+  Image() = default;
   Image(const std::string &file);
   bool load(const std::string &path);
 

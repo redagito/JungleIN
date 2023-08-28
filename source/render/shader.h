@@ -1,9 +1,10 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include <string>
 #include <vector>
 #include <unordered_map>
+
+#include <glad/glad.h>
 
 #include "math/vector3.h"
 #include "math/matrix3.h"
@@ -50,12 +51,10 @@ public:
 
 private:
   std::string name;
-  unsigned int uid;
-  const char *vertex;
-  const char *fragment;
+  GLuint uid = 0;
+  const char *vertex = nullptr;
+  const char *fragment = nullptr;
 
   std::unordered_map<std::string, int> attributes;
   std::unordered_map<std::string, int> uniforms;
 };
-
-#endif // SHADER_H

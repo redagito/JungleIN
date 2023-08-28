@@ -1,21 +1,22 @@
-#ifndef SSQUAD_H
-#define SSQUAD_H
+#pragma once
+
+#include <glad/glad.h>
 
 /*!
  * SSQuad
  * Initialise et affiche un ScreenSpaceQuad pour rendre une texture en plein
  * écran pour le post processing.
  */
-class SSQuad {
+class SSQuad
+{
 public:
-  SSQuad();
+	SSQuad();
 
-  void init();
-  void draw(unsigned int posIndex);
+	void init();
+	void draw(unsigned int posIndex);
 
 private:
-  static const float vertices[8];
-  unsigned int vbuffer;
+	static const float vertices[8];
+	GLuint vbuffer = 0;
+	GLuint vao = 0;
 };
-
-#endif // SSQUAD_H

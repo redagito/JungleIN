@@ -1,14 +1,13 @@
-#ifndef MESH_H
-#define MESH_H
+#pragma once
 
 #include <vector>
 
 #include "objects/object3d.h"
 #include "materials/material.h"
 #include "core/geometry.h"
-#include "instance.h"
+#include "objects/instance.h"
 
-#include <flextGL.h>
+#include <glad/glad.h>
 
 /*!
  * Mesh extends Object3D
@@ -47,8 +46,6 @@ public:
   void setInstanceType(unsigned int i);
   unsigned int getInstanceType();
 
-  bool isInstance();
-
   static const unsigned int INSTANCE_NONE;
   static const unsigned int INSTANCE_PALM;
   static const unsigned int INSTANCE_HTREE;
@@ -58,30 +55,29 @@ public:
   static const unsigned int INSTANCE_ROCK;
 
 protected:
-  Geometry *geometry;
-  Material *material;
+  Geometry *geometry = nullptr;
+  Material *material = nullptr;
 
   GLuint vertices = 0;
   GLuint indices = 0;
   GLuint normals = 0;
   GLuint texcoords = 0;
+  GLuint VAO = 0;
 
   bool hasNormals = false;
   bool hasTexCoords = false;
 
-  bool castShadows;
+  bool castShadows = false;
 
-  unsigned int locVertices;
-  unsigned int locNormals;
-  unsigned int locTexCoords;
+  unsigned int locVertices = 0;
+  unsigned int locNormals = 0;
+  unsigned int locTexCoords = 0;
 
-  float scaleRdn;
-  float rangeScale;
-  float heightRdn;
-  float pourcentage;
-  unsigned int instanceType;
+  float scaleRdn = 1.f;
+  float rangeScale = 1.f;
+  float heightRdn = 1.f;
+  float pourcentage = 1.f;
+  unsigned int instanceType = 0;
 
   std::vector<Instance *> instances;
 };
-
-#endif // MESH_H
