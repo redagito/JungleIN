@@ -52,12 +52,14 @@ template <typename T> size_t indexOf(const std::vector<T>& values, T value) {
 }
 
 template <typename K, typename V>
-V value(const std::unordered_map<K, V>& data, K key, V def) {
-	if (data.count(key) == 0) {
-		logw("Failed to find value {}", key);
+V value(std::unordered_map<K, V>& data, K key, V def) {
+	auto iter = data.find(key);
+	if (iter == data.end()) {
+		logw("Failed to find value {}, inserting default {}", key, def);
+		data[key] = def;
 		return def;
 	}
-	return data.at(key);
+	return iter->second;
 }
 
 std::vector<std::string>& operator<<(std::vector<std::string>& stringList,

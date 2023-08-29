@@ -25,6 +25,12 @@ cd build
 cmake --build . --config Release
 ```
 
+## Controls
+
+Movement - Arrow Keys / WASD
+
+Mouse Capture on/off - F1 / F2
+
 # Original Readme
 JungleIN
 ========
