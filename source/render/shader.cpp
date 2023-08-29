@@ -5,6 +5,8 @@
 
 #include "helpers/utils.h"
 
+GLuint Shader::s_activeShaderUid = 0;
+
 Shader::Shader(std::string name) {
 	this->name = name;
 	this->uid = -1;
@@ -35,7 +37,7 @@ Shader& Shader::load(std::string shaderPrefix,
 Shader& Shader::setup() {
 	if (vertex == NULL || fragment == NULL) {
 		logi("Error: Unable to load shader {}", name);
-		exit(-1);
+		throw std::runtime_error("Failed to load shader");
 	}
 
 	int status, logSize;
@@ -85,7 +87,7 @@ Shader& Shader::setup() {
 }
 
 Shader& Shader::setupLocations(std::vector<std::string> _attributes,
-	std::vector<std::string> _uniforms) 
+	std::vector<std::string> _uniforms)
 {
 	bind();
 
@@ -100,7 +102,9 @@ Shader& Shader::setupLocations(std::vector<std::string> _attributes,
 }
 
 Shader& Shader::bind() {
+	if (s_activeShaderUid == uid) return *this;
 	glUseProgram(uid);
+	s_activeShaderUid = uid;
 
 	return *this;
 }
@@ -118,41 +122,57 @@ bool Shader::hasAttribute(std::string name) {
 bool Shader::hasUniform(std::string name) { return uniforms.count(name) != 0; }
 
 void Shader::transmitUniform(std::string name, const Texture* tex) {
+	validateIsActive();
 	glUniform1i(value(uniforms, name, -1), tex->index);
 }
 
 void Shader::transmitUniform(std::string name, const TextureCube* tex) {
+	validateIsActive();
 	glUniform1i(value(uniforms, name, -1), tex->index);
 }
 
 void Shader::transmitUniform(std::string name, int i) {
+	validateIsActive();
 	glUniform1i(value(uniforms, name, -1), i);
 }
 
 void Shader::transmitUniform(std::string name, float f) {
+	validateIsActive();
 	glUniform1f(value(uniforms, name, -1), f);
 }
 
 void Shader::transmitUniform(std::string name, float f1, float f2) {
+	validateIsActive();
 	glUniform2f(value(uniforms, name, -1), f1, f2);
 }
 
 void Shader::transmitUniform(std::string name, float f1, float f2, float f3) {
+	validateIsActive();
 	glUniform3f(value(uniforms, name, -1), f1, f2, f3);
 }
 
 void Shader::transmitUniform(std::string name, const Vector3& vec3) {
+	validateIsActive();
 	glUniform3f(value(uniforms, name, -1), vec3.x, vec3.y, vec3.z);
 }
 
 void Shader::transmitUniform(std::string name, const Matrix3& mat3) {
+	validateIsActive();
 	glUniformMatrix3fv(value(uniforms, name, -1), 1, GL_TRUE, mat3.array);
 }
 
 void Shader::transmitUniform(std::string name, const Matrix4& mat4) {
+	validateIsActive();
 	glUniformMatrix4fv(value(uniforms, name, -1), 1, GL_TRUE, mat4.array);
 }
 
 void Shader::transmitUniform(std::string name, bool b) {
+	validateIsActive();
 	glUniform1i(value(uniforms, name, -1), b ? 1 : 0);
+}
+
+void Shader::validateIsActive()
+{
+	if (s_activeShaderUid != uid)
+		throw std::runtime_error("Current shader is not active");
 }

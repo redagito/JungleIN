@@ -1,5 +1,4 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include "object3d.h"
 
@@ -59,5 +58,3 @@ private:
   float pitch = 0.f;
   float height = 0.f;
 };
-
-#endif // CAMERA_H

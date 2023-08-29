@@ -75,7 +75,7 @@ private:
 	MaterialShadow* shadowMat = nullptr;
 	PostComposer* postComposer = nullptr;
 
-	bool useShadowCascade;
+	bool useShadowCascade = false;
 
 	std::stack<Matrix4> xform;
 	Matrix4 matrixProj, matrixView, matrixModel;

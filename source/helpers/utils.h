@@ -4,6 +4,9 @@
 #include <vector>
 #include <chrono>
 #include <unordered_map>
+#include <stdexcept>
+
+#include <fmtlog/fmtlog.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -44,13 +47,14 @@ template <typename T> size_t indexOf(const std::vector<T>& values, T value) {
 			return i;
 		}
 	}
-	exit(-1);
+	throw std::runtime_error("Index not found");
 	return 0;
 }
 
 template <typename K, typename V>
 V value(const std::unordered_map<K, V>& data, K key, V def) {
 	if (data.count(key) == 0) {
+		logw("Failed to find value {}", key);
 		return def;
 	}
 	return data.at(key);

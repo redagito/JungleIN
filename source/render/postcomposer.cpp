@@ -49,8 +49,8 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	shaderBloom2 = ShaderLibrary::getShader("ss_bloom_p2");
 
 	doFXAA = true;
-	doDistord = false;
-	doLenseFlares = false;
+	doDistord = true;
+	doLenseFlares = true;
 	doGodrays = true;
 	doBloom = true;
 
@@ -102,9 +102,7 @@ void PostComposer::compose() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	shaderCompose->bind();
-
 	inputBuffer->bindAndTransmitTextures(shaderCompose);
-
 	quad->draw(shaderCompose->attribute("position"));
 
 	readBuffer->unbind();
@@ -119,9 +117,7 @@ void PostComposer::passFXAA() {
 	shaderFXAA->transmitUniform("resolution", 1 / widthf, 1 / heightf);
 
 	readBuffer->bindAndTransmitTextures(shaderFXAA);
-
 	quad->draw(shaderFXAA->attribute("position"));
-
 	writeBuffer->unbind();
 
 	swapBuffers();
@@ -133,7 +129,7 @@ void PostComposer::passDistortion() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	shaderDistortion->bind();
-	shaderFXAA->transmitUniform("resolution", 1 / widthf, 1 / heightf);
+	shaderDistortion->transmitUniform("resolution", 1 / widthf, 1 / heightf);
 
 	readBuffer->bindAndTransmitTextures(shaderDistortion);
 
