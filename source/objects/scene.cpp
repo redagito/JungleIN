@@ -23,7 +23,6 @@ void Scene::update(float delta) {
   double x, y;
   glfwGetCursorPos(Utils::window, &x, &y);
   currentCamera->setMouse(std::floor(x), std::floor(y));
-  // currentCamera->setMouse(QCursor::pos().x(), QCursor::pos().y());
   currentCamera->update(groundY, delta);
 
   float yaw = currentCamera->getYaw();

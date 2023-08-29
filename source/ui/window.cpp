@@ -297,17 +297,51 @@ void Window::onKeyPress(int key, int code, int action, int mods)
 	{
 		switch (key)
 		{
+		case GLFW_KEY_ESCAPE:
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+			break;
+
+			// Movement
 		case GLFW_KEY_UP:
+		case GLFW_KEY_W:
 			scene->getCurrentCamera()->setUpKey(true);
 			break;
 		case GLFW_KEY_DOWN:
+		case GLFW_KEY_S:
 			scene->getCurrentCamera()->setDownKey(true);
 			break;
 		case GLFW_KEY_LEFT:
+		case GLFW_KEY_A:
 			scene->getCurrentCamera()->setLeftKey(true);
 			break;
 		case GLFW_KEY_RIGHT:
+		case GLFW_KEY_D:
 			scene->getCurrentCamera()->setRightKey(true);
+			break;
+
+			// Features
+		case GLFW_KEY_1:
+			exPostFXAA(true);
+			break;
+		case GLFW_KEY_2:
+			exPostFXAA(false);
+			break;
+		case GLFW_KEY_3:
+			exPostLenseFlares(true);
+			break;
+		case GLFW_KEY_4:
+			exPostLenseFlares(false);
+			break;
+
+			// Mouse movement
+		case GLFW_KEY_F1:
+			// Capture and hide cursor
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			scene->getCurrentCamera()->activeLook(true);
+			break;
+		case GLFW_KEY_F2:
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			scene->getCurrentCamera()->activeLook(false);
 			break;
 		default:
 			break;
@@ -318,15 +352,19 @@ void Window::onKeyPress(int key, int code, int action, int mods)
 		switch (key)
 		{
 		case GLFW_KEY_UP:
+		case GLFW_KEY_W:
 			scene->getCurrentCamera()->setUpKey(false);
 			break;
 		case GLFW_KEY_DOWN:
+		case GLFW_KEY_S:
 			scene->getCurrentCamera()->setDownKey(false);
 			break;
 		case GLFW_KEY_LEFT:
+		case GLFW_KEY_A:
 			scene->getCurrentCamera()->setLeftKey(false);
 			break;
 		case GLFW_KEY_RIGHT:
+		case GLFW_KEY_D:
 			scene->getCurrentCamera()->setRightKey(false);
 			break;
 		default:
@@ -335,43 +373,6 @@ void Window::onKeyPress(int key, int code, int action, int mods)
 	}
 }
 
-// void Window::keyPressEvent(QKeyEvent *event) {
-//  switch (event->key()) {
-//  case Qt::Key_Left:
-//    scene->getCurrentCamera()->setLeftKey(true);
-//    break;
-//  case Qt::Key_Right:
-//    scene->getCurrentCamera()->setRightKey(true);
-//    break;
-//  case Qt::Key_Down:
-//    scene->getCurrentCamera()->setDownKey(true);
-//    break;
-//  case Qt::Key_Up:
-//    scene->getCurrentCamera()->setUpKey(true);
-//    break;
-//  default:
-//    break;
-//  }
-//}
-//
-// void Window::keyReleaseEvent(QKeyEvent *event) {
-//  switch (event->key()) {
-//  case Qt::Key_Left:
-//    scene->getCurrentCamera()->setLeftKey(false);
-//    event->accept();
-//    break;
-//  case Qt::Key_Right:
-//    scene->getCurrentCamera()->setRightKey(false);
-//    event->accept();
-//    break;
-//  case Qt::Key_Down:
-//    scene->getCurrentCamera()->setDownKey(false);
-//    event->accept();
-//    break;
-//  case Qt::Key_Up:
-//    scene->getCurrentCamera()->setUpKey(false);
-//    event->accept();
-//    break;
 //  case Qt::Key_Escape:
 //    Utils::MAIN->showNormal();
 //    break;

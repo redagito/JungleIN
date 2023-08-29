@@ -34,6 +34,7 @@ public:
 	void resizeGL(int w, int h);
 
 	void exResetCamera();
+
 	void exQuality(int value);
 	void exPostFXAA(bool active);
 	void exPostLenseFlares(bool active);
@@ -47,6 +48,7 @@ public:
 	void exAnisotropy(bool active);
 	void exShadowCascade(bool active);
 	void exRenderRatio(int value);
+
 	void playBtn(bool active);
 	void reGenerate();
 

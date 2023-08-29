@@ -13,7 +13,7 @@ Camera::Camera() : Object3D() {
   setPerspective(90.0f, 1.33, 0.1f, 500.0f);
   target.set(0, 0, 0);
 
-  lookSpeed = 0.2;
+  lookSpeed = 0.5f;
   moveSpeed = 200.f;
 
   look = false;
