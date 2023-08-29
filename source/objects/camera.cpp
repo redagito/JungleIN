@@ -14,17 +14,7 @@ Camera::Camera() : Object3D() {
   target.set(0, 0, 0);
 
   lookSpeed = 0.2;
-  moveSpeed = 0.15;
-
-  yaw = 0.0;
-  pitch = 0.0;
-
-  mouseXold = 0.0;
-  mouseYold = 0.0;
-  mouseX = 0.0;
-  mouseY = 0.0;
-  accelX = 0.0;
-  accelY = 0.0;
+  moveSpeed = 200.f;
 
   look = false;
 

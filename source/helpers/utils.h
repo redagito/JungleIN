@@ -1,5 +1,4 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -61,5 +60,3 @@ std::vector<std::string>& operator<<(std::vector<std::string>& stringList,
 	const std::string& str);
 std::vector<std::string> operator<<(std::vector<std::string> stringList,
 	const char* str);
-
-#endif // UTILS_H

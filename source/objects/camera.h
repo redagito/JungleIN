@@ -11,7 +11,6 @@ class Camera : public Object3D {
 public:
   Camera();
 
-  void lookAt(const Vector3 &_target);
   void setPerspective(float fov, float ratio, float near, float far);
 
   Matrix4 &getProjection();
@@ -31,8 +30,6 @@ public:
   void setDownKey(bool);
   void setPositionY(float y);
 
-  void stopMouseEffect();
-
   void activeLook(bool);
 
   float getYaw();
@@ -42,24 +39,25 @@ private:
 
   Vector3 target;
 
-  bool look;
+  bool look = false;
 
-  bool leftKey;
-  bool rightKey;
-  bool upKey;
-  bool downKey;
+  bool leftKey = false;
+  bool rightKey = false;
+  bool upKey = false;
+  bool downKey = false;
 
-  float mouseXold;
-  float mouseYold;
-  float mouseX;
-  float mouseY;
-  float accelX;
-  float accelY;
+  float mouseXold = 0.f;
+  float mouseYold = 0.f;
+  float mouseX = 0.f;
+  float mouseY = 0.f;
+  float accelX = 0.f;
+  float accelY = 0.f;
 
-  float lookSpeed;
-  float moveSpeed;
-  float yaw, pitch;
-  float height;
+  float lookSpeed = 0.f;
+  float moveSpeed = 0.f;
+  float yaw = 0.f;
+  float pitch = 0.f;
+  float height = 0.f;
 };
 
 #endif // CAMERA_H

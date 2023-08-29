@@ -1,6 +1,7 @@
 #include "window.h"
 
 #include <sstream>
+#include <stdexcept>
 
 #include <fmtlog/fmtlog.h>
 #include <glad/glad.h>
@@ -92,18 +93,13 @@ static void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum
 	loge("{}", ss.str());
 }
 
+Window* Window::s_window = nullptr;
+
 Window::Window() {
-	//  startTimer(30);
-	//  resize(1024, 768);
+	if (s_window != nullptr)
+		throw std::runtime_error("Already has a window");
 
-	//  musique = new QSound("ambiant.wav");
-	//  musique->setLoops(-1);
-	//  musique->play();
-
-	//  setFocusPolicy(Qt::WheelFocus);
-	//  setWindowTitle("JungleIN");
-	//
-	//  Utils::WINDOW = this;
+	s_window = this;
 }
 
 Window::~Window() {}
@@ -136,7 +132,7 @@ void Window::initializeGL() {
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	// Create window from parameters
-	auto window = glfwCreateWindow(1024, 768, "JungleIN", NULL, NULL);
+	window = glfwCreateWindow(1024, 768, "JungleIN", NULL, NULL);
 	if (window == nullptr) {
 		loge("Failed to create GLFW window.");
 		glfwTerminate();
@@ -162,7 +158,28 @@ void Window::initializeGL() {
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 	}
 
+	// 
 	Utils::window = window;
+
+	// User input
+	// Key callback
+	glfwSetKeyCallback(window,
+		[](GLFWwindow* w, int key, int code, int action, int mods)
+		{
+			if (Window::s_window == nullptr)
+				return;
+			Window::s_window->onKeyPress(key, code, action, mods);
+		});
+
+	// Mouse move callback
+	glfwSetCursorPosCallback(window,
+		[](GLFWwindow* w, double x, double y)
+		{
+			if (Utils::window == nullptr)
+				return;
+			Window::s_window->onCursorMove(x, y);
+		});
+
 	glfwShowWindow(window);
 
 	//
@@ -182,89 +199,31 @@ void Window::initializeGL() {
 
 void Window::initializeObjects() {
 	renderer = new Renderer();
-	
+
 	renderer->loadShaders();
-	
+
 
 	scene = SceneBuilder::build();
-	
+
 	scene->init();
-	
+
 	scene->setRenderAble(true);
-	
+
 
 	renderer->init(scene, 1024, 768);
-	
+
 	renderer->start();
-	
+
 }
 
 void Window::paintGL() { renderer->render(); }
 
 void Window::resizeGL(int w, int h) { renderer->resize(w, h); }
 
-// void Window::keyPressEvent(QKeyEvent *event) {
-//  switch (event->key()) {
-//  case Qt::Key_Left:
-//    scene->getCurrentCamera()->setLeftKey(true);
-//    break;
-//  case Qt::Key_Right:
-//    scene->getCurrentCamera()->setRightKey(true);
-//    break;
-//  case Qt::Key_Down:
-//    scene->getCurrentCamera()->setDownKey(true);
-//    break;
-//  case Qt::Key_Up:
-//    scene->getCurrentCamera()->setUpKey(true);
-//    break;
-//  default:
-//    break;
-//  }
-//}
-//
-// void Window::keyReleaseEvent(QKeyEvent *event) {
-//  switch (event->key()) {
-//  case Qt::Key_Left:
-//    scene->getCurrentCamera()->setLeftKey(false);
-//    event->accept();
-//    break;
-//  case Qt::Key_Right:
-//    scene->getCurrentCamera()->setRightKey(false);
-//    event->accept();
-//    break;
-//  case Qt::Key_Down:
-//    scene->getCurrentCamera()->setDownKey(false);
-//    event->accept();
-//    break;
-//  case Qt::Key_Up:
-//    scene->getCurrentCamera()->setUpKey(false);
-//    event->accept();
-//    break;
-//  case Qt::Key_Escape:
-//    Utils::MAIN->showNormal();
-//    break;
-//  case Qt::Key_O:
-//    ((MainWindow *)(Utils::MAIN))->getDock()->isHidden()
-//        ? ((MainWindow *)(Utils::MAIN))->getDock()->show()
-//        : ((MainWindow *)(Utils::MAIN))->getDock()->hide();
-//    break;
-//  default:
-//    break;
-//  }
-//}
-//
-// void Window::mousePressEvent(QMouseEvent *) {
-//  scene->getCurrentCamera()->activeLook(true);
-//}
-//
-// void Window::mouseReleaseEvent(QMouseEvent *) {
-//  scene->getCurrentCamera()->activeLook(false);
-//}
-
 void Window::exQuality(int value) {
 	Utils::QUALITY = value;
 	renderer->getPostComposer()->resizeHalfBuffers();
-	
+
 }
 
 void Window::exResetCamera() { scene->getCurrentCamera()->reset(); }
@@ -326,3 +285,110 @@ void Window::reGenerate() {
 	test->reGenerate();
 	// test->show();
 }
+
+void Window::onCursorMove(double x, double y)
+{
+	// Update camera here
+}
+
+void Window::onKeyPress(int key, int code, int action, int mods)
+{
+	if (action == GLFW_PRESS)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_UP:
+			scene->getCurrentCamera()->setUpKey(true);
+			break;
+		case GLFW_KEY_DOWN:
+			scene->getCurrentCamera()->setDownKey(true);
+			break;
+		case GLFW_KEY_LEFT:
+			scene->getCurrentCamera()->setLeftKey(true);
+			break;
+		case GLFW_KEY_RIGHT:
+			scene->getCurrentCamera()->setRightKey(true);
+			break;
+		default:
+			break;
+		}
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_UP:
+			scene->getCurrentCamera()->setUpKey(false);
+			break;
+		case GLFW_KEY_DOWN:
+			scene->getCurrentCamera()->setDownKey(false);
+			break;
+		case GLFW_KEY_LEFT:
+			scene->getCurrentCamera()->setLeftKey(false);
+			break;
+		case GLFW_KEY_RIGHT:
+			scene->getCurrentCamera()->setRightKey(false);
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+// void Window::keyPressEvent(QKeyEvent *event) {
+//  switch (event->key()) {
+//  case Qt::Key_Left:
+//    scene->getCurrentCamera()->setLeftKey(true);
+//    break;
+//  case Qt::Key_Right:
+//    scene->getCurrentCamera()->setRightKey(true);
+//    break;
+//  case Qt::Key_Down:
+//    scene->getCurrentCamera()->setDownKey(true);
+//    break;
+//  case Qt::Key_Up:
+//    scene->getCurrentCamera()->setUpKey(true);
+//    break;
+//  default:
+//    break;
+//  }
+//}
+//
+// void Window::keyReleaseEvent(QKeyEvent *event) {
+//  switch (event->key()) {
+//  case Qt::Key_Left:
+//    scene->getCurrentCamera()->setLeftKey(false);
+//    event->accept();
+//    break;
+//  case Qt::Key_Right:
+//    scene->getCurrentCamera()->setRightKey(false);
+//    event->accept();
+//    break;
+//  case Qt::Key_Down:
+//    scene->getCurrentCamera()->setDownKey(false);
+//    event->accept();
+//    break;
+//  case Qt::Key_Up:
+//    scene->getCurrentCamera()->setUpKey(false);
+//    event->accept();
+//    break;
+//  case Qt::Key_Escape:
+//    Utils::MAIN->showNormal();
+//    break;
+//  case Qt::Key_O:
+//    ((MainWindow *)(Utils::MAIN))->getDock()->isHidden()
+//        ? ((MainWindow *)(Utils::MAIN))->getDock()->show()
+//        : ((MainWindow *)(Utils::MAIN))->getDock()->hide();
+//    break;
+//  default:
+//    break;
+//  }
+//}
+//
+// void Window::mousePressEvent(QMouseEvent *) {
+//  scene->getCurrentCamera()->activeLook(true);
+//}
+//
+// void Window::mouseReleaseEvent(QMouseEvent *) {
+//  scene->getCurrentCamera()->activeLook(false);
+//}

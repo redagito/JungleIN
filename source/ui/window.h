@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #include "helpers/utils.h"
 #include "helpers/scenebuilder.h"
@@ -49,8 +50,14 @@ public:
 	void playBtn(bool active);
 	void reGenerate();
 
+	void onCursorMove(double x, double y);
+	void onKeyPress(int key, int code, int action, int mods);
+
 private:
 	//  void timerEvent(QTimerEvent *);
+
+	static Window* s_window;
+	GLFWwindow* window = nullptr;
 
 	Scene* scene = nullptr;
 	Renderer* renderer = nullptr;

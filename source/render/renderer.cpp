@@ -83,6 +83,7 @@ void Renderer::render() {
 	if (!active || !scene->getRenderAble())
 		return;
 
+	// TODO Why?
 	delta = timer.restart() / Utils::TARGET_FPS;
 
 	scene->update(delta);
