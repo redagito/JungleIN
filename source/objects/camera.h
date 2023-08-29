@@ -27,6 +27,8 @@ public:
   void setRightKey(bool);
   void setUpKey(bool);
   void setDownKey(bool);
+  void setEKey(bool);
+  void setQKey(bool);
   void setPositionY(float y);
 
   void activeLook(bool);
@@ -38,12 +40,17 @@ private:
 
   Vector3 target;
 
+  // Camera look around control
   bool look = false;
 
+  // Movement
   bool leftKey = false;
   bool rightKey = false;
   bool upKey = false;
   bool downKey = false;
+  // Fly up / down
+  bool eKey = false;
+  bool qKey = false;
 
   float mouseXold = 0.f;
   float mouseYold = 0.f;

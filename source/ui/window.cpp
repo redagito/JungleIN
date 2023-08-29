@@ -319,6 +319,14 @@ void Window::onKeyPress(int key, int code, int action, int mods)
 			scene->getCurrentCamera()->setRightKey(true);
 			break;
 
+			// Movement up / down
+		case GLFW_KEY_E:
+			scene->getCurrentCamera()->setEKey(true);
+			break;
+		case GLFW_KEY_Q:
+			scene->getCurrentCamera()->setQKey(true);
+			break;
+
 			// Features
 		case GLFW_KEY_1:
 			exPostFXAA(true);
@@ -367,6 +375,14 @@ void Window::onKeyPress(int key, int code, int action, int mods)
 		case GLFW_KEY_D:
 			scene->getCurrentCamera()->setRightKey(false);
 			break;
+
+		case GLFW_KEY_E:
+			scene->getCurrentCamera()->setEKey(false);
+			break;
+		case GLFW_KEY_Q:
+			scene->getCurrentCamera()->setQKey(false);
+			break;
+
 		default:
 			break;
 		}

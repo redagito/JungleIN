@@ -122,7 +122,7 @@ void Renderer::render() {
 	Texture::needsUpdate = false;
 	Utils::calculFPS();
 
-	// postComposer->debugQuad(shadowFBOCascade->getTexture("texShadowCascade"));
+	//postComposer->debugQuad(shadowFBOCascade->getTexture("texShadowCascade"));
 }
 
 void Renderer::renderShadow() {

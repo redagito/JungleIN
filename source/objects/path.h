@@ -1,11 +1,8 @@
-#ifndef PATH_H
-#define PATH_H
+#pragma once
 
 #include <string>
 
 #include "core/Image.h"
-
-class Ground;
 
 class Path {
 public:
@@ -16,5 +13,3 @@ private:
   int width, height;
   Image image;
 };
-
-#endif // PATH_H

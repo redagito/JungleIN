@@ -9,7 +9,8 @@ ShadowBuffer::ShadowBuffer(std::string texname, int width, int height) {
 	textures = std::vector<Texture*>();
 }
 
-void ShadowBuffer::init(unsigned int textureUnitOffset) {
+void ShadowBuffer::init(unsigned int textureUnitOffset) 
+{
 	glGenFramebuffers(1, &uid);
 	glBindFramebuffer(GL_FRAMEBUFFER, uid);
 
