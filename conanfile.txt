@@ -17,3 +17,6 @@ glad/*:no_loader=False
 [generators]
 CMakeDeps
 CMakeToolchain
+
+[layout]
+cmake_layout

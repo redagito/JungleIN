@@ -14,3 +14,4 @@ void main()
 	vec3 texel = vec3(texture(texScene, uv));
 	//vec3 texel = vec3(texture(texThreshold, uv));
     FragColor = vec4( texel, 1.0f );
+}
