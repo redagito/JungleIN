@@ -34,7 +34,7 @@ FrameBuffer::~FrameBuffer() {
 	}
 	textures.clear();
 
-	delete drawBuffers;
+	delete[] drawBuffers;
 }
 
 void FrameBuffer::clear() {
