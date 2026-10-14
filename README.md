@@ -7,7 +7,7 @@ Modernized OpenGL jungle viewer: `App` holds the executable entry point,
 
 Development is done with
 * Conan 2.32.0
-* CMake 4.4.3 (minimum CMake 3.28)
+* CMake 4.4.3 (minimum CMake 4.4)
 * Visual Studio Community 2026 (MSVC 19.51)
 * C++23
 
