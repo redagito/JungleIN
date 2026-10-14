@@ -34,7 +34,7 @@ Geometry* Geometries::cube(float size) {
 		1, 2, 6, 1, 6, 5
 	};
 
-	Geometry* g = new Geometry(vertices, indices, 24, 24);
+	Geometry* g = new Geometry(vertices, indices, 24, 36);
 	g->setPrimitive(GL_TRIANGLES);
 
 	return g;
@@ -65,7 +65,7 @@ Geometry* Geometries::quad(float size) {
 		1, 2, 3
 	};
 
-	Geometry* g = new Geometry(vertices, indices, 12, 4);
+	Geometry* g = new Geometry(vertices, indices, 12, 6);
 	g->setTexCoords(texcoords);
 	g->setPrimitive(GL_TRIANGLES);
 
