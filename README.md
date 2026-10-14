@@ -1,11 +1,28 @@
 # Refactor of the JungleIN project
 
+Modernized OpenGL jungle viewer: `App` holds the executable entry point,
+`Lib` the engine as a static library, `Test` the Catch2 test suite.
+
 ## Requirements
 
 Development is done with
-* Conan 2.x
-* CMake 3.27.x
-* Visual Studio 2022 Community Edition
+* Conan 2.32.0
+* CMake 4.4.3 (minimum CMake 3.28)
+* Visual Studio Community 2026 (MSVC 19.51)
+* C++23
+
+Dependencies are managed with Conan; see `conanfile.txt` for the
+pinned versions.
+
+## Layout
+
+* `App/` - the `JungleINApp` executable, only `source/Main.cpp`
+* `Lib/` - the `JungleINLib` static library, `source/` + `include/`
+* `Test/` - the `JungleINTests` Catch2 suite, `source/`
+* `data/` - runtime assets (shaders, textures, heightmaps, meshes)
+
+The root `CMakeLists.txt` is only an umbrella: toolchain settings plus
+`add_subdirectory` for `Lib`, `App` and `Test`.
 
 ## Building
 
@@ -25,11 +42,20 @@ cd build
 cmake --build . --config Release
 ```
 
+Run the tests
+```
+ctest --preset conan-debug --output-on-failure
+```
+
 ## Controls
 
 Movement - Arrow Keys / WASD
 
-Mouse Capture on/off - F1 / F2
+Fly up / down - E / Q
+
+Look around - hold left mouse button, or F1 (capture) / F2 (release)
+
+Quit - Escape
 
 # Original Readme
 JungleIN

@@ -8,7 +8,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TEST_SOURCES})
 add_executable(JungleINTests ${TEST_SOURCES})
 
 set_target_properties(JungleINTests PROPERTIES
-	CXX_STANDARD 17
+	CXX_STANDARD 23
 	CXX_STANDARD_REQUIRED ON
 )
 
