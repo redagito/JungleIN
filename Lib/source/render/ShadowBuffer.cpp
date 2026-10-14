@@ -1,5 +1,8 @@
 #include "render/ShadowBuffer.h"
 
+#include <stdexcept>
+#include <string>
+
 ShadowBuffer::ShadowBuffer(std::string texname, int width, int height) {
 	this->width = width;
 	this->height = height;
@@ -33,5 +36,11 @@ void ShadowBuffer::init(unsigned int textureUnitOffset)
 	drawBuffers[0] = GL_NONE;
 
 	glDrawBuffers(size, drawBuffers);
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+		throw std::runtime_error("Shadow framebuffer incomplete: " +
+			std::to_string(status));
+
 	unbind();
 }

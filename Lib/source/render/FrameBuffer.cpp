@@ -1,5 +1,7 @@
 #include "render/FrameBuffer.h"
 
+#include <stdexcept>
+#include <string>
 #include <fmtlog/fmtlog.h>
 #include <glad/gl.h>
 
@@ -89,6 +91,11 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 	}
 
 	glDrawBuffers(size, drawBuffers);
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+		throw std::runtime_error("Framebuffer incomplete: " +
+			std::to_string(status));
 
 	unbind();
 

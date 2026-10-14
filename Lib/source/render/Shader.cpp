@@ -1,6 +1,7 @@
 #include "render/Shader.h"
 
 #include <stdexcept>
+#include <vector>
 #include <fmtlog/fmtlog.h>
 
 #include "helpers/Utils.h"
@@ -41,7 +42,7 @@ Shader& Shader::setup() {
 	}
 
 	int status, logSize;
-	char log[1024];
+	std::vector<char> log;
 	unsigned int pProgram;
 
 	pProgram = glCreateProgram();
@@ -52,9 +53,10 @@ Shader& Shader::setup() {
 	glGetShaderiv(vshader, GL_COMPILE_STATUS, &status);
 	if (status != GL_TRUE) {
 		glGetShaderiv(vshader, GL_INFO_LOG_LENGTH, &logSize);
-		glGetShaderInfoLog(vshader, logSize, &logSize, log);
+		log.assign(logSize > 0 ? logSize : 1, '\0');
+		glGetShaderInfoLog(vshader, logSize, &logSize, log.data());
 		loge("Error: Unable to compile vertex shader of {}", name);
-		loge("{}", log);
+		loge("{}", log.data());
 		throw std::runtime_error("Shader setup failed");
 	}
 	glAttachShader(pProgram, vshader);
@@ -65,9 +67,10 @@ Shader& Shader::setup() {
 	glGetShaderiv(fshader, GL_COMPILE_STATUS, &status);
 	if (status != GL_TRUE) {
 		glGetShaderiv(fshader, GL_INFO_LOG_LENGTH, &logSize);
-		glGetShaderInfoLog(fshader, logSize, &logSize, log);
+		log.assign(logSize > 0 ? logSize : 1, '\0');
+		glGetShaderInfoLog(fshader, logSize, &logSize, log.data());
 		loge("Error: Unable to compile fragment shader of {}", name);
-		loge("{}", log);
+		loge("{}", log.data());
 		throw std::runtime_error("Shader setup failed");
 	}
 	glAttachShader(pProgram, fshader);
@@ -76,9 +79,10 @@ Shader& Shader::setup() {
 	glGetProgramiv(pProgram, GL_LINK_STATUS, &status);
 	if (status != GL_TRUE) {
 		glGetProgramiv(pProgram, GL_INFO_LOG_LENGTH, &logSize);
-		glGetProgramInfoLog(pProgram, logSize, &logSize, log);
+		log.assign(logSize > 0 ? logSize : 1, '\0');
+		glGetProgramInfoLog(pProgram, logSize, &logSize, log.data());
 		loge("Error: Unable to link program shader of {}", name);
-		loge("{}", log);
+		loge("{}", log.data());
 		throw std::runtime_error("Shader setup failed");
 	}
 

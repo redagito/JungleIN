@@ -91,7 +91,15 @@ static void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum
 
 		break;
 	}
-	loge("{}", ss.str());
+	if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+		return;
+
+	// Real GL errors fail fast so the global handler in main logs them.
+	// Anything thrown here unwinds through the calling GL command.
+	if (type == GL_DEBUG_TYPE_ERROR)
+		throw std::runtime_error(ss.str());
+
+	logi("{}", ss.str());
 }
 
 Window* Window::s_window = nullptr;

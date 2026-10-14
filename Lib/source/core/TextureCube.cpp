@@ -1,5 +1,7 @@
 #include "core/TextureCube.h"
 
+#include <stdexcept>
+
 #include <fmtlog/fmtlog.h>
 
 /*!
@@ -28,6 +30,14 @@ bool TextureCube::load(std::string texDir, std::string ext) {
 	images.push_back(Image(texDir + "ny" + ext));
 	images.push_back(Image(texDir + "pz" + ext));
 	images.push_back(Image(texDir + "nz" + ext));
+	// GL uploads every face with one fixed size: mismatched faces would
+	// silently corrupt the cube, so fail fast here instead.
+	const unsigned int width = images.front().getWidth();
+	const unsigned int height = images.front().getHeight();
+	for (const Image& image : images) {
+		if (image.getWidth() != width || image.getHeight() != height)
+			throw std::runtime_error("Cubemap face size mismatch in " + texDir);
+	}
 	return true;
 }
 

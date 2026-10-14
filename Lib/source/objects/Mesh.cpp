@@ -2,6 +2,7 @@
 
 #include <fmtlog/fmtlog.h>
 #include <cassert>
+#include <stdexcept>
 
 #include "core/Image.h"
 
@@ -34,6 +35,10 @@ Mesh::Mesh(Geometry* geometry, Material* material) : Object3D() {
 }
 
 void Mesh::initVBO() {
+	if (geometry == nullptr)
+		throw std::runtime_error("Mesh::initVBO without geometry");
+	if (material == nullptr)
+		throw std::runtime_error("Mesh::initVBO without material");
 	hasNormals =
 		(geometry->hasNormals() && material->getShader()->hasAttribute("normal"));
 	hasTexCoords = (geometry->hasTexCoords() &&
@@ -128,6 +133,9 @@ void Mesh::initVBO() {
 }
 
 void Mesh::drawWithVBO() {
+
+	if (geometry == nullptr)
+		throw std::runtime_error("Mesh::drawWithVBO without geometry");
 
 	glBindVertexArray(VAO);
 	glDrawElements(geometry->getPrimitive(), geometry->getIndicesCount(),

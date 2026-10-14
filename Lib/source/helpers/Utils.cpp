@@ -22,13 +22,27 @@ char *Utils::getFileContent(std::string path) {
   if (!fp) {
     throw std::runtime_error("Failed to read file: " + path);
   }
-    fseek(fp, 0, SEEK_END);
-    length = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-    content = new char[length + 1];
-    fread(content, sizeof(char), length, fp);
+  if (fseek(fp, 0, SEEK_END) != 0) {
     fclose(fp);
-    content[length] = '\0';
+    throw std::runtime_error("Failed to seek file: " + path);
+  }
+  length = ftell(fp);
+  if (length < 0) {
+    fclose(fp);
+    throw std::runtime_error("Failed to tell file size: " + path);
+  }
+  if (fseek(fp, 0, SEEK_SET) != 0) {
+    fclose(fp);
+    throw std::runtime_error("Failed to rewind file: " + path);
+  }
+  content = new char[length + 1];
+  if (length > 0 && fread(content, sizeof(char), length, fp) != static_cast<size_t>(length)) {
+    delete[] content;
+    fclose(fp);
+    throw std::runtime_error("Failed to read file content: " + path);
+  }
+  fclose(fp);
+  content[length] = '\0';
 
   return content;
 }
