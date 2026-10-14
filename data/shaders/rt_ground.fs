@@ -26,7 +26,7 @@ layout (location = 1) out vec4 FragThreshold;
 
 float shadowLookup(in bool useCascade, in vec4 coord, in vec2 offset)
 {
-    float distanceFromLight = useCascade ? texture2D(texShadowCascade,coord.xy+offset/shadowResolution).z : texture2D(texShadow,coord.xy+offset/shadowResolution).z;
+    float distanceFromLight = useCascade ? texture(texShadowCascade,coord.xy+offset/shadowResolution).z : texture(texShadow,coord.xy+offset/shadowResolution).z;
     bool s = (distanceFromLight < coord.z);
     return 1.0f-float(s);
 }
@@ -129,17 +129,17 @@ void main()
 
     vec3 texel;
     if(fPosition.y < hStep)
-        texel = texture2D(texShatter, texcoords).rgb;
+        texel = texture(texShatter, texcoords).rgb;
     else if(fPosition.y < 2*hStep)
-        texel = mix(texture2D(texShatter, texcoords),
-                    texture2D(texEarth, texcoords),
+        texel = mix(texture(texShatter, texcoords),
+                    texture(texEarth, texcoords),
                     (fPosition.y - hStep) / hStep).rgb;
     else if(fPosition.y < 3*hStep)
-        texel = mix(texture2D(texEarth, texcoords),
-                    texture2D(texMoss, texcoords),
+        texel = mix(texture(texEarth, texcoords),
+                    texture(texMoss, texcoords),
                     (fPosition.y - 2*hStep) / hStep).rgb;
     else
-        texel = texture2D(texMoss, texcoords).rgb;
+        texel = texture(texMoss, texcoords).rgb;
 
     texel = texel * texel; // Fast gamma to linear (2.0 instead of 2.2)
 

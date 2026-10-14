@@ -23,7 +23,7 @@ vec3 textureDistorted(
 		texture(texScene, sampleCenter + sampleVector * distortion.b).b
         );*/
 
-        return texture2D(texScene, sampleCenter + sampleVector).rgb;
+        return texture(texScene, sampleCenter + sampleVector).rgb;
 }
 
 void main()

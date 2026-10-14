@@ -12,10 +12,10 @@ layout (location = 0) out vec4 FragColor;
 
 void main(void)
 {
-	FragColor = texture2D( texScene, uv ) * weight[0];
+	FragColor = texture( texScene, uv ) * weight[0];
 	for (int i=1; i<3; ++i) {
 		vec2 samplePos = vec2(offset[i] * resolution.x, 0.0);
-		FragColor += texture2D( texScene, uv + samplePos ) * weight[i];
-		FragColor += texture2D( texScene, uv - samplePos ) * weight[i];
+		FragColor += texture( texScene, uv + samplePos ) * weight[i];
+		FragColor += texture( texScene, uv - samplePos ) * weight[i];
 	}
 }

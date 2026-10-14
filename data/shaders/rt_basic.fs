@@ -20,7 +20,7 @@ layout (location = 1) out vec4 FragThreshold;
 
 float shadowLookup(in bool useCascade, in vec4 coord, in vec2 offset)
 {
-    float distanceFromLight = useCascade ? texture2D(texShadowCascade,coord.xy+offset/shadowResolution).z : texture2D(texShadow,coord.xy+offset/shadowResolution).z;
+    float distanceFromLight = useCascade ? texture(texShadowCascade,coord.xy+offset/shadowResolution).z : texture(texShadow,coord.xy+offset/shadowResolution).z;
     bool s = (distanceFromLight < coord.z);
     return 1.0f-float(s);
 }
@@ -121,10 +121,10 @@ vec3 illumination(vec3 texel)
 void main()
 {
 
-    float texelAlpha = texture2D(texAlpha, fTexcoord).r;
+    float texelAlpha = texture(texAlpha, fTexcoord).r;
     if(texelAlpha < 0.8) discard;
 
-    vec3 texelDiffuse = texture2D(texDiffuse, fTexcoord).rgb;
+    vec3 texelDiffuse = texture(texDiffuse, fTexcoord).rgb;
     texelDiffuse = texelDiffuse * texelDiffuse; // Fast gamma to linear (2.0 instead of 2.2)
 
     FragColor = vec4(sqrt(compFog(illumination(texelDiffuse))),1.0);

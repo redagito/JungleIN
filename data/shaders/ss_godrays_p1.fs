@@ -30,7 +30,7 @@ void main()
     for(int i=0; i < NUM_SAMPLES ; i++)
     {
             coord -= deltaTextCoord;
-            vec4 texel = texture2D(texScene, coord);
+            vec4 texel = texture(texScene, coord);
             texel *= illuminationDecay * weight;
 
             FragColor += texel;

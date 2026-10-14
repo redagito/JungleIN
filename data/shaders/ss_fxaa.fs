@@ -22,11 +22,11 @@ layout (location = 0) out vec4 FragColor;
 
 void main() 
 {
-	vec3 rgbNW = texture2D(texScene, (gl_FragCoord.xy + vec2(-1.0, -1.0)) * resolution).xyz;
-	vec3 rgbNE = texture2D(texScene, (gl_FragCoord.xy + vec2(1.0, -1.0)) * resolution).xyz;
-	vec3 rgbSW = texture2D(texScene, (gl_FragCoord.xy + vec2(-1.0, 1.0)) * resolution).xyz;
-	vec3 rgbSE = texture2D(texScene, (gl_FragCoord.xy + vec2(1.0, 1.0)) * resolution).xyz;
-	vec3 rgbM = texture2D(texScene, gl_FragCoord.xy * resolution).xyz;
+	vec3 rgbNW = texture(texScene, (gl_FragCoord.xy + vec2(-1.0, -1.0)) * resolution).xyz;
+	vec3 rgbNE = texture(texScene, (gl_FragCoord.xy + vec2(1.0, -1.0)) * resolution).xyz;
+	vec3 rgbSW = texture(texScene, (gl_FragCoord.xy + vec2(-1.0, 1.0)) * resolution).xyz;
+	vec3 rgbSE = texture(texScene, (gl_FragCoord.xy + vec2(1.0, 1.0)) * resolution).xyz;
+	vec3 rgbM = texture(texScene, gl_FragCoord.xy * resolution).xyz;
 	vec3 luma = vec3(0.299, 0.587, 0.114);
 
 	float lumaNW = dot(rgbNW, luma);
@@ -48,12 +48,12 @@ void main()
 	dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX), max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) * resolution;
 	
 	vec3 rgbA = 0.5 * ( 
-		texture2D(texScene, gl_FragCoord.xy * resolution + dir * (1.0 / 3.0 - 0.5)).xyz 
-		+ texture2D(texScene, gl_FragCoord.xy * resolution + dir * (2.0 / 3.0 - 0.5)).xyz);
+		texture(texScene, gl_FragCoord.xy * resolution + dir * (1.0 / 3.0 - 0.5)).xyz
+		+ texture(texScene, gl_FragCoord.xy * resolution + dir * (2.0 / 3.0 - 0.5)).xyz);
 
 	vec3 rgbB = rgbA * 0.5 + 0.25 * (
-		texture2D(texScene, gl_FragCoord.xy * resolution + dir * -0.5).xyz 
-		+ texture2D(texScene, gl_FragCoord.xy * resolution + dir * 0.5).xyz);
+		texture(texScene, gl_FragCoord.xy * resolution + dir * -0.5).xyz
+		+ texture(texScene, gl_FragCoord.xy * resolution + dir * 0.5).xyz);
 
 	float lumaB = dot(rgbB, luma);
 

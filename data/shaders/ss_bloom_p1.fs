@@ -10,7 +10,7 @@ layout (location = 0) out vec4 FragColor;
 void main()
 {
         // Downscale
-        vec3 texel = texture2D(texScene, uv).rgb;
+        vec3 texel = texture(texScene, uv).rgb;
 
         // desaturate
 	/*const float AvgLumR = 0.5;

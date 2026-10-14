@@ -1,0 +1,54 @@
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+#include "math/Matrix4.h"
+#include "math/Vector3.h"
+
+using Catch::Matchers::WithinAbs;
+
+TEST_CASE("Matrix4 identity and multiply", "[math][matrix4]")
+{
+	SECTION("identity leaves vectors unchanged")
+	{
+		Matrix4 m;
+		m.identity();
+		Vector3 v = m * Vector3(1.0f, 2.0f, 3.0f);
+		CHECK_THAT(v.x, WithinAbs(1.0, 1e-5));
+		CHECK_THAT(v.y, WithinAbs(2.0, 1e-5));
+		CHECK_THAT(v.z, WithinAbs(3.0, 1e-5));
+	}
+
+	SECTION("operator* composes row-major transforms")
+	{
+		Matrix4 t;
+		t.identity().translate(Vector3(5.0f, 0.0f, 0.0f));
+		Matrix4 s;
+		s.identity().scale(Vector3(2.0f, 2.0f, 2.0f));
+		Matrix4 c = t * s;
+		Vector3 v = c * Vector3(1.0f, 0.0f, 0.0f);
+		// scale first, then translate: 1*2+5 = 7
+		CHECK_THAT(v.x, WithinAbs(7.0, 1e-4));
+	}
+
+	SECTION("operator*= keeps the historical reversed order (a *= b == b * a)")
+	{
+		// NOTE: Matrix4::operator*= is defined as copy(mat * *this), i.e.
+		// a *= b computes b * a. This matches the 2012 original source and
+		// the whole app depends on it: Camera::update chains
+		// translate().rotate() through it and Renderer::pushMatrix composes
+		// model matrices through it (camera movement was validated against
+		// this behavior). Do NOT "fix" it to textbook order without
+		// revalidating camera and scene-graph composition.
+		Matrix4 a;
+		a.identity().translate(Vector3(1.0f, 2.0f, 3.0f));
+		Matrix4 b;
+		b.identity().scale(Vector3(2.0f, 2.0f, 2.0f));
+
+		Matrix4 expected = b * a;
+		Matrix4 actual(a);
+		actual *= b;
+
+		for (int i = 0; i < 16; ++i)
+			CHECK_THAT(actual.array[i], WithinAbs(expected.array[i], 1e-5));
+	}
+}

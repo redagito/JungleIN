@@ -31,7 +31,7 @@ vec3 blur(vec2 coords, float blurAmount)
         float gradient = smoothstep(radiusSqrd-tolerance, radiusSqrd+tolerance, powers.x+powers.y);
 
         // [OPT] Early exit
-        if(gradient < 0.07) return texture2D(texScene, uv).rgb;
+        if(gradient < 0.07) return texture(texScene, uv).rgb;
 
         vec4 col = vec4(0.0);
 
@@ -46,15 +46,15 @@ vec3 blur(vec2 coords, float blurAmount)
         float invY2 = coords.y - blurAmount * ((1.0-noise.y)*0.004) * (gradient * 0.5);
 
 
-        col += texture2D(texScene, vec2(X1, Y1))*0.1;
-        col += texture2D(texScene, vec2(X2, Y2))*0.1;
-        col += texture2D(texScene, vec2(X1, Y2))*0.1;
-        col += texture2D(texScene, vec2(X2, Y1))*0.1;
+        col += texture(texScene, vec2(X1, Y1))*0.1;
+        col += texture(texScene, vec2(X2, Y2))*0.1;
+        col += texture(texScene, vec2(X1, Y2))*0.1;
+        col += texture(texScene, vec2(X2, Y1))*0.1;
 
-        col += texture2D(texScene, vec2(invX1, invY1))*0.15;
-        col += texture2D(texScene, vec2(invX2, invY2))*0.15;
-        col += texture2D(texScene, vec2(invX1, invY2))*0.15;
-        col += texture2D(texScene, vec2(invX2, invY1))*0.15;
+        col += texture(texScene, vec2(invX1, invY1))*0.15;
+        col += texture(texScene, vec2(invX2, invY2))*0.15;
+        col += texture(texScene, vec2(invX1, invY2))*0.15;
+        col += texture(texScene, vec2(invX2, invY1))*0.15;
 
         return col.rgb;
 }

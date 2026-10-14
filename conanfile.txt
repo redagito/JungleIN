@@ -7,6 +7,7 @@ stb/cci.20220909
 openal/1.22.2
 minimp3/cci.20211201
 fmtlog/2.2.1
+catch2/3.4.0
 
 [options]
 glad/*:gl_profile=core

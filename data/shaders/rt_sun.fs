@@ -11,11 +11,11 @@ layout (location = 1) out vec4 FragThreshold;
 
 void main()
 {
-    float texelAlpha = texture2D(texAlpha, fTexcoord).r;
+    float texelAlpha = texture(texAlpha, fTexcoord).r;
 
-    vec3 texelDiffuse = texture2D(texDiffuse, fTexcoord).rgb;
+    vec3 texelDiffuse = texture(texDiffuse, fTexcoord).rgb;
 
     FragColor = vec4(texelDiffuse,texelAlpha);
     FragThreshold = FragColor;
-    //FragColor = texture2D(texDiffuse, fTexcoord);
+    //FragColor = texture(texDiffuse, fTexcoord);
 }

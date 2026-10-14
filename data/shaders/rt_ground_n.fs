@@ -38,7 +38,7 @@ vec3 computeNormal(vec3 texel)
 
 float shadowLookup(in vec4 coord, in vec2 offset)
 {
-    float distanceFromLight = texture2D(texShadow,coord.xy+offset/shadowResolution).z;
+    float distanceFromLight = texture(texShadow,coord.xy+offset/shadowResolution).z;
 
     float shadow = 1.0;
     if (fShadowcoord.w > 0.0)
@@ -131,33 +131,33 @@ void main()
 
     if(fPosition.y < hStep)
     {
-        texel = texture2D(texShatter, texcoords).rgb;
-        texelNormal = texture2D(texNormalShatter, texcoords).rgb;
+        texel = texture(texShatter, texcoords).rgb;
+        texelNormal = texture(texNormalShatter, texcoords).rgb;
     }
     else if(fPosition.y < 2*hStep)
     {
         amount = (fPosition.y - hStep) / hStep;
-        texel = mix(texture2D(texShatter, texcoords),
-                    texture2D(texEarth, texcoords),
+        texel = mix(texture(texShatter, texcoords),
+                    texture(texEarth, texcoords),
                     amount).rgb;
-        texelNormal = mix(texture2D(texNormalShatter, texcoords),
-                    texture2D(texNormalEarth, texcoords),
+        texelNormal = mix(texture(texNormalShatter, texcoords),
+                    texture(texNormalEarth, texcoords),
                     amount).rgb;
     }
     else if(fPosition.y < 3*hStep)
     {
         amount = (fPosition.y - 2*hStep) / hStep;
-        texel = mix(texture2D(texEarth, texcoords),
-                    texture2D(texMoss, texcoords),
+        texel = mix(texture(texEarth, texcoords),
+                    texture(texMoss, texcoords),
                     amount).rgb;
-        texelNormal = mix(texture2D(texNormalEarth, texcoords),
-                    texture2D(texNormalMoss, texcoords),
+        texelNormal = mix(texture(texNormalEarth, texcoords),
+                    texture(texNormalMoss, texcoords),
                     amount).rgb;
     }
     else
     {
-        texel = texture2D(texMoss, texcoords).rgb;
-        texelNormal = texture2D(texNormalMoss, texcoords).rgb;
+        texel = texture(texMoss, texcoords).rgb;
+        texelNormal = texture(texNormalMoss, texcoords).rgb;
     }
 
     FragColor = vec4(
@@ -171,5 +171,5 @@ void main()
 
     FragThreshold = vec4(0.0,0.0,0.0,1.0);
 
-    //FragColor = texture2D(texDiffuse, fTexcoord);
+    //FragColor = texture(texDiffuse, fTexcoord);
 }
