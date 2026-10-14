@@ -54,7 +54,7 @@ float compShadow()
         return 0.0;
     }
 
-    // Used to lower moir? pattern and self-shadowing
+    // Used to lower moire pattern and self-shadowing
     shadowCoordinate.z -= 0.001;
 
     if(shadowQuality == 1)

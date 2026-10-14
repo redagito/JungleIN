@@ -7,8 +7,8 @@
 
 /*!
  * ShaderLibrary
- * Sert à stocker les pointeurs sur les différent shaders.
- * Utiliser ShaderLibrary::addShader pour charger un nouveau shader.
+ * Stores the pointers to the different shaders.
+ * Use ShaderLibrary::addShader to load a new shader.
  * @static
  */
 class ShaderLibrary {

@@ -1,18 +1,17 @@
 [requires]
-glfw/3.3.8
-glm/cci.20230113
-glad/0.1.36
+glfw/3.4
+glm/1.0.3
+glad/2.0.8
 tinyobjloader/2.0.0-rc10
-stb/cci.20220909
+stb/cci.20240531
 openal/1.22.2
 minimp3/cci.20211201
-fmtlog/2.2.1
-catch2/3.4.0
+fmtlog/2.3.0
+catch2/3.16.0
 
 [options]
 glad/*:gl_profile=core
 glad/*:gl_version=4.6
-glad/*:spec=gl
 glad/*:no_loader=False
 
 [generators]

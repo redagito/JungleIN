@@ -76,6 +76,25 @@ TEST_CASE("Camera follows terrain and consumes look input", "[objects][camera]")
     CHECK_THAT(camera.getYaw() - yawBefore, WithinAbs(5.0f * 3.141592653f / 180.0f, 1e-5f));
   }
 
+  SECTION("pitch never rolls over past vertical")
+  {
+    constexpr float kLimit = 89.0f * 3.141592653f / 180.0f;
+    Camera camera;
+    camera.reset();
+    camera.activeLook(true);
+    // Stare down: huge downward motion must stop at +89 degrees.
+    camera.setMouse(0, 0);
+    camera.update(0.0, 1.0);
+    camera.setMouse(0, 10000);
+    camera.update(0.0, 1.0);
+    CHECK_THAT(camera.getPitch(), WithinAbs(kLimit, 1e-5f));
+    // Stare up: huge upward motion must stop at -89 degrees.
+    camera.setMouse(0, 10000);
+    camera.update(0.0, 1.0);
+    camera.setMouse(0, -20000);
+    camera.update(0.0, 1.0);
+    CHECK_THAT(camera.getPitch(), WithinAbs(-kLimit, 1e-5f));
+  }
   SECTION("mouse deltas are ignored while not looking")
   {
     Camera camera;

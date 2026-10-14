@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 #include "helpers/Utils.h"
@@ -11,7 +11,7 @@
 
 /*!
  * Window extends QGLWidget
- * Widget d'affichage opengl qui sera int�gr� au QMainWindow plutard.
+ * OpenGL display widget to be integrated into the QMainWindow later.
  */
 class Window
 {

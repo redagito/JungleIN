@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 #include <fmtlog/fmtlog.h>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 #include "helpers/Utils.h"
@@ -141,7 +141,7 @@ void Window::initializeGL() {
 	glfwMakeContextCurrent(window);
 
 	// Load opengl functions
-	if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0)
+	if (gladLoadGL((GLADloadfunc)glfwGetProcAddress) == 0)
 	{
 		throw std::runtime_error{"Failed to init GL context"};
 	}

@@ -5,8 +5,8 @@
 
 /*!
  * Object3D
- * Représente un object 3D disposant d'une Matrix4 de transformation, et donc
- * des Vector3 de position/rotation/scale.
+ * Represents a 3D object holding a transformation Matrix4, and thus
+ * position/rotation/scale Vector3s.
  * @abstract
  */
 class Object3D {

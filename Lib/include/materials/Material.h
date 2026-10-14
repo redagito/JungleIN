@@ -5,8 +5,8 @@
 
 /*!
  * Material
- * Un material correspond � un shader et contient une structure d'attributs pour
- * stocker ses param�tres.
+ * A material corresponds to a shader and contains an attribute structure for
+ * storing its parameters.
  * @abstract
  */
 class Material {

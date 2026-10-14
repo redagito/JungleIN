@@ -2,11 +2,11 @@
 
 #include <vector>
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 /*!
  * Geometry
- * Structure de donn�es permettant de stocker les tableaux de vertices, indices,
+ * Data structure for storing vertex, index,
  * etc.
  */
 class Geometry {

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 /*!
  * SSQuad
- * Initialise et affiche un ScreenSpaceQuad pour rendre une texture en plein
- * écran pour le post processing.
+ * Initializes and displays a ScreenSpaceQuad to render a texture fullscreen
+ * for post processing.
  */
 class SSQuad
 {

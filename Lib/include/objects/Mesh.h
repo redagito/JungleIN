@@ -7,11 +7,11 @@
 #include "core/Geometry.h"
 #include "objects/Instance.h"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 /*!
  * Mesh extends Object3D
- * Un object 3D contenant une g�om�trie et un mat�rial.
+ * A 3D object holding a geometry and a material.
  */
 class Mesh : public Object3D {
 public:

@@ -1,6 +1,6 @@
 #include "objects/SSQuad.h"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 SSQuad::SSQuad() { vbuffer = 0; }
 

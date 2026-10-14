@@ -3,14 +3,14 @@
 #include <vector>
 #include <string>
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 #include "core/Texture.h"
 #include "render/Shader.h"
 
 /*!
  * FrameBuffer
- * Stock un FBO et ses textures correspondantes.
+ * Stores an FBO and its corresponding textures.
  */
 class FrameBuffer {
 public:

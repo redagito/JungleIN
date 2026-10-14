@@ -8,12 +8,12 @@
 
 #include <fmtlog/fmtlog.h>
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 /*!
  * Utils
- * Fonctions diverses et vari�es (mais utiles)
+ * Miscellaneous utility functions
  * @static
  */
 class Utils {

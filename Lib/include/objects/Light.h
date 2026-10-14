@@ -7,7 +7,7 @@
 
 /*!
  * Light
- * Une lumière définie par une position et un vecteur d'orientation
+ * A light defined by a position and an orientation vector
  */
 class Light {
 public:

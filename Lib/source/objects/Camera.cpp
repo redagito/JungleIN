@@ -62,6 +62,10 @@ void Camera::update(double groundY, double delta) {
 	if (look) {
 		yaw += accelX * lookSpeed;
 		pitch += accelY * lookSpeed;
+		// Never roll over past vertical: beyond +-89 degrees the view
+		// flips behind and the forward-based culling breaks.
+		if (pitch > 89.f) pitch = 89.f;
+		if (pitch < -89.f) pitch = -89.f;
 		// Deltas are per mouse event: consume them so the view does not
 		// keep turning after the mouse stops.
 		accelX = 0.f;
@@ -133,5 +137,7 @@ void Camera::setLookAccel(int x, int y) {
 void Camera::activeLook(bool active) { look = active; }
 
 float Camera::getYaw() { return yaw * DEG_TO_RAD; }
+
+float Camera::getPitch() { return pitch * DEG_TO_RAD; }
 
 void Camera::setPositionY(float y) { this->position.y = y; }

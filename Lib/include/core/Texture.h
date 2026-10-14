@@ -3,15 +3,15 @@
 #include <string>
 #include <vector>
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 #include "helpers/Utils.h"
 
 /*!
  * Texture
- * Structure de donn�e permettant de stocker l'index, le GL_TEXTUREX et l'uid
- * d'une texture OpenGL.
- * Peut aussi contenir une QImage si charg�e en externe.
+ * Data structure storing the index, GL_TEXTUREX and uid
+ * of an OpenGL texture.
+ * May also hold a QImage if loaded externally.
  */
 class Texture {
 public:

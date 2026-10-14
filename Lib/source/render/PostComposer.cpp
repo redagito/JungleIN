@@ -3,7 +3,7 @@
 #include "render/ShaderLibrary.h"
 #include "helpers/Utils.h"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	width = inputFBO->getWidth();

@@ -53,7 +53,7 @@ float computeShadow()
     if(all(lessThan(fShadowcoord.xy, vec2(1.0,1.0))) && all(greaterThan(fShadowcoord.xy, vec2(0.0,0.0))))
     {
         vec4 shadowCoordinate = fShadowcoord;// / fShadowcoord.w ;
-        // Used to lower moiré pattern and self-shadowing
+        // Used to lower moire pattern and self-shadowing
         shadowCoordinate.z -= 0.001;
 
         float sum = 0.0;

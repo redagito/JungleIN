@@ -4,7 +4,7 @@
 
 /*!
  * Camera extends Object3D
- * Une camera est un objet3D disposant en plus d'une matrice de projection.
+ * A camera is an Object3D with an additional projection matrix.
  */
 class Camera : public Object3D {
 public:
@@ -34,6 +34,7 @@ public:
   void activeLook(bool);
 
   float getYaw();
+  float getPitch();
 
 private:
   Matrix4 projection;

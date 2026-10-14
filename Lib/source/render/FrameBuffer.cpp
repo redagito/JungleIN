@@ -1,7 +1,7 @@
 #include "render/FrameBuffer.h"
 
 #include <fmtlog/fmtlog.h>
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 #include "helpers/Utils.h"
 

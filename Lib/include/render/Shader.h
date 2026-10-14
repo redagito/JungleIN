@@ -4,7 +4,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 #include "math/Vector3.h"
 #include "math/Matrix3.h"
@@ -14,9 +14,9 @@
 
 /*!
  * Shader
- * Stock un glProgram (vertex+fragment).
- * Utiliser bind pour utiliser le shader lors du rendu.
- * Utiliser attribute(string) et uniform(string) pour acc�der aux locations.
+ * Stores a glProgram (vertex+fragment).
+ * Use bind to use the shader when rendering.
+ * Use attribute(string) and uniform(string) to access the locations.
  */
 class Shader {
 public:

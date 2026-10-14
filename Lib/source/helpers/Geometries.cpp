@@ -1,6 +1,6 @@
 #include "helpers/Geometries.h"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 /*
     4_______7
