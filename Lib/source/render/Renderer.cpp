@@ -180,11 +180,19 @@ void Renderer::drawSun() {
 	calcMVP();
 	transmitMVP();
 
-	postComposer->setLightPosScreen(
-		Vector3(__mvp.data[0][3], __mvp.data[1][3], __mvp.data[2][3])
-		.divideScalar(__mvp.data[3][3]) *
-		0.5 +
-		Vector3(0.5, 0.5, 0.5));
+	// Clip coords of the sun origin are the MVP translation column.
+	// Perspective-divide by clip w, then map NDC [-1,1] to UV [0,1].
+	// Guard w <= 0 (sun behind camera): park the anchor off-screen so
+	// the god-rays pass discards instead of firing from screen centre.
+	float clipW = __mvp.data[3][3];
+	Vector3 lightPosScreen(-1.0f, -1.0f, -1.0f);
+	if (clipW > 0.0f) {
+		lightPosScreen.set(
+			__mvp.data[0][3] / clipW * 0.5f + 0.5f,
+			__mvp.data[1][3] / clipW * 0.5f + 0.5f,
+			__mvp.data[2][3] / clipW * 0.5f + 0.5f);
+	}
+	postComposer->setLightPosScreen(lightPosScreen);
 
 	__sun->drawWithVBO();
 
