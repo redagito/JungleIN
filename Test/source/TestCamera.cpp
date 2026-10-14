@@ -18,13 +18,45 @@ TEST_CASE("Camera follows terrain and consumes look input", "[objects][camera]")
     CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f, 1e-4f));
   }
 
-  SECTION("keeps altitude when already above ground")
+  SECTION("sticks to terrain downhill, not just uphill")
   {
     Camera camera;
     camera.reset();
     camera.setPositionY(150.0f);
     camera.update(/*groundY=*/100.0, /*delta=*/1.0);
-    CHECK_THAT(camera.getPosition().y, WithinAbs(150.0f, 1e-4f));
+    CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f, 1e-4f));
+  }
+
+  SECTION("E raises a persistent offset that follows terrain")
+  {
+    Camera camera;
+    camera.reset();
+    camera.setEKey(true);
+    camera.update(/*groundY=*/100.0, /*delta=*/0.5f);
+    camera.setEKey(false);
+    // offset = 200 * 0.5 = 100 above the eye height...
+    CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f + 100.0f, 1e-3f));
+    // ...and the offset survives terrain changes instead of floating.
+    camera.update(/*groundY=*/50.0, /*delta=*/1.0);
+    CHECK_THAT(camera.getPosition().y, WithinAbs(50.0f + 2.2f + 100.0f, 1e-3f));
+  }
+
+  SECTION("Q lowers back to terrain, never below it")
+  {
+    Camera camera;
+    camera.reset();
+    camera.setEKey(true);
+    camera.update(/*groundY=*/100.0, /*delta=*/0.5f);
+    camera.setEKey(false);
+    camera.setQKey(true);
+    camera.update(/*groundY=*/100.0, /*delta=*/0.5f);
+    camera.setQKey(false);
+    CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f, 1e-3f));
+    // Pressing Q on the ground changes nothing.
+    camera.setQKey(true);
+    camera.update(/*groundY=*/100.0, /*delta=*/1.0);
+    camera.setQKey(false);
+    CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f, 1e-3f));
   }
 
   SECTION("mouse deltas turn the view once while looking")

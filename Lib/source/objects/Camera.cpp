@@ -24,6 +24,7 @@ Camera::Camera() : Object3D() {
 void Camera::reset() {
 	yaw = 0.0;
 	pitch = 0.0;
+	heightOffset = 0.0;
 	position.set(0, 6, -1);
 	logi("Reset Camera");
 }
@@ -87,22 +88,21 @@ void Camera::update(double groundY, double delta) {
 		position.z += moveSpeed * std::cos(yaw * DEG_TO_RAD) * delta;
 	}
 
-	// Up and down
+	// Fly higher / lower: adjusts the offset above the terrain.
 	if (eKey)
 	{
-		position.y += moveSpeed * delta;
-		if (position.y > 200.f) position.y = 200.f;
+		heightOffset += moveSpeed * delta;
+		if (heightOffset > 200.f) heightOffset = 200.f;
 	}
 
 	if (qKey)
 	{
-		position.y -= moveSpeed * delta;
-		if (position.y < groundY + 2.2f) position.y = groundY + 2.2f;
+		heightOffset -= moveSpeed * delta;
+		if (heightOffset < 0.f) heightOffset = 0.f;
 	}
 
-	// Walking must stay above the terrain: never sink below it.
-	// (Flying above with E still works; this only floors the descent.)
-	if (position.y < groundY + height) position.y = groundY + height;
+	// Walking stays glued to the terrain, uphill and downhill.
+	position.y = groundY + height + heightOffset;
 
 	matrix.identity()
 		.translate(position * -1)
