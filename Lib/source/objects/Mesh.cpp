@@ -44,9 +44,9 @@ void Mesh::initVBO() {
 	hasTexCoords = (geometry->hasTexCoords() &&
 		material->getShader()->hasAttribute("texcoord"));
 
-	int nbV = this->getGeometry()->getVerticesCount();
+	int nbV = this->getGeometry()->getVertexFloatCount();
 	int nbI = this->getGeometry()->getIndicesCount();
-	int nbT = this->getGeometry()->getTexCoordsCount();
+	int nbT = this->getGeometry()->getTexCoordFloatCount();
 
 	// indices
 	glGenBuffers(1, &indices);

@@ -23,9 +23,9 @@ public:
   float *getTexCoords();
   float *getNormals();
 
-  int getVerticesCount();
+  int getVertexFloatCount();
   int getIndicesCount();
-  int getTexCoordsCount();
+  int getTexCoordFloatCount();
 
   void setTexCoords(float *texCoords);
   void setNormals(float *normals);
@@ -47,9 +47,9 @@ private:
 
   GLenum primitive = GL_TRIANGLES;
 
-  int verticesCount = 0;
+  int vertexFloatCount = 0;
   int indicesCount = 0;
-  int texCoordsCount = 0;
+  int texCoordFloatCount = 0;
 
   bool hNormals = false;
   bool hTexCoords = false;

@@ -11,7 +11,7 @@ Geometry::Geometry(float *vertices, int *indices, int numVertices,
   verticesTab = std::vector<float>(&vertices[0], &vertices[numVertices]);
   indicesTab = std::vector<unsigned int>(&indices[0], &indices[numIndices]);
 
-  verticesCount = numVertices;
+  vertexFloatCount = numVertices;
   indicesCount = numIndices;
 
   hNormals = false;
@@ -25,7 +25,7 @@ Geometry::Geometry(std::vector<float> vertices,
   verticesTab = vertices;
   indicesTab = indices;
 
-  verticesCount = static_cast<int>(vertices.size());
+  vertexFloatCount = static_cast<int>(vertices.size());
   indicesCount = static_cast<int>(indices.size());
 
   hNormals = false;
@@ -42,26 +42,26 @@ float *Geometry::getTexCoords() { return texCoordsTab.data(); }
 
 float *Geometry::getNormals() { return normalsTab.data(); }
 
-int Geometry::getVerticesCount() { return verticesCount; }
+int Geometry::getVertexFloatCount() { return vertexFloatCount; }
 
 int Geometry::getIndicesCount() { return indicesCount; }
 
-int Geometry::getTexCoordsCount() { return texCoordsCount; }
+int Geometry::getTexCoordFloatCount() { return texCoordFloatCount; }
 
 void Geometry::setTexCoords(float *texCoords) {
-  texCoordsCount = verticesCount / 3 * 2;
+  texCoordFloatCount = vertexFloatCount / 3 * 2;
   texCoordsTab =
-      std::vector<float>(&texCoords[0], &texCoords[verticesCount / 3 * 2]);
+      std::vector<float>(&texCoords[0], &texCoords[vertexFloatCount / 3 * 2]);
   hTexCoords = true;
 }
 
 void Geometry::setNormals(float *normals) {
-  normalsTab = std::vector<float>(&normals[0], &normals[verticesCount]);
+  normalsTab = std::vector<float>(&normals[0], &normals[vertexFloatCount]);
   hNormals = true;
 }
 
 void Geometry::setTexCoords(std::vector<float> texCoords) {
-  texCoordsCount = static_cast<int>(texCoords.size());
+  texCoordFloatCount = static_cast<int>(texCoords.size());
   texCoordsTab = texCoords;
   hTexCoords = true;
 }

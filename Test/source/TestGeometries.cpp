@@ -9,7 +9,7 @@ TEST_CASE("Geometries produce complete primitives", "[helpers][geometries]")
   SECTION("cube has all six faces")
   {
     Geometry *cube = Geometries::cube();
-    CHECK(cube->getVerticesCount() == 24);
+    CHECK(cube->getVertexFloatCount() == 24);
     CHECK(cube->getIndicesCount() == 36);
     const unsigned int *indices = cube->getIndices();
     for (int i = 0; i < cube->getIndicesCount(); ++i)
@@ -20,7 +20,7 @@ TEST_CASE("Geometries produce complete primitives", "[helpers][geometries]")
   SECTION("quad has both triangles")
   {
     Geometry *quad = Geometries::quad(1.0);
-    CHECK(quad->getVerticesCount() == 12);
+    CHECK(quad->getVertexFloatCount() == 12);
     CHECK(quad->getIndicesCount() == 6);
     CHECK(quad->hasTexCoords());
     delete quad;
