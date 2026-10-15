@@ -7,6 +7,7 @@
 #include "helpers/SceneBuilder.h"
 #include "objects/Scene.h"
 #include "render/Renderer.h"
+#include "audio/AudioEngine.h"
 #include "ui/ReloadWindow.h"
 
 /*!
@@ -64,4 +65,5 @@ private:
 
 	Scene* scene = nullptr;
 	Renderer* renderer = nullptr;
+	AudioEngine* audio = nullptr;
 };

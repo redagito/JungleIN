@@ -117,6 +117,9 @@ void Window::run() {
 	while (glfwWindowShouldClose(Utils::window) == 0) {
 		glfwPollEvents();
 
+		if (audio != nullptr)
+			audio->update();
+
 		paintGL();
 
 		glfwSwapBuffers(Utils::window);
@@ -229,6 +232,11 @@ void Window::initializeObjects() {
 	renderer->init(scene, 1024, 768);
 
 	renderer->start();
+
+	audio = new AudioEngine();
+	audio->init();
+	audio->playLoop(
+		AudioClip::decodeMP3("data/resources/sounds/ambiant.mp3"));
 
 }
 

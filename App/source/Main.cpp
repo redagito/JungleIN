@@ -5,7 +5,7 @@
 
 #include "ui/Window.h"
 
-int main(int /*argc*/, char* /*argv*/[]) 
+int main(int /*argc*/, char* /*argv*/[])
 {
 	// Fresh log.txt next to the working directory on every start.
 	fmtlog::setLogFile("log.txt", true);
