@@ -29,6 +29,8 @@ Texture::Texture(std::string path, unsigned int _index) {
 	globalFormat = GL_RGBA;
 }
 
+// NOTE: render-target buffers stay 8-bit GL_RGBA by design for now;
+// float HDR buffers (e.g. RGBA16F) are planned for a later pass.
 Texture::Texture(unsigned int _index) {
 	height = 0;
 	width = 0;

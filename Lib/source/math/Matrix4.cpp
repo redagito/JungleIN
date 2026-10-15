@@ -430,6 +430,9 @@ Matrix4 Matrix4::operator*(const Matrix4 &mat) const {
   return result;
 }
 
+// NOTE: the reversed multiply order (mat * *this) is known legacy
+// behavior, not a bug: the whole transform chain relies on it. Do not
+// "fix" piecemeal; it is scheduled for one coordinated sweep later.
 void Matrix4::operator*=(const Matrix4 &mat) { copy(mat * *this); }
 
 Matrix4 Matrix4::operator*(const float scalar) const {

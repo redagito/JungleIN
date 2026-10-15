@@ -50,7 +50,8 @@ ObjLoader::FlattenedMesh ObjLoader::flatten(
 			if (index.vertex_index < 0 ||
 				static_cast<size_t>(index.vertex_index) * 3 + 2 >= attrib.vertices.size())
 				throw std::runtime_error("OBJ vertex index out of range in " + where);
-			if (index.normal_index < 0 ||
+			// Models without normals are rejected by design; all shipped assets carry them.
+		if (index.normal_index < 0 ||
 				static_cast<size_t>(index.normal_index) * 3 + 2 >= attrib.normals.size())
 				throw std::runtime_error("OBJ normal index out of range in " + where);
 			// Vertex x/y/z
