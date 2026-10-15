@@ -34,6 +34,11 @@ FrameBuffer::~FrameBuffer() {
 	}
 	textures.clear();
 
+	if (uid != 0)
+		glDeleteFramebuffers(1, &uid);
+	if (hasDepth && depthBuffer != 0)
+		glDeleteRenderbuffers(1, &depthBuffer);
+
 	delete[] drawBuffers;
 }
 

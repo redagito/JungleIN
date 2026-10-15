@@ -6,6 +6,13 @@
 
 SSQuad::SSQuad() { vbuffer = 0; }
 
+SSQuad::~SSQuad() {
+	if (vbuffer != 0)
+		glDeleteBuffers(1, &vbuffer);
+	if (vao != 0)
+		glDeleteVertexArrays(1, &vao);
+}
+
 const float SSQuad::vertices[8] = { -1.0f, -1.0f, 1.0f, -1.0f,
 								   -1.0f, 1.0f,  1.0f, 1.0f };
 

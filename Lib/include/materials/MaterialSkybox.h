@@ -7,11 +7,12 @@
 class MaterialSkyBox : public Material {
 public:
   MaterialSkyBox(TextureCube *textureCube);
+  ~MaterialSkyBox() override;
 
   Shader *bind();
 
 private:
-  TextureCube *cubemap;
+  TextureCube *cubemap = nullptr;
 };
 
 #endif // MATERIALSKYBOX_H

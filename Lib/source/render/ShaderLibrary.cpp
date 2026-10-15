@@ -25,7 +25,13 @@ Shader* ShaderLibrary::addShader(std::string name, std::string shaderPrefix,
 	}
 
 	Shader* shader = new Shader(name);
-	shader->load(shaderPrefix, attributes, uniforms);
+	try {
+		shader->load(shaderPrefix, attributes, uniforms);
+	}
+	catch (...) {
+		delete shader;
+		throw;
+	}
 
 	shaders[name] = shader;
 

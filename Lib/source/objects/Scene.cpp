@@ -5,6 +5,25 @@
 
 Scene::Scene() : Object3D() {}
 
+Scene::~Scene() {
+  for (Mesh *m : meshes) {
+    delete m;
+  }
+  meshes.clear();
+  for (Camera *c : cameras) {
+    delete c;
+  }
+  cameras.clear();
+  // currentCamera aliases an entry of cameras; do not delete it twice.
+  currentCamera = nullptr;
+  delete sun;
+  sun = nullptr;
+  delete sky;
+  sky = nullptr;
+  delete ground;
+  ground = nullptr;
+}
+
 void Scene::init() {
   if (sky == nullptr || sun == nullptr || ground == nullptr)
     throw std::runtime_error("Scene::init without sky, sun or ground");

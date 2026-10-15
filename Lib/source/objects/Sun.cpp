@@ -37,4 +37,8 @@ void Sun::update(const Vector3 &positionCamera, const Vector3 &zCamera) {
 
 void Sun::setSpeed(float s) { speed = s; }
 
+Sun::~Sun() {
+  delete light;
+}
+
 Light *Sun::getLight() { return light; }

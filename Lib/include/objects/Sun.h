@@ -11,6 +11,7 @@ class Sun : public Mesh {
 
 public:
   Sun(MaterialSun *mat);
+  ~Sun();
 
   void update(const Vector3 &positionCamera, const Vector3 &zCamera);
 

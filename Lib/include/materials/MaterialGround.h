@@ -8,6 +8,7 @@ public:
   MaterialGround(Texture *moss, Texture *earth, Texture *shatter,
                  Texture *mossNormal, Texture *earthNormal,
                  Texture *shatterNormal);
+  ~MaterialGround() override;
 
   Shader *bind();
 

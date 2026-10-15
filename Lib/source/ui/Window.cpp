@@ -118,7 +118,27 @@ Window::Window() {
 	s_window = this;
 }
 
-Window::~Window() {}
+Window::~Window() {
+	// GL teardown must run while the context is still current: free every
+	// owner in dependency order first, then the shared shaders, then GLFW.
+	delete audio;
+	audio = nullptr;
+	delete loading;
+	loading = nullptr;
+	delete renderer;
+	renderer = nullptr;
+	delete scene;
+	scene = nullptr;
+	ShaderLibrary::clear();
+	if (window != nullptr) {
+		glfwDestroyWindow(window);
+		window = nullptr;
+		Utils::window = nullptr;
+	}
+	if (s_window == this)
+		s_window = nullptr;
+	glfwTerminate();
+}
 
 void Window::run() {
 	while (glfwWindowShouldClose(Utils::window) == 0) {

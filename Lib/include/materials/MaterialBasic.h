@@ -6,6 +6,7 @@ class MaterialBasic : public Material
 {
 public:
 	MaterialBasic(const Vector3& _color = Vector3());
+	~MaterialBasic() override;
 
 	void setColor(const Vector3& _color);
 	Vector3& getColor();

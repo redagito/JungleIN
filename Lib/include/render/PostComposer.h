@@ -6,6 +6,7 @@
 class PostComposer {
 public:
 	PostComposer(FrameBuffer* inputFBO);
+	~PostComposer();
 	void render();
 	void resize(unsigned int _width, unsigned int _height);
 	void resizeHalfBuffers();

@@ -7,11 +7,12 @@
 class MaterialSun : public Material {
 public:
   MaterialSun(Texture *diffuse, Texture *alpha);
+  ~MaterialSun() override;
   Shader *bind();
 
 protected:
-  Texture *diffuse;
-  Texture *alpha;
+  Texture *diffuse = nullptr;
+  Texture *alpha = nullptr;
 };
 
 #endif // METERIALSUN_H

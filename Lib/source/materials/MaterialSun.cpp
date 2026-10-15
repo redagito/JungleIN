@@ -6,6 +6,11 @@ MaterialSun::MaterialSun(Texture *diffuse, Texture *alpha)
   this->alpha = alpha;
 }
 
+MaterialSun::~MaterialSun() {
+  delete diffuse;
+  delete alpha;
+}
+
 Shader *MaterialSun::bind() {
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);

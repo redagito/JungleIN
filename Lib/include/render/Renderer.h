@@ -28,6 +28,7 @@ class Renderer
 {
 public:
 	Renderer();
+	~Renderer();
 
 	void init(Scene* _scene, unsigned int w, unsigned int h);
 	void resize(unsigned int w, unsigned int h);

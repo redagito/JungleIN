@@ -32,6 +32,28 @@ Renderer::Renderer() {
 	useShadowCascade = true;
 }
 
+Renderer::~Renderer() {
+	// postComposer borrows mainFBO; free it first (it never deletes input).
+	delete postComposer;
+	postComposer = nullptr;
+	delete mainFBO;
+	mainFBO = nullptr;
+	delete shadowFBO;
+	shadowFBO = nullptr;
+	delete shadowFBOCascade;
+	shadowFBOCascade = nullptr;
+	delete shadowMat;
+	shadowMat = nullptr;
+	// scene and __ observers belong to Window/Scene; do not delete.
+	scene = nullptr;
+	__camera = nullptr;
+	__material = nullptr;
+	__shader = nullptr;
+	__skybox = nullptr;
+	__sun = nullptr;
+	__ground = nullptr;
+}
+
 void Renderer::init(Scene* _scene, unsigned int w, unsigned int h) {
 	shadowMat = new MaterialShadow();
 

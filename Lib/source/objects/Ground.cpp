@@ -335,6 +335,7 @@ void Ground::removeRockPos() {
 
 Ground::~Ground()
 {
+	removeRockPos();
 	delete[] this->normals;
 	delete this->path;
 }

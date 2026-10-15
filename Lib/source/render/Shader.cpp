@@ -41,6 +41,12 @@ Shader::Shader(std::string name) {
 }
 
 Shader::~Shader() {
+	if (uid != 0 && uid != static_cast<GLuint>(-1)) {
+		if (s_activeShaderUid == uid)
+			s_activeShaderUid = 0;
+		glDeleteProgram(uid);
+		uid = 0;
+	}
 	attributes.clear();
 	uniforms.clear();
 	delete[] vertex;
@@ -68,11 +74,12 @@ Shader& Shader::setup() {
 
 	int status, logSize;
 	std::vector<char> log;
-	unsigned int pProgram;
 
-	pProgram = glCreateProgram();
+	unsigned int pProgram = glCreateProgram();
+	unsigned int vshader = 0;
+	unsigned int fshader = 0;
 
-	unsigned int vshader = glCreateShader(GL_VERTEX_SHADER);
+	vshader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vshader, 1, &vertex, NULL);
 	glCompileShader(vshader);
 	glGetShaderiv(vshader, GL_COMPILE_STATUS, &status);
@@ -82,13 +89,15 @@ Shader& Shader::setup() {
 		glGetShaderInfoLog(vshader, logSize, &logSize, log.data());
 		loge("Error: Unable to compile vertex shader of {}", name);
 		loge("{}", log.data());
+		glDeleteShader(vshader);
+		glDeleteProgram(pProgram);
 		throw std::runtime_error("Shader setup failed");
 	}
 	glAttachShader(pProgram, vshader);
 	if (std::string info = fetchInfoLog(vshader, false); !info.empty())
 		logw("Vertex shader info log of {}: {}", name, info);
 
-	unsigned int fshader = glCreateShader(GL_FRAGMENT_SHADER);
+	fshader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fshader, 1, &fragment, NULL);
 	glCompileShader(fshader);
 	glGetShaderiv(fshader, GL_COMPILE_STATUS, &status);
@@ -98,6 +107,9 @@ Shader& Shader::setup() {
 		glGetShaderInfoLog(fshader, logSize, &logSize, log.data());
 		loge("Error: Unable to compile fragment shader of {}", name);
 		loge("{}", log.data());
+		glDeleteShader(vshader);
+		glDeleteShader(fshader);
+		glDeleteProgram(pProgram);
 		throw std::runtime_error("Shader setup failed");
 	}
 	glAttachShader(pProgram, fshader);
@@ -112,9 +124,16 @@ Shader& Shader::setup() {
 		glGetProgramInfoLog(pProgram, logSize, &logSize, log.data());
 		loge("Error: Unable to link program shader of {}", name);
 		loge("{}", log.data());
+		glDeleteShader(vshader);
+		glDeleteShader(fshader);
+		glDeleteProgram(pProgram);
 		throw std::runtime_error("Shader setup failed");
 	}
 
+	glDetachShader(pProgram, vshader);
+	glDetachShader(pProgram, fshader);
+	glDeleteShader(vshader);
+	glDeleteShader(fshader);
 	uid = pProgram;
 	if (std::string info = fetchInfoLog(pProgram, true); !info.empty())
 		logw("Program info log of {}: {}", name, info);

@@ -210,6 +210,17 @@ Mesh::~Mesh() {
 
 	instances.clear();
 
+	if (VAO != 0)
+		glDeleteVertexArrays(1, &VAO);
+	if (vertices != 0)
+		glDeleteBuffers(1, &vertices);
+	if (indices != 0)
+		glDeleteBuffers(1, &indices);
+	if (normals != 0)
+		glDeleteBuffers(1, &normals);
+	if (texcoords != 0)
+		glDeleteBuffers(1, &texcoords);
+
 	delete geometry;
 	delete material;
 }

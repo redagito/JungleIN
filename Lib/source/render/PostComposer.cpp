@@ -67,6 +67,16 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	flareDirt->init();
 }
 
+PostComposer::~PostComposer() {
+	// inputBuffer is borrowed from Renderer; shaders belong to ShaderLibrary.
+	delete readBuffer;
+	delete writeBuffer;
+	delete readHalfBuffer;
+	delete writeHalfBuffer;
+	delete quad;
+	delete flareDirt;
+}
+
 void PostComposer::swapBuffers() {
 	FrameBuffer* tmp = readBuffer;
 	readBuffer = writeBuffer;

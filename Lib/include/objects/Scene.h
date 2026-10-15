@@ -11,6 +11,7 @@
 class Scene : public Object3D {
 public:
   Scene();
+  ~Scene();
 
   std::vector<Mesh *> getMeshes();
   Sun *getSun();

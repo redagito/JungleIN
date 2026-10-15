@@ -13,6 +13,15 @@ MaterialGround::MaterialGround(Texture* moss, Texture* earth, Texture* shatter,
 	size = (float)shatter->getWidth();
 }
 
+MaterialGround::~MaterialGround() {
+	delete moss;
+	delete earth;
+	delete shatter;
+	delete mossNormal;
+	delete earthNormal;
+	delete shatterNormal;
+}
+
 Shader* MaterialGround::bind() {
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);

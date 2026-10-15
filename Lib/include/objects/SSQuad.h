@@ -11,6 +11,7 @@ class SSQuad
 {
 public:
 	SSQuad();
+	~SSQuad();
 
 	void init();
 	void draw(unsigned int posIndex);

@@ -7,6 +7,10 @@ MaterialSkyBox::MaterialSkyBox(TextureCube *textureCube)
   cubemap->init();
 }
 
+MaterialSkyBox::~MaterialSkyBox() {
+  delete cubemap;
+}
+
 Shader *MaterialSkyBox::bind() {
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
