@@ -46,14 +46,14 @@ public:
 
 private:
   std::vector<Mesh *> meshes;
-  Sun *sun;
+  Sun *sun = nullptr;
   std::vector<Camera *> cameras;
-  SkyBox *sky;
-  Ground *ground;
+  SkyBox *sky = nullptr;
+  Ground *ground = nullptr;
 
-  Camera *currentCamera;
+  Camera *currentCamera = nullptr;
   Vector3 cameraZ;
-  bool renderAble;
+  bool renderAble = false;
 };
 
 #endif // SCENE_H

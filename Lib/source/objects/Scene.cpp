@@ -1,10 +1,13 @@
 #include "objects/Scene.h"
 
 #include <cmath>
+#include <stdexcept>
 
 Scene::Scene() : Object3D() {}
 
 void Scene::init() {
+  if (sky == nullptr || sun == nullptr || ground == nullptr)
+    throw std::runtime_error("Scene::init without sky, sun or ground");
   for (Mesh *m : meshes) {
     m->initVBO();
   }
@@ -14,6 +17,8 @@ void Scene::init() {
 }
 
 void Scene::update(float delta) {
+  if (ground == nullptr || currentCamera == nullptr)
+    throw std::runtime_error("Scene::update without ground or camera");
   float groundY = ground->getYApprox(currentCamera->getPosition().x,
                                      currentCamera->getPosition().z,
                                      currentCamera->getPosition().y);
