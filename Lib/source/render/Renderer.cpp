@@ -355,14 +355,14 @@ void Renderer::resize(unsigned int w, unsigned int h) {
 	if (mainFBO != 0)
 		mainFBO->resize(w, h);
 	if (shadowFBO != 0) {
-		int ws = w * 2.0;
+		int ws = w * 2;
 		int max = Utils::QUALITY == 1 ? MAX_SHADOW_WIDTH_1 : MAX_SHADOW_WIDTH_0;
 		if (ws > max)
 			ws = max;
 		shadowFBO->resize(ws, ws);
 	}
 	if (shadowFBOCascade != 0) {
-		int ws = w * 2.0;
+		int ws = w * 2;
 		int max = Utils::QUALITY == 1 ? MAX_SHADOW_WIDTH_1 : MAX_SHADOW_WIDTH_0;
 		if (ws > max)
 			ws = max;

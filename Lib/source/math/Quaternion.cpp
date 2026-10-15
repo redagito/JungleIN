@@ -35,7 +35,7 @@ Quaternion &Quaternion::copy(const Quaternion &v) {
  * http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
  */
 Quaternion &Quaternion::setFromVector(const Vector3 &v) {
-  float c = Pi / 360, x = v.x * c, y = v.y * c, z = v.z * c,
+  float c = static_cast<float>(Pi / 360), x = v.x * c, y = v.y * c, z = v.z * c,
 
         c1 = std::cos(y), s1 = std::sin(y), c2 = std::cos(-z),
         s2 = std::sin(-z), c3 = std::cos(x), s3 = std::sin(x),

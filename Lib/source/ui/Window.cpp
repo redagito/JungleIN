@@ -306,7 +306,7 @@ void Window::onCursorMove(double x, double y)
 {
 	if (scene == nullptr)
 		return;
-	scene->getCurrentCamera()->setMouse(std::floor(x), std::floor(y));
+	scene->getCurrentCamera()->setMouse(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)));
 }
 
 void Window::onMouseButton(int button, int action, int mods)

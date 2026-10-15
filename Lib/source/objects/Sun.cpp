@@ -16,14 +16,14 @@ Sun::Sun(MaterialSun *mat) : Mesh() {
   lightDistance = 150.0;
   lightTargetOffset = 13;
   sunDistance = 6.0;
-  yaw = Pi / 3.0;
+  yaw = static_cast<float>(Pi / 3.0);
   speed = 0.0;
 }
 
 void Sun::update(const Vector3 &positionCamera, const Vector3 &zCamera) {
   yaw += SUN_ANGLE_STEP * speed;
   if (yaw > SUN_YAW_END)
-    yaw = SUN_YAW_START;
+    yaw = static_cast<float>(SUN_YAW_START);
 
   localPosition.set(std::cos(yaw), std::sin(yaw), -std::sin(yaw) / 3.0);
   position.copy(positionCamera + localPosition * sunDistance);

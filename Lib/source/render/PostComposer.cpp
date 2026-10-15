@@ -59,9 +59,9 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 
 	flareThreshold = Vector3(0.5, 0.5, 0.5);
 	flareSamples = 12;
-	flareDispersal = 0.10;
-	flareHaloWidth = 0.22;
-	flareChromaDispertion = Vector3(1.02, 1.0, 0.98);
+	flareDispersal = 0.10f;
+	flareHaloWidth = 0.22f;
+	flareChromaDispertion = Vector3(1.02f, 1.0f, 0.98f);
 	flareIntensity = 1.0;
 	flareDirt = new Texture("data/resources/maps/post/lensdirt_highc.png", 2);
 	flareDirt->init();

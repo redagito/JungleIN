@@ -94,7 +94,7 @@ Matrix4 &Matrix4::lookAt2(const Vector3 &eye, const Vector3 &target,
 
   z = (target - eye).normalize();
   if (z.isZero())
-    z.z = 0.1;
+    z.z = 0.1f;
 
   x.cross(z, up).normalize();
   y.cross(x, z).normalize();

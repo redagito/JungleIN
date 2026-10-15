@@ -13,8 +13,8 @@ Light::Light(Vector3 position, Vector3 direction, Vector3 intensity) {
   projMatrixCascade.setOrthogonal(-sizeCascade, sizeCascade, sizeCascade,
                                   -sizeCascade, 1, 200);
 
-  biasMatrix.set(0.5, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 0.5, 0.5,
-                 0.0, 0.0, 0.0, 0.1);
+  biasMatrix.set(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 0.5f, 0.5f,
+                 0.0f, 0.0f, 0.0f, 0.1f);
 }
 
 void Light::setSize(float s) { size = s; }

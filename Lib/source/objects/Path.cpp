@@ -15,11 +15,13 @@ Path::Path(std::string file) {
 // compute if the position x, z is contained in the path.
 bool Path::validate(double x, double z) const {
 	float range = Ground::MAP_MAX - Ground::MAP_MIN;
-	int offset = -Ground::MAP_MIN;
+	const float offset = -Ground::MAP_MIN;
 	float xr = (x + offset) / range;
 	float yr = (z + offset) / range;
-	int xp = xr * width;
-	int yp = yr * height;
+	// Pixel indices: truncating a non-negative ratio is exact flooring;
+	// negatives fall through to the bounds check below.
+	int xp = static_cast<int>(xr * width);
+	int yp = static_cast<int>(yr * height);
 
 	if (xp < 0 || xp >= width || yp < 0 || yp >= height) {
 		return false;

@@ -252,8 +252,8 @@ float Ground::getY(float px, float pz) {
 		Vector3 p, n;
 
 		// compute the nearest known vertex
-		indx = trunc((px + MAP_SIZE / 2) * (this->numberVerticesX - 1) / MAP_SIZE);
-		indz = trunc((pz + MAP_SIZE / 2) * (this->numberVerticesX - 1) / MAP_SIZE);
+		indx = static_cast<int>(trunc((px + MAP_SIZE / 2) * (this->numberVerticesX - 1) / MAP_SIZE));
+		indz = static_cast<int>(trunc((pz + MAP_SIZE / 2) * (this->numberVerticesX - 1) / MAP_SIZE));
 
 		// point of the plane use to compute the constant value
 		p.set(this->geometry

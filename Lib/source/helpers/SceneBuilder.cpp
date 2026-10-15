@@ -1,5 +1,7 @@
 #include "helpers/SceneBuilder.h"
 
+#include <cmath>
+
 Scene* SceneBuilder::scene2 = NULL;
 Ground* SceneBuilder::ground2 = NULL;
 int SceneBuilder::NB_INSTANCE = 1400;
@@ -87,14 +89,14 @@ Scene* SceneBuilder::build() {
 	((MaterialBasic*)(rock1->getMaterial()))->setDiffuse(rock1Diffuse);
 	((MaterialBasic*)(rock1->getMaterial()))->setAlpha(rock1Alpha);
 	rock1->setPosition(Vector3(-3, 0.5, 0));
-	rock1->setScale(Vector3(0.6, 0.6, 0.6));
+	rock1->setScale(Vector3(0.6f, 0.6f, 0.6f));
 	rock1->setScale(Vector3(0.0, 0.0, 0.0));
-	rock1->setScaleRdn(0.2);
-	rock1->setHeightRdn(0.5);
-	rock1->setPourcentage(0.2);
+	rock1->setScaleRdn(0.2f);
+	rock1->setHeightRdn(0.5f);
+	rock1->setPourcentage(0.2f);
 	rock1->setInstanceType(Mesh::INSTANCE_ROCK);
-	rock1->setRangeScale(0.4);
-	createInstances(rock1, ground, NB_INSTANCE * rock1->getPourcentage());
+	rock1->setRangeScale(0.4f);
+	createInstances(rock1, ground, static_cast<int>(std::lround(NB_INSTANCE * rock1->getPourcentage())));
 
 	// PALM TREE
 	Texture::resetUnit();
@@ -113,12 +115,12 @@ Scene* SceneBuilder::build() {
 	palm->setPosition(Vector3(0, 0, -10));
 	palm->setScale(Vector3(2, 2, 2));
 	palm->setScale(Vector3(0, 0, 0));
-	palm->setScaleRdn(0.8);
-	palm->setHeightRdn(-2.5);
-	palm->setPourcentage(0.07);
+	palm->setScaleRdn(0.8f);
+	palm->setHeightRdn(-2.5f);
+	palm->setPourcentage(0.07f);
 	palm->setInstanceType(Mesh::INSTANCE_PALM);
-	palm->setRangeScale(0.8);
-	createInstances(palm, ground, NB_INSTANCE * palm->getPourcentage());
+	palm->setRangeScale(0.8f);
+	createInstances(palm, ground, static_cast<int>(std::lround(NB_INSTANCE * palm->getPourcentage())));
 
 	// HIGH TREE
 	Texture::resetUnit();
@@ -135,14 +137,14 @@ Scene* SceneBuilder::build() {
 	((MaterialBasic*)(htree->getMaterial()))->setDiffuse(htreeDiffuse);
 	((MaterialBasic*)(htree->getMaterial()))->setAlpha(htreeAlpha);
 	htree->setPosition(Vector3(-6, 2, -16));
-	htree->setScale(Vector3(0.6, 0.6, 0.6));
+	htree->setScale(Vector3(0.6f, 0.6f, 0.6f));
 	htree->setScale(Vector3(0, 0, 0));
-	htree->setScaleRdn(0.3);
-	htree->setHeightRdn(-2.0);
-	htree->setPourcentage(0.3);
+	htree->setScaleRdn(0.3f);
+	htree->setHeightRdn(-2.0f);
+	htree->setPourcentage(0.3f);
 	htree->setInstanceType(Mesh::INSTANCE_HTREE);
-	htree->setRangeScale(0.4);
-	createInstances(htree, ground, NB_INSTANCE * htree->getPourcentage());
+	htree->setRangeScale(0.4f);
+	createInstances(htree, ground, static_cast<int>(std::lround(NB_INSTANCE * htree->getPourcentage())));
 
 	// BAMBOO PALM
 	Texture::resetUnit();
@@ -159,14 +161,14 @@ Scene* SceneBuilder::build() {
 	((MaterialBasic*)(btree->getMaterial()))->setDiffuse(btreeDiffuse);
 	((MaterialBasic*)(btree->getMaterial()))->setAlpha(btreeAlpha);
 	btree->setPosition(Vector3(-4, -2, 4));
-	btree->setScale(Vector3(0.6, 0.6, 0.6));
+	btree->setScale(Vector3(0.6f, 0.6f, 0.6f));
 	btree->setScale(Vector3(0, 0, 0));
-	btree->setScaleRdn(0.3);
-	btree->setHeightRdn(-2.0);
-	btree->setPourcentage(0.15);
+	btree->setScaleRdn(0.3f);
+	btree->setHeightRdn(-2.0f);
+	btree->setPourcentage(0.15f);
 	btree->setInstanceType(Mesh::INSTANCE_BTREE);
-	btree->setRangeScale(1.0);
-	createInstances(btree, ground, NB_INSTANCE * btree->getPourcentage());
+	btree->setRangeScale(1.0f);
+	createInstances(btree, ground, static_cast<int>(std::lround(NB_INSTANCE * btree->getPourcentage())));
 
 	// GROUND PALM
 	Texture::resetUnit();
@@ -183,13 +185,13 @@ Scene* SceneBuilder::build() {
 	((MaterialBasic*)(gpalm->getMaterial()))->setDiffuse(gpalmDiffuse);
 	((MaterialBasic*)(gpalm->getMaterial()))->setAlpha(gpalmAlpha);
 	gpalm->setPosition(Vector3(-3, -1, 0));
-	gpalm->setScaleRdn(0.9);
+	gpalm->setScaleRdn(0.9f);
 	gpalm->setScale(Vector3(0, 0, 0));
 	gpalm->setHeightRdn(-1.0);
-	gpalm->setPourcentage(0.14);
+	gpalm->setPourcentage(0.14f);
 	gpalm->setInstanceType(Mesh::INSTANCE_GPALM);
-	gpalm->setRangeScale(0.4);
-	createInstances(gpalm, ground, NB_INSTANCE * gpalm->getPourcentage());
+	gpalm->setRangeScale(0.4f);
+	createInstances(gpalm, ground, static_cast<int>(std::lround(NB_INSTANCE * gpalm->getPourcentage())));
 
 	// SMALL PLANT 1
 	/*Texture::resetUnit();
@@ -223,14 +225,14 @@ Scene* SceneBuilder::build() {
 	((MaterialBasic*)(bush1->getMaterial()))->setDiffuse(bush1Diffuse);
 	((MaterialBasic*)(bush1->getMaterial()))->setAlpha(bush1Alpha);
 	bush1->setPosition(Vector3(-3, 0, 0));
-	bush1->setScale(Vector3(0.6, 0.6, 0.6));
+	bush1->setScale(Vector3(0.6f, 0.6f, 0.6f));
 	bush1->setScale(Vector3(0, 0, 0));
-	bush1->setScaleRdn(0.3);
+	bush1->setScaleRdn(0.3f);
 	bush1->setHeightRdn(0.0);
-	bush1->setPourcentage(0.14);
+	bush1->setPourcentage(0.14f);
 	bush1->setInstanceType(Mesh::INSTANCE_BUSH);
-	bush1->setRangeScale(0.4);
-	createInstances(bush1, ground, NB_INSTANCE * bush1->getPourcentage());
+	bush1->setRangeScale(0.4f);
+	createInstances(bush1, ground, static_cast<int>(std::lround(NB_INSTANCE * bush1->getPourcentage())));
 
 	Scene* scene = new Scene();
 	scene->addCamera(camera);
@@ -271,14 +273,14 @@ void SceneBuilder::reloadGo(int density, int spacing) {
 
 	ground2->removeRockPos();
 
-	Ground::MAP_MAX = spacing;
-	Ground::MAP_MIN = -spacing;
+	Ground::MAP_MAX = static_cast<float>(spacing);
+	Ground::MAP_MIN = static_cast<float>(-spacing);
 	scene2->setRenderAble(false);
 
 	for (Mesh* mesh : scene2->getMeshes()) {
 		if (mesh->getInstanceType() != Mesh::INSTANCE_NONE) {
 			mesh->clearInstances();
-			createInstances(mesh, ground2, density * mesh->getPourcentage());
+			createInstances(mesh, ground2, static_cast<int>(std::lround(density * mesh->getPourcentage())));
 		}
 	}
 

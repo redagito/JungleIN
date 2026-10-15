@@ -3,7 +3,7 @@
 
 ReloadWindow::ReloadWindow() {
   this->density = SceneBuilder::NB_INSTANCE;
-  this->spacing = Ground::MAP_MAX;
+  this->spacing = static_cast<unsigned int>(Ground::MAP_MAX);
 }
 
 void ReloadWindow::reGenerate() {

@@ -10,7 +10,7 @@ Camera::Camera() : Object3D() {
 	upKey = false;
 	downKey = false;
 
-	setPerspective(90.0f, 1.33, 0.1f, 500.0f);
+	setPerspective(90.0f, 1.33f, 0.1f, 500.0f);
 	target.set(0, 0, 0);
 
 	lookSpeed = 0.5f;
@@ -18,7 +18,7 @@ Camera::Camera() : Object3D() {
 
 	look = false;
 
-	height = 2.2;
+	height = 2.2f;
 }
 
 void Camera::reset() {
