@@ -28,6 +28,11 @@ Sun::Sun(MaterialSun *mat) : Mesh() {
   geometry = Geometries::quad(2.0);
   material = mat;
   light = new Light();
+  // Tuned below unity: at 1.0 the direct sun outranges ambient/fog by
+  // ~200x in shade views, forcing the auto-exposure to its ceiling and
+  // clipping sky and sunlit leaves. 0.7 keeps sunlit hierarchy without
+  // the blowout; revisit with the exposure log if shade goes too dark.
+  light->setIntensity(glm::vec3(0.7f));
   lightDistance = 150.0;
   lightTargetOffset = 13;
   sunDistance = 6.0;

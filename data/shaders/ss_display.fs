@@ -146,7 +146,10 @@ void main()
 {
     vec3 texel = texture(texScene, uv).rgb * exposure;
         vec3 mapped = ACESFilm(texel);
-        vec3 color = Vignette(ContrastSaturationBrightness(mapped, 1.0, 1.1, 1.1));
+        // Neutral looks: no contrast/saturation lift here now that the
+        // linear-to-gamma chain is correct (1.1 lifts were compensating
+        // for the old missing sRGB decode).
+        vec3 color = Vignette(ContrastSaturationBrightness(mapped, 1.0, 1.0, 1.0));
         color = GammaCorrection(color, gammaRGB);
     //if(uv.x < 0.5)
         FragColor = vec4( color, 1.0f );
