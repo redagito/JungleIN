@@ -1,6 +1,6 @@
 JungleIN
 ========
-![Splash](http://bkcore.com/orion/uploads/images/teaser.junglein.jpg)
+![Splash](doc/teaser.junglein.jpg)
 
 [Web page of the project](http://bkcore.com/blog/3d/opengl-jungle-viewer-source-utbm.html)
 [Youtube demo video](http://youtu.be/4M-wfzuCgvs)
@@ -18,5 +18,5 @@ This code is raw, untested and thus should not be used in anything serious.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-![Screen](http://bkcore.com/orion/uploads/images/junglein/bloom.jpg)
-![Screen](http://bkcore.com/orion/uploads/images/junglein/shadows.jpg)
+![Screen](doc/bloom.jpg)
+![Screen](doc/shadows.jpg)
