@@ -43,7 +43,7 @@ Vector3& Vector3::cross(const Vector3& a, const Vector3& b) {
 	return *this;
 }
 
-float Vector3::dot(const Vector3& v) { return x * v.x + y * v.y + z * v.z; }
+float Vector3::dot(const Vector3& v) const { return x * v.x + y * v.y + z * v.z; }
 
 Vector3& Vector3::normalize() { return divideScalar(length()); }
 
@@ -62,7 +62,7 @@ Vector3& Vector3::divideScalar(float s) {
 	return *this;
 }
 
-bool Vector3::isZero() { return (x == 0.0f && y == 0.0f && z == 0.0f); }
+bool Vector3::isZero() const { return (x == 0.0f && y == 0.0f && z == 0.0f); }
 
 Vector3 Vector3::operator+(const Vector3& v) const {
 	return Vector3(x + v.x, y + v.y, z + v.z);

@@ -58,7 +58,7 @@ Quaternion &Quaternion::setFromAngle(float angle, const Vector3 &axis) {
   return *this;
 }
 
-float Quaternion::length() { return std::sqrt(x * x + y * y + z * z + w * w); }
+float Quaternion::length() const { return std::sqrt(x * x + y * y + z * z + w * w); }
 
 Quaternion &Quaternion::divideScalar(float s) {
   if (s > std::numeric_limits<float>::epsilon()) {

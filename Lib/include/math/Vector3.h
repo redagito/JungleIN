@@ -22,11 +22,11 @@ public:
 	float length() const;
 	float distanceSq(const Vector3& v) const;
 	Vector3& cross(const Vector3& a, const Vector3& b);
-	float dot(const Vector3& v);
+	float dot(const Vector3& v) const;
 	Vector3& normalize();
 	Vector3& divideScalar(float s);
 
-	bool isZero();
+	bool isZero() const;
 
 	Vector3 operator+(const Vector3& v) const;
 	void operator+=(const Vector3& v);

@@ -15,7 +15,7 @@ public:
 	Quaternion& setFromVector(const Vector3& v);
 	Quaternion& setFromAngle(float angle, const Vector3& axis);
 
-	float length();
+	float length() const;
 	Quaternion& divideScalar(float s);
 	Quaternion& normalize();
 };
