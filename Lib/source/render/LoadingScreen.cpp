@@ -128,17 +128,10 @@ void LoadingScreen::show(const std::string& imagePath) {
   if (imageWidth <= 0 || imageHeight <= 0)
     throw std::runtime_error("LoadingScreen texture has no size");
 
-  // Fit inside the frame, keep aspect, never stretch.
-  const float imageAspect =
-      static_cast<float>(imageWidth) / static_cast<float>(imageHeight);
-  const float frameAspect =
-      static_cast<float>(width) / static_cast<float>(height);
-  float halfW = 1.0f;
-  float halfH = 1.0f;
-  if (imageAspect > frameAspect)
-    halfH = frameAspect / imageAspect;
-  else
-    halfW = imageAspect / frameAspect;
+  // Native pixels, centered: no scaling, no stretching.
+  const float halfW = static_cast<float>(imageWidth) / static_cast<float>(width);
+  const float halfH =
+      static_cast<float>(imageHeight) / static_cast<float>(height);
   const float vertices[] = {-halfW, -halfH, 0.0f, 0.0f, halfW, -halfH,
                             1.0f,   0.0f,   halfW, halfH, 1.0f, 1.0f,
                             -halfW, halfH,  0.0f, 1.0f};
