@@ -126,6 +126,11 @@ void Renderer::render() {
 
 	drawSky();
 
+	// Sun before opaque: the billboard sits 6 m out, so painter order is
+	// what makes it behave as infinitely distant (everything opaque covers
+	// it, the sky never does). It writes no depth (see MaterialSun).
+	drawSun();
+
 	// matrixProj = __sun->getLight()->getProjMatrix();
 	// matrixView = __sun->getLight()->getViewMatrix();
 
@@ -135,8 +140,6 @@ void Renderer::render() {
 	drawMeshes();
 
 	popMatrix();
-
-	drawSun();
 
 	mainFBO->unbind();
 
