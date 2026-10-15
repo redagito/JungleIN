@@ -84,12 +84,17 @@ float compShadow(in float nDotL)
     return 1.0;
 }
 
+// sRGB inputs (8-bit textures, no hardware decode) must be linearized
+// before lighting; ss_display gamma-encodes once at the end. Skipping
+// this decode leaves mid-tones ~1.5x too bright after the display gamma.
+vec3 srgbToLinear(vec3 c) { return pow(c, vec3(2.2)); }
+
 // Phase 4 unified fog: ground_n values adopted for every lit shader.
-// Ground dominates the horizon, so sharing its color/density hides the
-// mesh/ground seam. Formula reads vViewDepth (view-space forward
-// distance), never window coordinates.
+// The authored color is sRGB for direct display, so it is stored linear
+// here (display gamma-encodes the mixed result). Formula reads vViewDepth
+// (view-space forward distance), never window coordinates.
 const float LOG2 = 1.442695;
-const vec3 FOG_COLOR = vec3(0.796,0.918,0.949)*0.8;
+const vec3 FOG_COLOR = pow(vec3(0.796,0.918,0.949)*0.8, vec3(2.2));
 const float FOG_DENSITY = 0.006;
 
 vec3 compFog(vec3 finalColor)
@@ -137,6 +142,7 @@ void main()
     vec3 texelDiffuse = diffuseColor;
     if (useDiffuse == 1)
         texelDiffuse = texture(texDiffuse, fTexcoord).rgb;
+    texelDiffuse = srgbToLinear(texelDiffuse);
 
     if (useAlpha == 1)
     {
@@ -144,7 +150,7 @@ void main()
         if (texelAlpha < alphaCutoff) discard;
     }
 
-    // Linear workflow: sampled values are already linear HDR; the
+    // Linear workflow: inputs decoded above, lighting in linear, the
     // display pass (ss_display) applies gamma once at the end.
     FragColor = vec4(compFog(illumination(texelDiffuse)), 1.0);
     FragThreshold = vec4(0.0,0.0,0.0,1.0);

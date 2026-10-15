@@ -22,6 +22,7 @@ public:
 	void setFlareDispersal(float);
 	void setFlareIntensity(float);
 	void setGamma(float);
+	void setExposure(float);
 
 	void setLightPosScreen(const glm::vec3& pos);
 	void setFinalRenderSize(int w, int h);
@@ -82,6 +83,7 @@ private:
 	int halfBuffersRatio = 0;
 
 	glm::vec3 gammaRGB;
+	float exposure = 1.0f;
 
 	glm::vec3 flareThreshold;
 	int flareSamples = 0;

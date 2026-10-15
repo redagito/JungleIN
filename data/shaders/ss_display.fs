@@ -5,6 +5,9 @@ in vec2 uv;
 uniform sampler2D texScene;
 uniform vec3 gammaRGB;
 uniform float aspect;
+// Linear exposure scale (1.0 = neutral). Manual knob today, hook for
+// future adaptive HDR / auto-exposure driven from frame luminance.
+uniform float exposure;
 
 layout (location = 0) out vec4 FragColor;
 
@@ -115,7 +118,7 @@ layout (location = 0) out vec4 FragColor;
 /**
  * Display shader
  * Phase 4: single gamma/exposure lives here. Lit passes output linear
- * HDR; this pass applies pow(color, 1/gamma) once with gamma 2.2.
+ * HDR; this pass applies exposure then pow(color, 1/gamma) once.
  */
 
 vec3 Vignette(vec3 color)
@@ -131,7 +134,7 @@ vec3 Vignette(vec3 color)
 
 void main()
 {
-    vec3 texel = texture(texScene, uv).rgb;
+    vec3 texel = texture(texScene, uv).rgb * exposure;
         vec3 color = Vignette(ContrastSaturationBrightness(texel, 1.0, 1.1, 1.1));
         color = GammaCorrection(color, gammaRGB);
     //if(uv.x < 0.5)

@@ -637,7 +637,8 @@ void Renderer::loadShaders() {
 		std::vector<std::string>() << "position",
 		std::vector<std::string>() << "texScene"
 		<< "aspect"
-		<< "gammaRGB");
+		<< "gammaRGB"
+		<< "exposure");
 
 	ShaderLibrary::addShader("ss_fxaa", "data/shaders/ss_fxaa",
 		std::vector<std::string>() << "position",

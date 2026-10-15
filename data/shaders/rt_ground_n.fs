@@ -98,10 +98,17 @@ float computeShadow(in float nDotL)
     return 1.0;
 }
 
+// sRGB albedo inputs (8-bit textures, no hardware decode) must be
+// linearized before lighting; ss_display gamma-encodes once at the end.
+// Normal maps are data, never decoded.
+vec3 srgbToLinear(vec3 c) { return pow(c, vec3(2.2)); }
+
 // Phase 4 unified fog: shared color/density with rt_basic (ground_n
-// values adopted). Formula reads vViewDepth, never window coordinates.
+// values adopted). The authored color is sRGB for direct display, so it
+// is stored linear here. Formula reads vViewDepth, never window
+// coordinates.
 const float LOG2 = 1.442695;
-const vec3 FOG_COLOR = vec3(0.796,0.918,0.949)*0.8;
+const vec3 FOG_COLOR = pow(vec3(0.796,0.918,0.949)*0.8, vec3(2.2));
 const float FOG_DENSITY = 0.006;
 
 vec3 computeFog(vec3 finalColor)
@@ -191,8 +198,9 @@ void main()
         texelNormal = texture(texNormalMoss, texcoords).rgb;
     }
 
-    // Linear workflow: sampled values are already linear HDR; the
-    // display pass (ss_display) applies gamma once at the end.
+    // Linear workflow: decode the sRGB albedo to linear (normal map
+    // stays raw data); the display pass applies gamma once at the end.
+    texel = srgbToLinear(texel);
     FragColor = vec4(
                     computeFog(
                         illumination(

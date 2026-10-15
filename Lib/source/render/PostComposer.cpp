@@ -65,6 +65,8 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	// applies pow(color, 1/gamma)). 2.2 restores the intended brightness;
 	// 1.0 was an identity that left the linear HDR output dark.
 	gammaRGB = glm::vec3(2.2f, 2.2f, 2.2f);
+	// Neutral exposure; adaptive HDR will drive this per-frame later.
+	exposure = 1.0f;
 
 	flareThreshold = glm::vec3(0.5, 0.5, 0.5);
 	flareSamples = 12;
@@ -398,6 +400,7 @@ void PostComposer::display() {
 
 	shaderDisplay->transmitUniform("aspect", widthf / heightf);
 	shaderDisplay->transmitUniform("gammaRGB", gammaRGB);
+	shaderDisplay->transmitUniform("exposure", exposure);
 
 	quad->draw(shaderDisplay->attribute("position"));
 }
@@ -453,6 +456,8 @@ void PostComposer::setFlareDispersal(float value) { flareDispersal = value; }
 void PostComposer::setFlareIntensity(float value) { flareIntensity = value; }
 
 void PostComposer::setGamma(float value) { gammaRGB = glm::vec3(value); }
+
+void PostComposer::setExposure(float value) { exposure = value; }
 
 void PostComposer::setLightPosScreen(const glm::vec3& pos) {
 	lightPosScreen = pos;
