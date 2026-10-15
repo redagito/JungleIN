@@ -2,6 +2,7 @@
 
 #include "objects/Ground.h"
 #include <cmath>
+#include <stdexcept>
 
 // const used to define the ground's coordinates
 const float Ground::MAP_SIZE = 900.0;
@@ -295,22 +296,24 @@ float Ground::getYApprox(float x, float z, float prevY) {
 }
 
 Vector3 Ground::randomMapPos(double height, bool isRock) {
-	double x = 0;
-	double z = 0;
-	int samples = 20;
+	for (int samples = 0; samples < 20; ++samples) {
+		const double x = Utils::random(MAP_MIN, MAP_MAX);
+		const double z = Utils::random(MAP_MIN, MAP_MAX);
+		if (!this->path->validate(x, z))
+			continue;
+		if (!isRock && this->containInBoundingBox(x, z))
+			continue;
 
-	do {
-		x = Utils::random(MAP_MIN, MAP_MAX);
-		z = Utils::random(MAP_MIN, MAP_MAX);
-	} while ((!this->path->validate(x, z) ||
-		(!isRock && this->containInBoundingBox(x, z))) &&
-		samples-- > 0);
+		if (isRock)
+			rockPos.push_back(new Vector3(static_cast<float>(x), 0, static_cast<float>(z)));
 
-	if (isRock)
-		rockPos.push_back(new Vector3(static_cast<float>(x), 0, static_cast<float>(z)));
+		const double y =
+			getY(static_cast<float>(x), static_cast<float>(z)) + height;
+		return Vector3(static_cast<float>(x), static_cast<float>(y),
+			static_cast<float>(z));
+	}
 
-	double y = getY(static_cast<float>(x), static_cast<float>(z)) + height;
-	return Vector3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+	throw std::runtime_error("Ground::randomMapPos found no valid spot");
 }
 
 bool Ground::containInBoundingBox(double x, double z) {
