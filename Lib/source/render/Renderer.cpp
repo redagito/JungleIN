@@ -542,8 +542,7 @@ void Renderer::loadShaders() {
 
 	ShaderLibrary::addShader("ss_compose", "data/shaders/ss_compose",
 		std::vector<std::string>() << "position",
-		std::vector<std::string>() << "texScene"
-		<< "texThreshold");
+		std::vector<std::string>() << "texScene");
 
 	ShaderLibrary::addShader("ss_display", "data/shaders/ss_display",
 		std::vector<std::string>() << "position",
