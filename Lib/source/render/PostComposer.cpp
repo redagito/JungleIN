@@ -1,7 +1,12 @@
 #include "render/PostComposer.h"
 
 #include "render/ShaderLibrary.h"
+#include "helpers/Logger.h"
 #include "helpers/Utils.h"
+
+#include <algorithm>
+#include <cmath>
+#include <vector>
 
 #include <glad/gl.h>
 
@@ -10,6 +15,22 @@ namespace {
 // constructor, resize and quality changes so the first frames already
 // match every later resize.
 int HalfBuffersRatio() { return Utils::QUALITY == 1 ? 3 : 4; }
+
+// HDR Phase 2: temporal auto-exposure constants.
+// key maps adapted log-average luminance to exposure = key / Ladapt.
+// tauDarken/tauBrighten are adaptation time constants in seconds:
+// darkening adapts slowly, brightening quickly.
+constexpr float kExposureKey = 0.2f;
+constexpr float kTauDarken = 1.5f;
+constexpr float kTauBrighten = 0.5f;
+// eps keeps log() defined on black pixels; the clamp ranges keep the
+// first frame, NaN readbacks, and tab-switch dt spikes sane.
+constexpr float kLuminanceEps = 1e-4f;
+constexpr float kLuminanceMin = 1e-3f;
+constexpr float kLuminanceMax = 10.0f;
+constexpr float kExposureMin = 1e-3f;
+constexpr float kExposureMax = 10.0f;
+constexpr int kLuminanceSize = 64;
 } // namespace
 
 PostComposer::PostComposer(FrameBuffer* inputFBO) {
@@ -37,6 +58,11 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 		width / halfBuffersRatio,
 		height / halfBuffersRatio, false);
 	writeHalfBuffer->init(1, true);
+	// Fixed-size luminance target (unit offset 2: never aliases the
+	// full/half chains). Linear filtering averages on downsample.
+	luminanceBuffer = new FrameBuffer(std::vector<std::string>() << "texScene",
+		kLuminanceSize, kLuminanceSize, false);
+	luminanceBuffer->init(2, true);
 
 	quad = new SSQuad();
 	quad->init();
@@ -65,7 +91,13 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	// applies pow(color, 1/gamma)). 2.2 restores the intended brightness;
 	// 1.0 was an identity that left the linear HDR output dark.
 	gammaRGB = glm::vec3(2.2f, 2.2f, 2.2f);
-	// Neutral exposure; adaptive HDR will drive this per-frame later.
+	// Baseline look: auto-exposure ON with bias 1.0, adapted == key
+	// so the first frames transmit exposure 1.0 until measured
+	// luminance steers it.
+	exposureManual = 1.0f;
+	exposureBias = 1.0f;
+	autoExposure = true;
+	adaptedLuminance = kExposureKey;
 	exposure = 1.0f;
 
 	flareThreshold = glm::vec3(0.5, 0.5, 0.5);
@@ -84,6 +116,7 @@ PostComposer::~PostComposer() {
 	delete writeBuffer;
 	delete readHalfBuffer;
 	delete writeHalfBuffer;
+	delete luminanceBuffer;
 	delete quad;
 	delete flareDirt;
 }
@@ -100,8 +133,9 @@ void PostComposer::swapHalfBuffers() {
 	writeHalfBuffer = tmp;
 }
 
-void PostComposer::render() {
+void PostComposer::render(float dtSeconds) {
 	compose();
+	updateAutoExposure(dtSeconds);
 
 	if (doFXAA)
 		passFXAA();
@@ -344,6 +378,81 @@ void PostComposer::passBloom() {
 }
 
 /*!
+ * HDR Phase 2: temporal auto-exposure. Downsamples the composed scene
+ * into the 64x64 luminance target (linear filter averages), reads it
+ * back (one small sync point per frame), and takes the log-average
+ * luminance Lavg = exp(mean(log(luma + eps))) with Rec.709 luma.
+ * Ladapt tracks Lavg with an exponential approach whose tau is slow
+ * for darkening and fast for brightening; exposure = key / Ladapt.
+ */
+void PostComposer::updateAutoExposure(float dtSeconds) {
+	// Real frame seconds; non-positive (first frame / headless) falls
+	// back to 1/60, and tab-switch spikes clamp to 0.5 s.
+	float dt = dtSeconds > 0.0f ? dtSeconds : 1.0f / 60.0f;
+	dt = std::min(dt, 0.5f);
+
+	luminanceBuffer->bind();
+	luminanceBuffer->resizeViewport();
+
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	shaderCompose->bind();
+	readBuffer->bindAndTransmitTextures(shaderCompose);
+	quad->draw(shaderCompose->attribute("position"));
+
+	std::vector<float> pixels(
+		static_cast<size_t>(kLuminanceSize) *
+		static_cast<size_t>(kLuminanceSize) * 4u);
+	glReadPixels(0, 0, kLuminanceSize, kLuminanceSize, GL_RGBA, GL_FLOAT,
+		pixels.data());
+	// Readback diagnostics: a failing downsample/readback leaves the
+	// zero-filled buffer behind, which pins adaptation at its floor and
+	// freezes exposure. Throttled so the log stays readable.
+	const GLenum readErr = glGetError();
+	static int exposureLogTick = 0;
+	const bool logThis =
+		(readErr != GL_NO_ERROR) || (++exposureLogTick % 120 == 0);
+
+	luminanceBuffer->unbind();
+
+	double sum = 0.0;
+	for (size_t i = 0; i < pixels.size(); i += 4) {
+		// Rec.709 luma; negatives (should not happen) fold to black.
+		float luma = 0.2126f * pixels[i] + 0.7152f * pixels[i + 1] +
+			0.0722f * pixels[i + 2];
+		luma = std::max(luma, 0.0f);
+		sum += std::log(static_cast<double>(luma) + kLuminanceEps);
+	}
+	const double mean = sum / static_cast<double>(pixels.size() / 4);
+	const float measured = static_cast<float>(std::exp(mean));
+	if (logThis)
+		logi("autoexposure dt={:.4f} err={} measured={:.5f} target={:.5f} "
+			 "adapted={:.5f} exposure={:.4f}",
+			dt, static_cast<unsigned int>(readErr), measured,
+			std::clamp(measured, kLuminanceMin, kLuminanceMax),
+			adaptedLuminance, exposure);
+	// NaN guard: keep the previous adaptation on a bad readback.
+	if (!std::isfinite(measured))
+		return;
+	const float target =
+		std::clamp(measured, kLuminanceMin, kLuminanceMax);
+	const float tau = target < adaptedLuminance ? kTauDarken : kTauBrighten;
+	adaptedLuminance = std::clamp(
+		adaptedLuminance +
+		(target - adaptedLuminance) * (1.0f - std::exp(-dt / tau)),
+		kLuminanceMin, kLuminanceMax);
+
+	applyExposure();
+}
+
+void PostComposer::applyExposure() {
+	const float autoExposureValue = std::clamp(
+		kExposureKey / adaptedLuminance, kExposureMin, kExposureMax);
+	exposure = autoExposure ? autoExposureValue * exposureBias
+		: exposureManual;
+}
+
+/*!
  * Fast gaussian approximation blur based on
  * http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
  */
@@ -457,7 +566,23 @@ void PostComposer::setFlareIntensity(float value) { flareIntensity = value; }
 
 void PostComposer::setGamma(float value) { gammaRGB = glm::vec3(value); }
 
-void PostComposer::setExposure(float value) { exposure = value; }
+void PostComposer::setExposure(float value) {
+	// Manual knob doubles as the auto bias: with auto ON the frame
+	// transmits auto * bias, with auto OFF it transmits manual.
+	exposureManual = value;
+	exposureBias = value;
+	applyExposure();
+}
+
+void PostComposer::toggleAutoExposure(bool active) {
+	autoExposure = active;
+	applyExposure();
+}
+
+void PostComposer::setExposureBias(float value) {
+	exposureBias = value;
+	applyExposure();
+}
 
 void PostComposer::setLightPosScreen(const glm::vec3& pos) {
 	lightPosScreen = pos;

@@ -167,7 +167,10 @@ void Renderer::render() {
 
 	mainFBO->unbind();
 
-	postComposer->render();
+	// Renderer::delta is seconds / TARGET_FPS (co-tuned with movement
+	// speeds), so scale back to real frame seconds for the exposure
+	// adaptation time constants. PostComposer clamps spikes itself.
+	postComposer->render(delta * static_cast<float>(Utils::TARGET_FPS));
 
 	Texture::needsUpdate = false;
 	Utils::calculFPS();

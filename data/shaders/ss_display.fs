@@ -5,8 +5,8 @@ in vec2 uv;
 uniform sampler2D texScene;
 uniform vec3 gammaRGB;
 uniform float aspect;
-// Linear exposure scale (1.0 = neutral). Manual knob today, hook for
-// future adaptive HDR / auto-exposure driven from frame luminance.
+// Linear exposure scale, driven per-frame by PostComposer temporal
+// auto-exposure (manual bias multiplies on top of auto).
 uniform float exposure;
 
 layout (location = 0) out vec4 FragColor;
@@ -119,7 +119,17 @@ layout (location = 0) out vec4 FragColor;
  * Display shader
  * Phase 4: single gamma/exposure lives here. Lit passes output linear
  * HDR; this pass applies exposure then pow(color, 1/gamma) once.
+ * HDR Phase 2: ACES filmic tonemap (Narkowicz fit) compresses the
+ * exposed HDR into display range. Order is fixed:
+ *   texel * exposure -> ACES -> ContrastSaturationBrightness/Vignette
+ *   (display-referred looks) -> gamma.
+ * Bloom/godrays/flare thresholds stay scene-referred (Phase 3 owns
+ * their retune); only this final mapping changes.
  */
+vec3 ACESFilm(vec3 x)
+{
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+}
 
 vec3 Vignette(vec3 color)
 {
@@ -135,7 +145,8 @@ vec3 Vignette(vec3 color)
 void main()
 {
     vec3 texel = texture(texScene, uv).rgb * exposure;
-        vec3 color = Vignette(ContrastSaturationBrightness(texel, 1.0, 1.1, 1.1));
+        vec3 mapped = ACESFilm(texel);
+        vec3 color = Vignette(ContrastSaturationBrightness(mapped, 1.0, 1.1, 1.1));
         color = GammaCorrection(color, gammaRGB);
     //if(uv.x < 0.5)
         FragColor = vec4( color, 1.0f );

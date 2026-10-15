@@ -9,7 +9,9 @@ class PostComposer {
 public:
 	PostComposer(FrameBuffer* inputFBO);
 	~PostComposer();
-	void render();
+	// dtSeconds is real frame seconds for auto-exposure adaptation.
+	// Non-positive falls back to 1/60 so headless/tests stay defined.
+	void render(float dtSeconds = 0.0f);
 	void resize(unsigned int _width, unsigned int _height);
 	void resizeHalfBuffers();
 
@@ -23,6 +25,11 @@ public:
 	void setFlareIntensity(float);
 	void setGamma(float);
 	void setExposure(float);
+	// HDR Phase 2: auto-exposure switch and manual bias. setExposure
+	// sets the manual level (auto off) and doubles as the bias applied
+	// on top of auto (auto on): transmitted = auto * bias : manual.
+	void toggleAutoExposure(bool active);
+	void setExposureBias(float value);
 
 	void setLightPosScreen(const glm::vec3& pos);
 	void setFinalRenderSize(int w, int h);
@@ -43,6 +50,11 @@ private:
 	void passGodrays();
 	void passBloom();
 
+	// HDR Phase 2: downsample to the luminance target, read back,
+	// log-average, temporally adapt, and refresh the exposure knob.
+	void updateAutoExposure(float dtSeconds);
+	void applyExposure();
+
 	FrameBuffer* inputBuffer = nullptr;
 
 	FrameBuffer* readBuffer = nullptr;
@@ -50,6 +62,11 @@ private:
 
 	FrameBuffer* readHalfBuffer = nullptr;
 	FrameBuffer* writeHalfBuffer = nullptr;
+
+	// Dedicated 64x64 downsample target for luminance measurement.
+	// Separate from the half-buffer chain so bloom/flare/godrays
+	// ping-pong state is never disturbed.
+	FrameBuffer* luminanceBuffer = nullptr;
 
 	SSQuad* quad = nullptr;
 
@@ -84,6 +101,14 @@ private:
 
 	glm::vec3 gammaRGB;
 	float exposure = 1.0f;
+
+	// HDR Phase 2 auto-exposure state. Defaults keep the current
+	// look as baseline: auto ON, bias 1.0, adapted == key so the
+	// first frame transmits exposure 1.0.
+	bool autoExposure = true;
+	float exposureManual = 1.0f;
+	float exposureBias = 1.0f;
+	float adaptedLuminance = 0.2f;
 
 	glm::vec3 flareThreshold;
 	int flareSamples = 0;
