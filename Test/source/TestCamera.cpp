@@ -114,6 +114,25 @@ TEST_CASE("Camera follows terrain and consumes look input", "[objects][camera]")
     CHECK_THAT((walkZ + 1.0f) * 2.0f, WithinAbs(runZ + 1.0f, 1e-3f));
   }
 
+  SECTION("mouse motion while not looking causes no kick on enable")
+  {
+    constexpr float kFiveDegrees = 5.0f * 3.141592653f / 180.0f;
+    Camera camera;
+    camera.reset();
+    camera.setMouse(0, 0);
+    camera.update(0.0, 1.0);
+    // Big motion while look is off must be forgotten, not queued.
+    camera.setMouse(1000, 500);
+    camera.update(0.0, 1.0);
+    camera.activeLook(true);
+    camera.update(0.0, 1.0);
+    CHECK_THAT(camera.getYaw(), WithinAbs(0.0f, 1e-5f));
+    // Fresh motion after enabling still turns exactly once.
+    camera.setMouse(1010, 500);
+    camera.update(0.0, 1.0);
+    CHECK_THAT(camera.getYaw(), WithinAbs(kFiveDegrees, 1e-5f));
+  }
+
   SECTION("mouse deltas are ignored while not looking")
   {
     Camera camera;

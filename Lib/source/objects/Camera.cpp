@@ -73,6 +73,12 @@ void Camera::update(double groundY, double delta) {
 		accelX = 0.f;
 		accelY = 0.f;
 	}
+	else {
+		// Motion while not looking is forgotten, otherwise re-enabling
+		// look would apply it all at once as a view kick.
+		accelX = 0.f;
+		accelY = 0.f;
+	}
 
 	// Sprint (Shift held) doubles horizontal movement speed.
 	const float speed = sprintKey ? moveSpeed * 2.0f : moveSpeed;
