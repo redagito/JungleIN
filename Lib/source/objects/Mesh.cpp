@@ -54,6 +54,8 @@ void Mesh::initVBO() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, nbI * sizeof(int), 0, GL_STATIC_DRAW);
 	unsigned int* ind =
 		(unsigned int*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	if (ind == nullptr)
+		throw std::runtime_error("Mesh::initVBO failed to map index buffer");
 	unsigned int* indData = this->getGeometry()->getIndices();
 	for (int i = 0; i < nbI; i++) {
 		ind[i] = indData[i];
@@ -68,6 +70,8 @@ void Mesh::initVBO() {
 	glBindBuffer(GL_ARRAY_BUFFER, vertices);
 	glBufferData(GL_ARRAY_BUFFER, nbV * sizeof(float), 0, GL_STATIC_DRAW);
 	float* vert = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	if (vert == nullptr)
+		throw std::runtime_error("Mesh::initVBO failed to map vertex buffer");
 	float* vertData = this->getGeometry()->getVertices();
 	for (int i = 0; i < nbV; i++) {
 		vert[i] = vertData[i];
@@ -80,6 +84,8 @@ void Mesh::initVBO() {
 		glBindBuffer(GL_ARRAY_BUFFER, normals);
 		glBufferData(GL_ARRAY_BUFFER, nbV * sizeof(float), 0, GL_STATIC_DRAW);
 		float* norm = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		if (norm == nullptr)
+			throw std::runtime_error("Mesh::initVBO failed to map normal buffer");
 		float* normData = this->getGeometry()->getNormals();
 		for (int i = 0; i < nbV; i++) {
 			norm[i] = normData[i];
@@ -93,6 +99,8 @@ void Mesh::initVBO() {
 		glBindBuffer(GL_ARRAY_BUFFER, texcoords);
 		glBufferData(GL_ARRAY_BUFFER, nbT * sizeof(float), 0, GL_STATIC_DRAW);
 		float* tex = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		if (tex == nullptr)
+			throw std::runtime_error("Mesh::initVBO failed to map texcoord buffer");
 		float* texData = this->getGeometry()->getTexCoords();
 		for (int i = 0; i < nbT; i++) {
 			tex[i] = texData[i];

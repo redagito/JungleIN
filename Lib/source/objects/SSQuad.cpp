@@ -1,5 +1,7 @@
 #include "objects/SSQuad.h"
 
+#include <stdexcept>
+
 #include <glad/gl.h>
 
 SSQuad::SSQuad() { vbuffer = 0; }
@@ -13,6 +15,8 @@ void SSQuad::init() {
 	glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), 0, GL_STATIC_DRAW);
 	float* vert = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	if (vert == nullptr)
+		throw std::runtime_error("SSQuad::init failed to map vertex buffer");
 
 	for (int i = 0; i < 8; i++)
 		vert[i] = vertices[i];
