@@ -5,18 +5,14 @@
 
 #include <tiny_obj_loader.h>
 
+#include "helpers/FlattenedMesh.h"
 #include "objects/Mesh.h"
 
 class ObjLoader {
 public:
   static Mesh* loadObj(std::string fileName);
 
-  struct FlattenedMesh {
-    std::vector<float> vertices;
-    std::vector<float> normals;
-    std::vector<float> uvs;
-    std::vector<unsigned int> indices;
-  };
+  using FlattenedMesh = ::FlattenedMesh;
 
   // Expands per-corner indices into flat buffers. Throws
   // std::runtime_error naming the source and face on the first

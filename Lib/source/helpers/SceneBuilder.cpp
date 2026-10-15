@@ -1,5 +1,6 @@
 #include "helpers/SceneBuilder.h"
 #include "helpers/Utils.h"
+#include "helpers/Profiler.h"
 
 #include <cmath>
 
@@ -74,7 +75,7 @@ Scene* SceneBuilder::build() {
 		groundNormalEarth, groundNormalShatter);
 	Ground* ground =
 		new Ground("data/resources/heightmaps/heightmap.png", groundMat);
-	Timer::mark("ground built");
+	Profiler::mark("ground built");
 
 	// ROCK 1
 	Texture::resetUnit();
@@ -88,7 +89,7 @@ Scene* SceneBuilder::build() {
 	rock1Alpha->load("data/resources/maps/noalpha.png");
 	rock1Alpha->setFilters(GL_NEAREST, GL_NEAREST);
 	rock1Alpha->init();
-	Timer::mark("rock assets loaded");
+	Profiler::mark("rock assets loaded");
 	((MaterialBasic*)(rock1->getMaterial()))->setDiffuse(rock1Diffuse);
 	((MaterialBasic*)(rock1->getMaterial()))->setAlpha(rock1Alpha);
 	rock1->setPosition(Vector3(-3, 0.5, 0));
@@ -100,7 +101,7 @@ Scene* SceneBuilder::build() {
 	rock1->setInstanceType(Mesh::INSTANCE_ROCK);
 	rock1->setRangeScale(0.4f);
 	createInstances(rock1, ground, static_cast<int>(std::lround(NB_INSTANCE * rock1->getPourcentage())));
-	Timer::mark("rock instances scattered");
+	Profiler::mark("rock instances scattered");
 
 	// PALM TREE
 	Texture::resetUnit();
@@ -114,7 +115,7 @@ Scene* SceneBuilder::build() {
 	palmAlpha->load("data/resources/maps/palmtree/palmtree_1k_alpha.png");
 	palmAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	palmAlpha->init();
-	Timer::mark("palm assets loaded");
+	Profiler::mark("palm assets loaded");
 	((MaterialBasic*)(palm->getMaterial()))->setDiffuse(palmDiffuse);
 	((MaterialBasic*)(palm->getMaterial()))->setAlpha(palmAlpha);
 	palm->setPosition(Vector3(0, 0, -10));
@@ -126,7 +127,7 @@ Scene* SceneBuilder::build() {
 	palm->setInstanceType(Mesh::INSTANCE_PALM);
 	palm->setRangeScale(0.8f);
 	createInstances(palm, ground, static_cast<int>(std::lround(NB_INSTANCE * palm->getPourcentage())));
-	Timer::mark("palm instances scattered");
+	Profiler::mark("palm instances scattered");
 
 	// HIGH TREE
 	Texture::resetUnit();
@@ -140,7 +141,7 @@ Scene* SceneBuilder::build() {
 	htreeAlpha->load("data/resources/maps/hightree/hightree_1k_alpha.png");
 	htreeAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	htreeAlpha->init();
-	Timer::mark("htree assets loaded");
+	Profiler::mark("htree assets loaded");
 	((MaterialBasic*)(htree->getMaterial()))->setDiffuse(htreeDiffuse);
 	((MaterialBasic*)(htree->getMaterial()))->setAlpha(htreeAlpha);
 	htree->setPosition(Vector3(-6, 2, -16));
@@ -152,7 +153,7 @@ Scene* SceneBuilder::build() {
 	htree->setInstanceType(Mesh::INSTANCE_HTREE);
 	htree->setRangeScale(0.4f);
 	createInstances(htree, ground, static_cast<int>(std::lround(NB_INSTANCE * htree->getPourcentage())));
-	Timer::mark("htree instances scattered");
+	Profiler::mark("htree instances scattered");
 
 	// BAMBOO PALM
 	Texture::resetUnit();
@@ -166,7 +167,7 @@ Scene* SceneBuilder::build() {
 	btreeAlpha->load("data/resources/maps/bamboopalm/bamboopalm_1k_alpha.png");
 	btreeAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	btreeAlpha->init();
-	Timer::mark("btree assets loaded");
+	Profiler::mark("btree assets loaded");
 	((MaterialBasic*)(btree->getMaterial()))->setDiffuse(btreeDiffuse);
 	((MaterialBasic*)(btree->getMaterial()))->setAlpha(btreeAlpha);
 	btree->setPosition(Vector3(-4, -2, 4));
@@ -178,7 +179,7 @@ Scene* SceneBuilder::build() {
 	btree->setInstanceType(Mesh::INSTANCE_BTREE);
 	btree->setRangeScale(1.0f);
 	createInstances(btree, ground, static_cast<int>(std::lround(NB_INSTANCE * btree->getPourcentage())));
-	Timer::mark("btree instances scattered");
+	Profiler::mark("btree instances scattered");
 
 	// GROUND PALM
 	Texture::resetUnit();
@@ -192,7 +193,7 @@ Scene* SceneBuilder::build() {
 	gpalmAlpha->load("data/resources/maps/groundpalm/groundpalm_1k_alpha.png");
 	gpalmAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	gpalmAlpha->init();
-	Timer::mark("gpalm assets loaded");
+	Profiler::mark("gpalm assets loaded");
 	((MaterialBasic*)(gpalm->getMaterial()))->setDiffuse(gpalmDiffuse);
 	((MaterialBasic*)(gpalm->getMaterial()))->setAlpha(gpalmAlpha);
 	gpalm->setPosition(Vector3(-3, -1, 0));
@@ -203,7 +204,7 @@ Scene* SceneBuilder::build() {
 	gpalm->setInstanceType(Mesh::INSTANCE_GPALM);
 	gpalm->setRangeScale(0.4f);
 	createInstances(gpalm, ground, static_cast<int>(std::lround(NB_INSTANCE * gpalm->getPourcentage())));
-	Timer::mark("gpalm instances scattered");
+	Profiler::mark("gpalm instances scattered");
 
 	// SMALL PLANT 1
 	/*Texture::resetUnit();
@@ -234,7 +235,7 @@ Scene* SceneBuilder::build() {
 	bush1Alpha->load("data/resources/maps/bush1/bush1_1k_alpha.png");
 	bush1Alpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	bush1Alpha->init();
-	Timer::mark("bush assets loaded");
+	Profiler::mark("bush assets loaded");
 	((MaterialBasic*)(bush1->getMaterial()))->setDiffuse(bush1Diffuse);
 	((MaterialBasic*)(bush1->getMaterial()))->setAlpha(bush1Alpha);
 	bush1->setPosition(Vector3(-3, 0, 0));
@@ -246,7 +247,7 @@ Scene* SceneBuilder::build() {
 	bush1->setInstanceType(Mesh::INSTANCE_BUSH);
 	bush1->setRangeScale(0.4f);
 	createInstances(bush1, ground, static_cast<int>(std::lround(NB_INSTANCE * bush1->getPourcentage())));
-	Timer::mark("bush instances scattered");
+	Profiler::mark("bush instances scattered");
 
 	Scene* scene = new Scene();
 	scene->addCamera(camera);

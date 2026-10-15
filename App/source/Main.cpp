@@ -4,6 +4,7 @@
 
 #include "helpers/Logger.h"
 #include "helpers/Utils.h"
+#include "helpers/Profiler.h"
 
 #include "ui/Window.h"
 
@@ -36,7 +37,7 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	try
 	{
-		Timer::mark("process start");
+		Profiler::mark("process start");
 		Window window;
 		window.initializeGL();
 

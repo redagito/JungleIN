@@ -1,6 +1,5 @@
 #include "helpers/Utils.h"
 
-#include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <stdexcept>
@@ -64,24 +63,6 @@ double Utils::calculFPS() {
 
 double Utils::random(double min, double max) {
   return (rand() / static_cast<double>(RAND_MAX)) * (max - min) + min;
-}
-
-void Timer::start() { m_start = std::chrono::system_clock::now(); }
-
-void Timer::mark(const char* stage) {
-  using namespace std::chrono;
-  static const auto start = steady_clock::now();
-  const auto ms =
-      duration_cast<milliseconds>(steady_clock::now() - start).count();
-  logi("Startup {}ms: {}", ms, stage);
-}
-
-double Timer::restart() {
-  auto now = std::chrono::system_clock::now();
-  auto delta =
-      std::chrono::duration_cast<std::chrono::milliseconds>(now - m_start);
-  m_start = now;
-  return delta.count() / 1000.0;
 }
 
 std::vector<std::string> &operator<<(std::vector<std::string> &stringList,

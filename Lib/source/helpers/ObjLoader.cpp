@@ -8,12 +8,6 @@
 
 // http://www.limegarden.net/2010/03/02/wavefront-obj-mesh-loader/
 
-struct MeshFace {
-	int pos_index[3];
-	int tex_index[3];
-	int nor_index[3];
-};
-
 Mesh* ObjLoader::loadObj(std::string fileName) 
 {
 	tinyobj::attrib_t attrib;

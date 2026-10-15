@@ -3,14 +3,11 @@
 #include <string>
 #include <vector>
 
+#include "core/ImageRGBA.h"
+
 class Image {
 public:
-  struct RGBA {
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-    unsigned char a;
-  };
+  using RGBA = ImageRGBA;
 
   Image() = default;
   // flipVertically preserves the historical QImage top-left origin when

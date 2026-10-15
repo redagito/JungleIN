@@ -5,6 +5,7 @@
 
 #include "math/Matrix4.h"
 #include "helpers/Utils.h"
+#include "helpers/Timer.h"
 #include "core/TextureCube.h"
 
 #include "materials/MaterialBasic.h"
