@@ -132,8 +132,8 @@ const float Ks = 0.4;
 const float Shininess = 24.0;
 // Per-band specular response: vegetation is near-matte, rock shines.
 // The ladder in main() blends this mask exactly like the albedo.
-const float SPEC_SHATTER = 1.0;
-const float SPEC_EARTH = 0.45;
+const float SPEC_SHATTER = 0.35;
+const float SPEC_EARTH = 0.08;
 const float SPEC_MOSS = 0.12;
 
 vec3 illumination(vec3 texel, vec3 normal, float specScale)
