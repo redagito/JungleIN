@@ -61,8 +61,10 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	doGodrays = true;
 	doBloom = true;
 
-	// gammaRGB = Vector3(2.2, 2.2, 2.2);
-	gammaRGB = Vector3(1.0, 1.0, 1.0);
+	// Phase 4: gamma lives only in the final display pass (ss_display
+	// applies pow(color, 1/gamma)). 2.2 restores the intended brightness;
+	// 1.0 was an identity that left the linear HDR output dark.
+	gammaRGB = Vector3(2.2f, 2.2f, 2.2f);
 
 	flareThreshold = Vector3(0.5, 0.5, 0.5);
 	flareSamples = 12;
@@ -115,6 +117,7 @@ void PostComposer::render() {
 
 void PostComposer::compose() {
 	readBuffer->bind();
+	readBuffer->resizeViewport();
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -127,6 +130,7 @@ void PostComposer::compose() {
 
 void PostComposer::passFXAA() {
 	writeBuffer->bind();
+	writeBuffer->resizeViewport();
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -142,6 +146,7 @@ void PostComposer::passFXAA() {
 
 void PostComposer::passDistortion() {
 	writeBuffer->bind();
+	writeBuffer->resizeViewport();
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -187,6 +192,7 @@ void PostComposer::passLenseFlare() {
 		passBlurLinear(true);
 
 	// Pass 2 : Flaring
+	writeHalfBuffer->resizeViewport();
 	writeHalfBuffer->bind();
 
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -347,6 +353,7 @@ void PostComposer::passBlurLinear(bool useHalf) {
 
 	// Vertical
 	outBuffer->bind();
+	outBuffer->resizeViewport();
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -366,6 +373,7 @@ void PostComposer::passBlurLinear(bool useHalf) {
 
 	// Horizontal
 	outBuffer->bind();
+	outBuffer->resizeViewport();
 
 	glClear(GL_COLOR_BUFFER_BIT);
 

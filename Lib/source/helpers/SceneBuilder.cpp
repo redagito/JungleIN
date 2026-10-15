@@ -20,6 +20,9 @@ Scene* SceneBuilder::build() {
 		new MaterialSkyBox(new TextureCube("data/resources/cubemaps/miramar/", ".jpg")));
 
 	skyBox->setPosition(camera->getPosition());
+	// Phase 4: spawn position only; Scene::update recenters the sky on
+	// the camera every frame (and Renderer::drawSky enforces it), so the
+	// 1 m cube never drifts out of view.
 
 	// SUN
 	Texture::resetUnit();

@@ -8,6 +8,15 @@
  */
 class Camera : public Object3D {
 public:
+  // Phase 4 unified projection defaults: single source of truth for the
+  // constructor and Renderer::resize (was 90 vs 65). Far stays 500: the
+  // skybox is a 1 m half-extent cube recentered on the camera every
+  // frame, so 500 leaves ample margin without spending depth precision
+  // on an 800 far plane.
+  static constexpr float kDefaultFov = 65.0f;
+  static constexpr float kDefaultNear = 0.1f;
+  static constexpr float kDefaultFar = 500.0f;
+
   Camera();
 
   void setPerspective(float fov, float ratio, float near, float far);

@@ -114,6 +114,8 @@ layout (location = 0) out vec4 FragColor;
 
 /**
  * Display shader
+ * Phase 4: single gamma/exposure lives here. Lit passes output linear
+ * HDR; this pass applies pow(color, 1/gamma) once with gamma 2.2.
  */
 
 vec3 Vignette(vec3 color)
