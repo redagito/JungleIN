@@ -152,7 +152,9 @@ unsigned int Shader::attribute(std::string key) { return attributes.at(key); }
 unsigned int Shader::uniform(std::string key) { return uniforms.at(key); }
 
 bool Shader::hasAttribute(std::string key) {
-	return attributes.count(key) != 0;
+	// A registered name optimized out by the linker (location -1) is not
+	// usable: treating it as present would feed 4294967295 to GL calls.
+	return attributes.count(key) != 0 && attributes.at(key) != -1;
 }
 
 bool Shader::hasUniform(std::string key) { return uniforms.count(key) != 0; }

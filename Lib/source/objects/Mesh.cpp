@@ -62,6 +62,8 @@ void Mesh::initVBO() {
 
 	// vertices
 	locVertices = material->getShader()->attribute("position");
+	if (locVertices == static_cast<unsigned int>(-1))
+		throw std::runtime_error("Mesh::initVBO without position attribute");
 	glGenBuffers(1, &vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, vertices);
 	glBufferData(GL_ARRAY_BUFFER, nbV * sizeof(float), 0, GL_STATIC_DRAW);
