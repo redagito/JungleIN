@@ -32,5 +32,4 @@ void main()
   fShadowcoordCascade = shadowMatrixCascade * fPosition;
 
   fLightDir = vec4(viewMatrix * lightDir, 1.0f);
-  fPosition = gl_Position;
 }
