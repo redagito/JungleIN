@@ -106,6 +106,8 @@ void Renderer::render() {
 		return;
 
 	// TODO Why?
+	// NOTE: delta is seconds / TARGET_FPS, co-tuned with moveSpeed (200):
+	// do not "fix" the scale without retuning every movement speed.
 	delta = static_cast<float>(timer.restart() / Utils::TARGET_FPS);
 
 	scene->update(delta);
@@ -266,6 +268,9 @@ void Renderer::drawGround() {
 }
 
 bool Renderer::cull(Instance* m, float offset) {
+	// NOTE: the threshold is in SQUARED distance units (500 ~= 22 m radius),
+	// deliberately tight for 1400+ instances. Comparing against plain
+	// meters here would disable culling almost entirely.
 	return (m->getPosition().distanceSq(__camera->getPosition()) > 500 + offset &&
 		(m->getPosition() -
 			(__camera->getPosition() - scene->getCameraZ() * 20.0))
