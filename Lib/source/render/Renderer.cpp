@@ -489,9 +489,6 @@ void Renderer::loadShaders() {
 		<< "texMoss"
 		<< "texEarth"
 		<< "texShatter"
-		<< "texNormalMoss"
-		<< "texNormalEarth"
-		<< "texNormalShatter"
 		<< "shadowQuality"
 		<< "texShadow"
 		<< "shadowMatrix"
@@ -514,12 +511,12 @@ void Renderer::loadShaders() {
 
 	ShaderLibrary::addShader("ss_compose", "data/shaders/ss_compose",
 		std::vector<std::string>() << "position",
-		std::vector<std::string>() << "texScene");
+		std::vector<std::string>() << "texScene"
+		<< "texThreshold");
 
 	ShaderLibrary::addShader("ss_display", "data/shaders/ss_display",
 		std::vector<std::string>() << "position",
 		std::vector<std::string>() << "texScene"
-		<< "gammaRGB"
 		<< "aspect");
 
 	ShaderLibrary::addShader("ss_fxaa", "data/shaders/ss_fxaa",
