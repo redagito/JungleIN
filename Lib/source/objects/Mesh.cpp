@@ -152,8 +152,11 @@ void Mesh::drawWithVBO() {
 		GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
-
 void Mesh::debugDrawWithVBO() {
+
+	if (geometry == nullptr)
+		throw std::runtime_error("Mesh::debugDrawWithVBO without geometry");
+
 	glBindVertexArray(VAO);
 
 	glDrawElements(GL_POINTS, geometry->getIndicesCount(),
