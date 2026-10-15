@@ -12,7 +12,9 @@ MaterialSun::~MaterialSun() {
 }
 
 Shader *MaterialSun::bind() {
-	glDisable(GL_DEPTH_TEST);
+	// Test depth so nearby geometry occludes the sun, but never write it:
+	// the sun must not punch holes in what is drawn before it either.
+	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
