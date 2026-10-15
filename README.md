@@ -55,20 +55,45 @@ Fly up / down - E / Q
 
 Look around - hold left mouse button, or F1 (capture) / F2 (release)
 
+Effects - 1 / 2 (FXAA off / on), 3 / 4 (lens flares off / on)
+
+Exposure - 5 / 6 (auto-exposure off / on), 7 / 8 (bias down / up)
+
 Quit - Escape
+
+## Renderer
+
+Linear HDR pipeline: lit shaders work in linear (sRGB inputs decoded
+on sample), shadows are 2-cascade PCF from 24-bit depth maps, and the
+final display pass applies auto-exposure (log-average luminance with
+temporal adaptation), ACES tonemapping and gamma 2.2. Per-frame
+exposure diagnostics are logged as `autoexposure ...` lines.
 
 # Original Readme
 JungleIN
 ========
-![Splash](http://bkcore.com/orion/uploads/images/teaser.junglein.jpg)
+
+An OpenGL jungle viewer: a small open-world tropical scene you can walk
+and fly through, written as a scholar project.
 
 [Web page of the project](http://bkcore.com/blog/3d/opengl-jungle-viewer-source-utbm.html)
 [Youtube demo video](http://youtu.be/4M-wfzuCgvs)
 
-This is the undocumented source code of an OpenGL jungle viewer written as part of a scholar project.
+Overview: dense procedurally scattered vegetation (trees, plants, rocks)
+on heightmapped terrain under a moving sun, with real-time shadows and
+cinematic post-processing. This code is raw, untested and thus should
+not be used in anything serious.
 
-This code is raw, untested and thus should not be used in anything serious. 
+Features:
 
+* First-person walk / fly camera with mouse look
+* Sun with day movement and shadow-casting light
+* Heightmapped terrain with moss / earth / rock texturing
+* Hundreds of instanced trees, plants and rocks
+* Sky with fog-blended horizon
+* Post effects: bloom, god rays, lens flares, FXAA
+* Adaptive exposure with filmic tonemapping
+* Ambient audio
 
 	Copyright (c) 2012 Thibaut Despoulain, Lauranne Didierjean, Baptiste Aubry, Adrien Mauranyapin.
 
@@ -77,6 +102,3 @@ This code is raw, untested and thus should not be used in anything serious.
 	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-![Screen](http://bkcore.com/orion/uploads/images/junglein/bloom.jpg)
-![Screen](http://bkcore.com/orion/uploads/images/junglein/shadows.jpg)
