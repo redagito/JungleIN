@@ -7,8 +7,11 @@
 #include "helpers/SceneBuilder.h"
 #include "objects/Scene.h"
 #include "render/Renderer.h"
+#include "audio/AudioClip.h"
 #include "audio/AudioEngine.h"
 #include "ui/ReloadWindow.h"
+
+#include <future>
 
 /*!
  * Window extends QGLWidget
@@ -66,4 +69,6 @@ private:
 	Scene* scene = nullptr;
 	Renderer* renderer = nullptr;
 	AudioEngine* audio = nullptr;
+	std::future<AudioClip> pendingClip;
+	bool audioStarted = false;
 };

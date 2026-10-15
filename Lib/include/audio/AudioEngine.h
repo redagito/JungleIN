@@ -14,7 +14,7 @@ public:
   static constexpr float kFadeSeconds = 3.0f;
 
   // Loop gain for elapsed seconds since (re)start: 0 before start,
-  // linear ramp for kFadeSeconds, then 1 forever.
+  // smoothstep ramp for kFadeSeconds, then 1 forever.
   static float fadeGain(double elapsedSeconds);
 
   AudioEngine();

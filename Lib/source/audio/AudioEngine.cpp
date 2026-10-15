@@ -6,8 +6,11 @@
 float AudioEngine::fadeGain(double elapsedSeconds) {
   if (elapsedSeconds <= 0.0)
     return 0.0f;
-  const double gain = elapsedSeconds / kFadeSeconds;
-  return static_cast<float>(gain >= 1.0 ? 1.0 : gain);
+  double t = elapsedSeconds / kFadeSeconds;
+  if (t >= 1.0)
+    return 1.0f;
+  // Smoothstep: same 0/0.5/1 anchors as linear, gentler onset.
+  return static_cast<float>(t * t * (3.0 - 2.0 * t));
 }
 
 AudioEngine::AudioEngine() = default;

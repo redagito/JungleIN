@@ -1,5 +1,6 @@
 #include "ui/Window.h"
 
+#include <chrono>
 #include <cmath>
 #include <sstream>
 #include <stdexcept>
@@ -117,8 +118,15 @@ void Window::run() {
 	while (glfwWindowShouldClose(Utils::window) == 0) {
 		glfwPollEvents();
 
-		if (audio != nullptr)
+		if (audio != nullptr) {
+			if (!audioStarted && pendingClip.valid() &&
+				pendingClip.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+				audio->playLoop(pendingClip.get());
+				audioStarted = true;
+				logi("Ambient loop started");
+			}
 			audio->update();
+		}
 
 		paintGL();
 
@@ -235,8 +243,10 @@ void Window::initializeObjects() {
 
 	audio = new AudioEngine();
 	audio->init();
-	audio->playLoop(
-		AudioClip::decodeMP3("data/resources/sounds/ambiant.mp3"));
+	// Decode off the main thread: a full MP3 would freeze startup.
+	pendingClip = std::async(std::launch::async, AudioClip::decodeMP3,
+		std::string("data/resources/sounds/ambiant.mp3"));
+	audioStarted = false;
 
 }
 

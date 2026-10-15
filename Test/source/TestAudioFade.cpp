@@ -5,12 +5,14 @@
 
 using Catch::Matchers::WithinAbs;
 
-// The ambient loop fades in linearly over 3 seconds on (re)start,
-// then holds full gain while looping.
+// The ambient loop fades in over 3 seconds on (re)start, then holds
+// full gain while looping. Onset is gentler than linear (smoothstep)
+// so the fade-in reads as gradual rather than front-loaded.
 TEST_CASE("AudioEngine fade gain", "[audio][fade]")
 {
   CHECK_THAT(AudioEngine::fadeGain(-1.0), WithinAbs(0.0f, 1e-6f));
   CHECK_THAT(AudioEngine::fadeGain(0.0), WithinAbs(0.0f, 1e-6f));
+  CHECK(AudioEngine::fadeGain(0.75) < 0.25f);
   CHECK_THAT(AudioEngine::fadeGain(1.5), WithinAbs(0.5f, 1e-6f));
   CHECK_THAT(AudioEngine::fadeGain(3.0), WithinAbs(1.0f, 1e-6f));
   CHECK_THAT(AudioEngine::fadeGain(300.0), WithinAbs(1.0f, 1e-6f));
