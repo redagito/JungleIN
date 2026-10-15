@@ -32,6 +32,16 @@ public:
 
 	void setFilters(GLint min, GLint mag);
 
+	// Texture-unit allocation invariant: resetUnit/fromNextUnit hand out
+	// indices from one shared counter that each owner resets and reuses,
+	// so the same index may label textures that are never sampled
+	// together (every material bind() rebinds before drawing, which
+	// makes cross-material reuse safe). What must never happen is two
+	// DIFFERENT textures sharing one index within a single draw: the
+	// second bind would silently redirect the first sampler.
+	// Shader::transmitUniform enforces this per draw and throws on
+	// aliasing, so keep every co-live set distinct instead of reworking
+	// allocation here.
 	static void resetUnit(int textureUnitOffset = 0);
 	static Texture fromNextUnit();
 	static Texture* newFromNextUnit();

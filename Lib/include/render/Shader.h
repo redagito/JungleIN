@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <unordered_map>
 
@@ -56,6 +57,19 @@ private:
 	// Location lookup that fails fast: an unregistered uniform name is a
 	// wiring bug, and transmitting to location -1 would silently no-op.
 	int requireUniform(const std::string& key);
+
+	// Fail-fast guard for the texture-unit allocation invariant (see
+	// Texture::resetUnit): two DIFFERENT 2D textures must never share one
+	// unit within a single draw. Throws on aliasing. TextureCube is not
+	// tracked: cube maps live on a separate GL binding point per unit, so
+	// sharing an index with a 2D texture samples correctly.
+	void trackTextureUnit(const Texture* tex);
+
+	// (Texture pointer, unit index) pairs transmitted since the last
+	// bind(). Cleared by every bind(), including the already-active
+	// fast path, because one shader object serves many draws in a row
+	// (e.g. every mesh reuses rt_basic) and each draw rebinds its own set.
+	std::vector<std::pair<const Texture*, unsigned int>> boundTextureUnits;
 
 	static GLuint s_activeShaderUid;
 	std::string name;
