@@ -176,6 +176,10 @@ void Window::initializeGL() {
 	}
 	Profiler::mark("GL functions loaded");
 
+	// Black splash until the first jungle frame is ready.
+	loading = new LoadingScreen(window);
+	loading->show("data/splash.png");
+
 	// Debug context
 	int flags;
 	glGetIntegerv(GL_CONTEXT_FLAGS, &flags);

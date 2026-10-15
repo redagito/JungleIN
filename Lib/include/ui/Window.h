@@ -7,6 +7,7 @@
 #include "helpers/SceneBuilder.h"
 #include "objects/Scene.h"
 #include "render/Renderer.h"
+#include "render/LoadingScreen.h"
 #include "audio/AudioClip.h"
 #include "audio/AudioEngine.h"
 #include "ui/ReloadWindow.h"
@@ -68,6 +69,7 @@ private:
 
 	Scene* scene = nullptr;
 	Renderer* renderer = nullptr;
+	LoadingScreen* loading = nullptr;
 	AudioEngine* audio = nullptr;
 	std::future<AudioClip> pendingClip;
 	bool audioStarted = false;
