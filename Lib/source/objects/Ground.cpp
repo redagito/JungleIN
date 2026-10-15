@@ -225,9 +225,10 @@ void Ground::lastLineNormals(float* normalsF) {
 		setVectorToFloat(tmp, normalsF, (indice + i) * 3);
 	}
 	// last vertex of the last line. So, it's the last vertex of ALL the ground.
-	// Yeah!
+	// Yeah! It belongs to the second triangle of the last quad, whose face
+	// normal is the last entry of the face array.
 	setVectorToFloat(
-		normals[(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) - 1],
+		normals[2 * (this->numberVerticesX - 1) * (this->numberVerticesZ - 1) - 1],
 		normalsF, (this->numberVerticesX * this->numberVerticesZ - 1) * 3);
 }
 
