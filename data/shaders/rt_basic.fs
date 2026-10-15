@@ -56,7 +56,7 @@ float compShadow()
         float sum = 0.0;
 
         sum += shadowLookup(useCascade, shadowCoordinate, vec2(-0.8, 0.0));
-        sum += shadowLookup(useCascade, shadowCoordinate, vec2(-0.8, 0.0));
+        sum += shadowLookup(useCascade, shadowCoordinate, vec2( 0.8, 0.0));
         sum += shadowLookup(useCascade, shadowCoordinate, vec2( 0.0,-0.8));
         sum += shadowLookup(useCascade, shadowCoordinate, vec2( 0.0, 0.8));
         sum += shadowLookup(useCascade, shadowCoordinate, vec2( 0.0, 0.0));
