@@ -7,7 +7,7 @@
 
 GLFWwindow *Utils::window = nullptr;
 bool Utils::USE_ANISO = false;
-unsigned int Utils::MAX_ANISO = 0x0000;
+float Utils::MAX_ANISO = 1.0f;
 int Utils::QUALITY = 1;
 
 double Utils::TARGET_FPS = 32.0;

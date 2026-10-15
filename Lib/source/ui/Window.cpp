@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <sstream>
 #include <stdexcept>
 
@@ -269,17 +270,28 @@ void Window::initializeGL() {
 
 	glfwShowWindow(window);
 
-	//
-	//  if (!strstr((char *)glGetString(GL_EXTENSIONS),
-	//              "GL_EXT_texture_filter_anisotropic")) {
+	// glGetString(GL_EXTENSIONS) is removed on core profiles; probe with
+	// glGetStringi instead. Only query the driver maximum when the
+	// extension is actually present, so unsupported drivers never raise a
+	// GL error here (the debug callback throws on those).
 	Utils::USE_ANISO = false;
-	Utils::MAX_ANISO = 0x0000;
-	//  } else {
-	//    Utils::USE_ANISO = true;
-	//    float maxAniso;
-	//    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAniso);
-	//    Utils::MAX_ANISO = maxAniso;
-	//  }
+	Utils::MAX_ANISO = 1.0f;
+	GLint extensionCount = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+	for (GLint i = 0; i < extensionCount; ++i) {
+		const char* extension = reinterpret_cast<const char*>(
+			glGetStringi(GL_EXTENSIONS, static_cast<GLuint>(i)));
+		if (extension != nullptr &&
+			std::strcmp(extension, "GL_EXT_texture_filter_anisotropic") == 0) {
+			GLfloat maxAniso = 1.0f;
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
+			if (maxAniso >= 2.0f) {
+				Utils::USE_ANISO = true;
+				Utils::MAX_ANISO = maxAniso;
+			}
+			break;
+		}
+	}
 
 	initializeObjects();
 }

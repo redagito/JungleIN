@@ -21,7 +21,7 @@ public:
 
 	static GLFWwindow* window;
 	static bool USE_ANISO;
-	static unsigned int MAX_ANISO;
+	static float MAX_ANISO;
 	static int QUALITY;
 
 	static double TARGET_FPS;

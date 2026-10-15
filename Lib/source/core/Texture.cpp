@@ -111,8 +111,8 @@ void Texture::init() {
 		
 
 		if (Utils::USE_ANISO) {
-			//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-			//	Utils::MAX_ANISO);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY,
+				Utils::MAX_ANISO);
 		}
 	}
 	else {
@@ -153,11 +153,11 @@ void Texture::bind() {
 
 void Texture::update() {
 	if (Utils::USE_ANISO) {
-		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-		//	Utils::MAX_ANISO);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY,
+			Utils::MAX_ANISO);
 	}
 	else {
-		//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
 	}
 }
 
