@@ -12,9 +12,13 @@
 #include "helpers/Utils.h"
 #include "helpers/Profiler.h"
 
+namespace {
+constexpr int kDefaultWidth = 1600;
+constexpr int kDefaultHeight = 900;
+} // namespace
+
 static void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei /*length*/,
-	const GLchar* message, const void* /*userParam*/)
-{
+	const GLchar* message, const void* /*userParam*/){
 	// ignore non-significant error/warning codes
 	if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
 		return;
@@ -160,7 +164,7 @@ void Window::initializeGL() {
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	// Create window from parameters
-	window = glfwCreateWindow(1024, 768, "JungleIN", NULL, NULL);
+	window = glfwCreateWindow(kDefaultWidth, kDefaultHeight, "JungleIN", NULL, NULL);
 	if (window == nullptr) {
 		glfwTerminate();
 		throw std::runtime_error{"Failed to create GLFW window."};
@@ -222,13 +226,24 @@ void Window::initializeGL() {
 			Window::s_window->onMouseButton(button, action, mods);
 		});
 
-	// Window resize callback (aspect, FBOs and shadow maps follow)
+	// Window resize callback (aspect, FBOs and shadow maps follow).
+	// Renders a frame synchronously so resizing stays live while the
+	// window edge is dragged; exceptions must not escape into GLFW.
 	glfwSetFramebufferSizeCallback(window,
 		[](GLFWwindow* /*w*/, int width, int height)
 		{
-			if (Window::s_window == nullptr)
+			if (Window::s_window == nullptr || width <= 0 || height <= 0)
 				return;
-			Window::s_window->resizeGL(width, height);
+			if (Window::s_window->renderer == nullptr)
+				return;
+			try {
+				Window::s_window->resizeGL(width, height);
+				Window::s_window->paintGL();
+				glfwSwapBuffers(Window::s_window->window);
+			}
+			catch (const std::exception& e) {
+				loge("Resize render failed: {}", e.what());
+			}
 		});
 
 	glfwShowWindow(window);
@@ -264,7 +279,7 @@ void Window::initializeObjects() {
 	scene->setRenderAble(true);
 
 
-	renderer->init(scene, 1024, 768);
+	renderer->init(scene, kDefaultWidth, kDefaultHeight);
 
 	renderer->start();
 	Profiler::mark("renderer started");
