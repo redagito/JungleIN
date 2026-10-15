@@ -6,7 +6,8 @@ class Quaternion {
 public:
 	float x, y, z, w;
 
-	Quaternion(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 0.0f);
+  // Default is the identity rotation, not the zero (invalid) quaternion.
+  Quaternion(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 1.0f);
 
 	Quaternion& set(float, float, float, float);
 	Quaternion& copy(const Quaternion& q);
