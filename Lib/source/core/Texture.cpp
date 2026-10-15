@@ -2,6 +2,18 @@
 
 #include <stb_image.h>
 
+namespace {
+// Sized and unsized depth internal formats all upload as float depth;
+// anything else stays an unsigned-byte color texture.
+bool IsDepthFormat(unsigned int format) {
+	return format == GL_DEPTH_COMPONENT ||
+		format == GL_DEPTH_COMPONENT16 ||
+		format == GL_DEPTH_COMPONENT24 ||
+		format == GL_DEPTH_COMPONENT32 ||
+		format == GL_DEPTH_COMPONENT32F;
+}
+} // namespace
+
 //const unsigned int Texture::LINEAR = GL_LINEAR;
 //const unsigned int Texture::NEAREST = GL_NEAREST;
 //const unsigned int Texture::MIPMAP = GL_LINEAR_MIPMAP_LINEAR;
@@ -17,6 +29,8 @@ Texture::Texture() {
 	minFilter = GL_LINEAR;
 	magFilter = GL_LINEAR;
 	globalFormat = GL_RGBA;
+	pixelType = GL_UNSIGNED_BYTE;
+	shadowCompare = false;
 }
 
 Texture::Texture(std::string path, unsigned int _index) {
@@ -27,6 +41,8 @@ Texture::Texture(std::string path, unsigned int _index) {
 	minFilter = GL_LINEAR;
 	magFilter = GL_LINEAR;
 	globalFormat = GL_RGBA;
+	pixelType = GL_UNSIGNED_BYTE;
+	shadowCompare = false;
 }
 
 // NOTE: render-target buffers stay 8-bit GL_RGBA by design for now;
@@ -43,6 +59,8 @@ Texture::Texture(unsigned int _index) {
 	minFilter = GL_LINEAR;
 	magFilter = GL_LINEAR;
 	globalFormat = GL_RGBA;
+	pixelType = GL_UNSIGNED_BYTE;
+	shadowCompare = false;
 }
 
 Texture::~Texture() { glDeleteTextures(1, &gluid); }
@@ -79,6 +97,8 @@ void Texture::setupForFramebuffer(unsigned int _width, unsigned int _height,
 	height = _height;
 	format = _format;
 	globalFormat = _globalFormat;
+	pixelType = IsDepthFormat(format) ? GL_FLOAT : GL_UNSIGNED_BYTE;
+	shadowCompare = false;
 	minFilter = GL_LINEAR;
 	magFilter = GL_LINEAR;
 }
@@ -86,6 +106,27 @@ void Texture::setupForFramebuffer(unsigned int _width, unsigned int _height,
 void Texture::setFilters(GLint min, GLint mag) {
 	minFilter = min;
 	magFilter = mag;
+}
+
+void Texture::setupForDepthShadow(unsigned int _width, unsigned int _height) {
+	width = _width;
+	height = _height;
+	format = GL_DEPTH_COMPONENT24;
+	globalFormat = GL_DEPTH_COMPONENT;
+	pixelType = GL_FLOAT;
+	minFilter = GL_LINEAR;
+	magFilter = GL_LINEAR;
+	shadowCompare = true;
+}
+
+void Texture::enableShadowCompare() {
+	shadowCompare = true;
+	if (gluid != 0) {
+		bind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
+			GL_COMPARE_REF_TO_TEXTURE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	}
 }
 
 void Texture::init() {
@@ -99,7 +140,7 @@ void Texture::init() {
 
 	if (hasImage) {
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
-			GL_UNSIGNED_BYTE, image.data());
+			pixelType, image.data());
 		
 
 		if (minFilter == GL_LINEAR_MIPMAP_LINEAR) {
@@ -119,14 +160,22 @@ void Texture::init() {
 	}
 	else {
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
-			GL_UNSIGNED_BYTE, NULL);
+			pixelType, NULL);
 		
-		if (format == GL_DEPTH_COMPONENT) {
+		if (IsDepthFormat(format)) {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 			
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 			
 			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+			if (shadowCompare) {
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
+					GL_COMPARE_REF_TO_TEXTURE);
+
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC,
+					GL_LEQUAL);
+			}
 			
 		}
 		else {
@@ -170,7 +219,7 @@ void Texture::resize(unsigned int _width, unsigned int _height) {
 	if (!hasImage) {
 		bind();
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
-			GL_UNSIGNED_BYTE, NULL);
+			pixelType, NULL);
 	}
 }
 

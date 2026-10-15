@@ -22,9 +22,11 @@ public:
   void clear();
   void init(int textureUnitOffset = 0, bool linearFilter = false);
   void bind();
+  void bindAndViewport();
   void unbind();
   void resize(unsigned int _width, unsigned int _height);
   void resizeViewport();
+  void assertComplete() const;
 
   void bindAndTransmitTextures(Shader *shader);
 

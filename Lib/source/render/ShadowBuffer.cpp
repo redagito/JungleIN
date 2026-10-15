@@ -1,5 +1,6 @@
 #include "render/ShadowBuffer.h"
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 
@@ -23,11 +24,11 @@ void ShadowBuffer::init(unsigned int textureUnitOffset)
 
 	Texture::resetUnit(textureUnitOffset);
 	Texture* tex = Texture::newFromNextUnit();
-	tex->setupForFramebuffer(width, height, GL_DEPTH_COMPONENT,
-		GL_DEPTH_COMPONENT);
+	tex->setupForDepthShadow(width, height);
 	tex->setFilters(GL_LINEAR, GL_LINEAR);
 	tex->init();
 	tex->bind();
+	tex->enableShadowCompare();
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
 		tex->gluid, 0);
 
@@ -38,6 +39,7 @@ void ShadowBuffer::init(unsigned int textureUnitOffset)
 	glDrawBuffers(size, drawBuffers);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	assert(status == GL_FRAMEBUFFER_COMPLETE);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 		throw std::runtime_error("Shadow framebuffer incomplete: " +
 			std::to_string(status));

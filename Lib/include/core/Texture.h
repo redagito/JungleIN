@@ -27,6 +27,8 @@ public:
 	void setupForFramebuffer(unsigned int _width, unsigned int _height,
 		unsigned int _format,
 		unsigned int _globalFormat = GL_RGBA);
+	void setupForDepthShadow(unsigned int _width, unsigned int _height);
+	void enableShadowCompare();
 	bool load(std::string path);
 	void resize(unsigned int _width, unsigned int _height);
 
@@ -70,4 +72,6 @@ private:
 	GLint magFilter = GL_LINEAR;
 	unsigned int format = 0;
 	unsigned int globalFormat = 0;
+	unsigned int pixelType = GL_UNSIGNED_BYTE;
+	bool shadowCompare = false;
 };

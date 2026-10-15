@@ -1,5 +1,6 @@
 #include "render/FrameBuffer.h"
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 #include "helpers/Logger.h"
@@ -98,6 +99,7 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 	glDrawBuffers(size, drawBuffers);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	assert(status == GL_FRAMEBUFFER_COMPLETE);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 		throw std::runtime_error("Framebuffer incomplete: " +
 			std::to_string(status));
@@ -107,13 +109,28 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 }
 
 void FrameBuffer::bind() {
+	assert(uid != 0);
+	assert(width > 0 && height > 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, uid);
 	glDrawBuffers(size, drawBuffers);
+}
+
+void FrameBuffer::bindAndViewport() {
+	bind();
+	resizeViewport();
+	assertComplete();
+}
+
+void FrameBuffer::assertComplete() const {
+	assert(uid != 0);
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) ==
+		GL_FRAMEBUFFER_COMPLETE);
 }
 
 void FrameBuffer::unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 void FrameBuffer::resize(unsigned int _width, unsigned int _height) {
+	assert(_width > 0 && _height > 0);
 	width = _width;
 	height = _height;
 
@@ -127,7 +144,10 @@ void FrameBuffer::resize(unsigned int _width, unsigned int _height) {
 	}
 }
 
-void FrameBuffer::resizeViewport() { glViewport(0, 0, width, height); }
+void FrameBuffer::resizeViewport() {
+	assert(width > 0 && height > 0);
+	glViewport(0, 0, width, height);
+}
 
 void FrameBuffer::bindAndTransmitTextures(Shader* shader) {
 	for (int i = 0; i < texturesNames.size(); ++i) {
