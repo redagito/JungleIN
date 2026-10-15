@@ -24,8 +24,12 @@ public:
 	void init();
 	void bind();
 	void update();
+	// HDR Phase 1: color render targets default to RGBA16F half float.
+	// 16F is texture-filterable (linear blur/bloom passes sample it)
+	// at half the bandwidth of 32F. Depth callers use
+	// setupForDepthShadow; image uploads keep their byte path in init().
 	void setupForFramebuffer(unsigned int _width, unsigned int _height,
-		unsigned int _format,
+		unsigned int _format = GL_RGBA16F,
 		unsigned int _globalFormat = GL_RGBA);
 	void setupForDepthShadow(unsigned int _width, unsigned int _height);
 	void enableShadowCompare();

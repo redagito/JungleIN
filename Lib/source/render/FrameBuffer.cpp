@@ -80,7 +80,9 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 		Texture::resetUnit(textureUnitOffset);
 		for (size_t i = 0; i < texturesNames.size(); ++i) {
 			Texture* tex = Texture::newFromNextUnit();
-			tex->setupForFramebuffer(width, height, GL_RGB32F);
+			// HDR default (RGBA16F) lives on setupForFramebuffer; no
+			// per-site sized format so every color target moves together.
+			tex->setupForFramebuffer(width, height);
 			if (linearFilter)
 				tex->setFilters(GL_LINEAR, GL_LINEAR);
 			tex->init();
