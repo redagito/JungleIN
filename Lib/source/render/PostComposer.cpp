@@ -5,6 +5,13 @@
 
 #include <glad/gl.h>
 
+namespace {
+// Single formula for the half-resolution post buffers, shared by the
+// constructor, resize and quality changes so the first frames already
+// match every later resize.
+int HalfBuffersRatio() { return Utils::QUALITY == 1 ? 3 : 4; }
+} // namespace
+
 PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	width = inputFBO->getWidth();
 	height = inputFBO->getHeight();
@@ -13,7 +20,7 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	finalRenderWidth = width;
 	finalRenderHeight = height;
 
-	halfBuffersRatio = 2;
+	halfBuffersRatio = HalfBuffersRatio();
 
 	inputBuffer = inputFBO;
 	readBuffer = new FrameBuffer(std::vector<std::string>() << "texScene", width,
@@ -405,7 +412,7 @@ void PostComposer::resize(unsigned int _width, unsigned int _height) {
 	heightf = (float)_height;
 	finalRenderWidth = width;
 	finalRenderHeight = height;
-	halfBuffersRatio = Utils::QUALITY == 1 ? 3 : 4;
+	halfBuffersRatio = HalfBuffersRatio();
 	unsigned int halfwidth = width / halfBuffersRatio;
 	unsigned int halfheight = height / halfBuffersRatio;
 
@@ -416,7 +423,7 @@ void PostComposer::resize(unsigned int _width, unsigned int _height) {
 }
 
 void PostComposer::resizeHalfBuffers() {
-	halfBuffersRatio = Utils::QUALITY == 1 ? 3 : 4;
+	halfBuffersRatio = HalfBuffersRatio();
 	unsigned int halfwidth = width / halfBuffersRatio;
 	unsigned int halfheight = height / halfBuffersRatio;
 	readHalfBuffer->resize(halfwidth, halfheight);
