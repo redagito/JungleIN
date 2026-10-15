@@ -11,6 +11,8 @@ int main(int /*argc*/, char* /*argv*/[])
 	// Fresh log.txt next to the working directory on every start.
 	fmtlog::setLogFile("log.txt", true);
 	fmtlog::startPollingThread();
+	// Errors flush immediately so a crash never loses its own log tail.
+	fmtlog::flushOn(fmtlog::ERR);
 
 #ifndef NDEBUG
 	fmtlog::setLogLevel(fmtlog::LogLevel::DBG);

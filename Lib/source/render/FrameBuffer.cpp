@@ -126,6 +126,10 @@ void FrameBuffer::resizeViewport() { glViewport(0, 0, width, height); }
 
 void FrameBuffer::bindAndTransmitTextures(Shader* shader) {
 	for (int i = 0; i < texturesNames.size(); ++i) {
+		// Shaders only declare the attachments they sample; transmitting
+		// the rest would log a missing-uniform warning and no-op.
+		if (!shader->hasUniform(texturesNames.at(i)))
+			continue;
 		Texture* tex = textures.at(i);
 		tex->bind();
 		shader->transmitUniform(texturesNames.at(i), tex);
