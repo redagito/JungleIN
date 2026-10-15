@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "math/Matrix4.h"
+#include "math/Matrix3.h"
 #include "math/Vector3.h"
 
 using Catch::Matchers::WithinAbs;
@@ -52,6 +53,57 @@ TEST_CASE("Matrix4 identity and multiply", "[math][matrix4]")
 		for (int i = 0; i < 16; ++i)
 			CHECK_THAT(actual.array[i], WithinAbs(expected.array[i], 1e-5));
 	}
+}
+
+TEST_CASE("Matrix inverse rejects singular input", "[math][matrix]")
+{
+  SECTION("zero matrix inverts to zero matrix")
+  {
+    Matrix4 m;
+    m.zero();
+    const Matrix4 inverse = m.inverse();
+    for (int i = 0; i < 16; ++i)
+      CHECK_THAT(inverse.array[i], WithinAbs(0.0f, 1e-6f));
+  }
+
+  SECTION("near-singular matrix inverts to zero matrix, not garbage")
+  {
+    // Third row nearly dependent on the first two: determinant is ~1e-9
+    // but the adjugate is O(1), so a naive 1/det blows entries up to ~1e9.
+    Matrix4 m;
+    m.identity();
+    m.data[0][0] = 1.0f;
+    m.data[0][1] = 0.0f;
+    m.data[0][2] = 0.0f;
+    m.data[1][0] = 0.0f;
+    m.data[1][1] = 1.0f;
+    m.data[1][2] = 0.0f;
+    m.data[2][0] = 1.0f;
+    m.data[2][1] = 2.0f;
+    m.data[2][2] = 1e-9f;
+    const Matrix4 inverse = m.inverse();
+    for (int i = 0; i < 16; ++i)
+      CHECK(std::abs(inverse.array[i]) < 1e6f);
+  }
+
+  SECTION("Matrix3 near-singular input falls back to identity")
+  {
+    Matrix4 from;
+    from.identity();
+    from.data[0][0] = 1.0f;
+    from.data[0][1] = 0.0f;
+    from.data[0][2] = 0.0f;
+    from.data[1][0] = 0.0f;
+    from.data[1][1] = 1.0f;
+    from.data[1][2] = 0.0f;
+    from.data[2][0] = 1.0f;
+    from.data[2][1] = 2.0f;
+    from.data[2][2] = 1e-9f;
+    Matrix3 result;
+    result.getInverse(from);
+    for (int i = 0; i < 9; ++i)
+      CHECK(std::abs(result.array[i]) < 1e6f);
+  }
 }
 
 namespace {

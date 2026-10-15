@@ -397,7 +397,10 @@ Matrix4 Matrix4::inverse() const {
 
   float d = determinant();
 
-  if (d == 0.0f) {
+  // Exact zero is not enough: near-singular input (tiny but nonzero
+  // determinant) would blow entries up to 1/det garbage. Legitimate
+  // determinants in this codebase stay far above this threshold.
+  if (std::fabs(d) <= 1e-6f) {
     return t.zero();
   }
 

@@ -1,5 +1,7 @@
 #include "math/Matrix3.h"
 
+#include <cmath>
+
 Matrix3::Matrix3() { identity(); }
 
 Matrix3 &Matrix3::getInverse(const Matrix4 &m) {
@@ -17,7 +19,9 @@ Matrix3 &Matrix3::getInverse(const Matrix4 &m) {
 
   float det = m.array[0] * a11 + m.array[1] * a12 + m.array[2] * a13;
 
-  if (det == 0.0) {
+  // Same guard as Matrix4::inverse: reject near-singular input instead
+  // of producing 1/det garbage.
+  if (std::fabs(det) <= 1e-6f) {
     return identity();
   }
 
