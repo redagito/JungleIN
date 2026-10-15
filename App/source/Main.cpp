@@ -2,6 +2,7 @@
 #include <cstdlib>
 
 #include "helpers/Logger.h"
+#include "helpers/Utils.h"
 
 #include "ui/Window.h"
 
@@ -17,6 +18,7 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	try
 	{
+		Timer::mark("process start");
 		Window window;
 		window.initializeGL();
 

@@ -68,6 +68,14 @@ double Utils::random(double min, double max) {
 
 void Timer::start() { m_start = std::chrono::system_clock::now(); }
 
+void Timer::mark(const char* stage) {
+  using namespace std::chrono;
+  static const auto start = steady_clock::now();
+  const auto ms =
+      duration_cast<milliseconds>(steady_clock::now() - start).count();
+  logi("Startup {}ms: {}", ms, stage);
+}
+
 double Timer::restart() {
   auto now = std::chrono::system_clock::now();
   auto delta =

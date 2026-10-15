@@ -1,4 +1,5 @@
 #include "helpers/SceneBuilder.h"
+#include "helpers/Utils.h"
 
 #include <cmath>
 
@@ -73,6 +74,7 @@ Scene* SceneBuilder::build() {
 		groundNormalEarth, groundNormalShatter);
 	Ground* ground =
 		new Ground("data/resources/heightmaps/heightmap.png", groundMat);
+	Timer::mark("ground built");
 
 	// ROCK 1
 	Texture::resetUnit();

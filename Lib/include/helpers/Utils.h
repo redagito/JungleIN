@@ -34,11 +34,15 @@ public:
 
 class Timer {
 public:
-	void start();
-	double restart();
+  void start();
+  double restart();
+
+  // One-shot milestone profiler: logs milliseconds since the first mark.
+  // Startup/first-frame only - never call per frame.
+  static void mark(const char* stage);
 
 private:
-	std::chrono::system_clock::time_point m_start;
+  std::chrono::system_clock::time_point m_start;
 };
 
 template <typename T> size_t indexOf(const std::vector<T>& values, T value) {

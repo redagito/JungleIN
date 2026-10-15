@@ -131,16 +131,24 @@ void Window::run() {
 		paintGL();
 
 		glfwSwapBuffers(Utils::window);
+
+		static bool firstFrame = true;
+		if (firstFrame) {
+			firstFrame = false;
+			Timer::mark("first frame presented");
+		}
 	}
 }
 
 // void Window::timerEvent(QTimerEvent *) { updateGL(); }
 
 void Window::initializeGL() {
+	Timer::mark("initializeGL start");
 	if (!glfwInit())
 	{
 		throw std::runtime_error{"Failed to initialize GLFW."};
 	}
+	Timer::mark("GLFW initialized");
 
 	glfwSetErrorCallback([](int /*code*/, const char* error) { throw std::runtime_error{error}; });
 	glfwWindowHint(GLFW_SAMPLES, 4);
@@ -156,6 +164,7 @@ void Window::initializeGL() {
 		glfwTerminate();
 		throw std::runtime_error{"Failed to create GLFW window."};
 	}
+	Timer::mark("window created");
 
 	glfwMakeContextCurrent(window);
 
@@ -164,6 +173,7 @@ void Window::initializeGL() {
 	{
 		throw std::runtime_error{"Failed to init GL context"};
 	}
+	Timer::mark("GL functions loaded");
 
 	// Debug context
 	int flags;
@@ -225,14 +235,17 @@ void Window::initializeGL() {
 }
 
 void Window::initializeObjects() {
+	Timer::mark("initializeObjects start");
 	renderer = new Renderer();
 
 	renderer->loadShaders();
-
+	Timer::mark("shaders loaded");
 
 	scene = SceneBuilder::build();
+	Timer::mark("scene built");
 
 	scene->init();
+	Timer::mark("scene VBOs initialized");
 
 	scene->setRenderAble(true);
 
@@ -240,6 +253,7 @@ void Window::initializeObjects() {
 	renderer->init(scene, 1024, 768);
 
 	renderer->start();
+	Timer::mark("renderer started");
 
 	audio = new AudioEngine();
 	audio->init();
