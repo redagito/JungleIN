@@ -95,6 +95,25 @@ TEST_CASE("Camera follows terrain and consumes look input", "[objects][camera]")
     camera.update(0.0, 1.0);
     CHECK_THAT(camera.getPitch(), WithinAbs(-kLimit, 1e-5f));
   }
+  SECTION("sprint doubles horizontal displacement")
+  {
+    Camera walk;
+    walk.reset();
+    walk.setUpKey(true);
+    walk.update(/*groundY=*/0.0, /*delta=*/1.0);
+    const float walkZ = walk.getPosition().z;
+
+    Camera run;
+    run.reset();
+    run.setUpKey(true);
+    run.setSprintKey(true);
+    run.update(/*groundY=*/0.0, /*delta=*/1.0);
+    const float runZ = run.getPosition().z;
+
+    // Spawn z is -1, forward decreases z; sprint must cover twice the distance.
+    CHECK_THAT((walkZ + 1.0f) * 2.0f, WithinAbs(runZ + 1.0f, 1e-3f));
+  }
+
   SECTION("mouse deltas are ignored while not looking")
   {
     Camera camera;

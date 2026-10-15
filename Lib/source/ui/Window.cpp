@@ -411,6 +411,10 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 		case GLFW_KEY_D:
 			scene->getCurrentCamera()->setRightKey(true);
 			break;
+		case GLFW_KEY_LEFT_SHIFT:
+		case GLFW_KEY_RIGHT_SHIFT:
+			scene->getCurrentCamera()->setSprintKey(true);
+			break;
 
 			// Movement up / down
 		case GLFW_KEY_E:
@@ -467,6 +471,10 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 		case GLFW_KEY_RIGHT:
 		case GLFW_KEY_D:
 			scene->getCurrentCamera()->setRightKey(false);
+			break;
+		case GLFW_KEY_LEFT_SHIFT:
+		case GLFW_KEY_RIGHT_SHIFT:
+			scene->getCurrentCamera()->setSprintKey(false);
 			break;
 
 		case GLFW_KEY_E:

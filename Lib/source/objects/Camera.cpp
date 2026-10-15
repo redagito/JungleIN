@@ -43,6 +43,8 @@ void Camera::setUpKey(bool a) { upKey = a; }
 
 void Camera::setDownKey(bool a) { downKey = a; }
 
+void Camera::setSprintKey(bool a) { sprintKey = a; }
+
 void Camera::setEKey(bool b)
 {
 	eKey = b;
@@ -72,24 +74,27 @@ void Camera::update(double groundY, double delta) {
 		accelY = 0.f;
 	}
 
+	// Sprint (Shift held) doubles horizontal movement speed.
+	const float speed = sprintKey ? moveSpeed * 2.0f : moveSpeed;
+
 	if (leftKey) {
-		position.x -= static_cast<float>(moveSpeed * std::sin((yaw + 90) * DEG_TO_RAD) * delta);
-		position.z += static_cast<float>(moveSpeed * std::cos((yaw + 90) * DEG_TO_RAD) * delta);
+		position.x -= static_cast<float>(speed * std::sin((yaw + 90) * DEG_TO_RAD) * delta);
+		position.z += static_cast<float>(speed * std::cos((yaw + 90) * DEG_TO_RAD) * delta);
 	}
 
 	if (rightKey) {
-		position.x -= static_cast<float>(moveSpeed * std::sin((yaw - 90) * DEG_TO_RAD) * delta);
-		position.z += static_cast<float>(moveSpeed * std::cos((yaw - 90) * DEG_TO_RAD) * delta);
+		position.x -= static_cast<float>(speed * std::sin((yaw - 90) * DEG_TO_RAD) * delta);
+		position.z += static_cast<float>(speed * std::cos((yaw - 90) * DEG_TO_RAD) * delta);
 	}
 
 	if (upKey) {
-		position.x += static_cast<float>(moveSpeed * std::sin(yaw * DEG_TO_RAD) * delta);
-		position.z -= static_cast<float>(moveSpeed * std::cos(yaw * DEG_TO_RAD) * delta);
+		position.x += static_cast<float>(speed * std::sin(yaw * DEG_TO_RAD) * delta);
+		position.z -= static_cast<float>(speed * std::cos(yaw * DEG_TO_RAD) * delta);
 	}
 
 	if (downKey) {
-		position.x -= static_cast<float>(moveSpeed * std::sin(yaw * DEG_TO_RAD) * delta);
-		position.z += static_cast<float>(moveSpeed * std::cos(yaw * DEG_TO_RAD) * delta);
+		position.x -= static_cast<float>(speed * std::sin(yaw * DEG_TO_RAD) * delta);
+		position.z += static_cast<float>(speed * std::cos(yaw * DEG_TO_RAD) * delta);
 	}
 
 	// Fly higher / lower: adjusts the offset above the terrain.

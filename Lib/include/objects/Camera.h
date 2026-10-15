@@ -27,6 +27,7 @@ public:
   void setRightKey(bool);
   void setUpKey(bool);
   void setDownKey(bool);
+  void setSprintKey(bool);
   void setEKey(bool);
   void setQKey(bool);
   void setPositionY(float y);
@@ -49,6 +50,7 @@ private:
   bool rightKey = false;
   bool upKey = false;
   bool downKey = false;
+  bool sprintKey = false;
   // Fly up / down
   bool eKey = false;
   bool qKey = false;
