@@ -127,9 +127,16 @@ vec3 computeFog(vec3 finalColor)
 const float Ka = 0.1;
 const float Kd = 0.7;
 const float Ks = 0.4;
-const float Shininess = 4.0;
+// Narrow lobe: 4.0 sprayed white specular across every bumpy pixel at
+// grazing angles (the chalky ground). 24.0 keeps highlights tight.
+const float Shininess = 24.0;
+// Per-band specular response: vegetation is near-matte, rock shines.
+// The ladder in main() blends this mask exactly like the albedo.
+const float SPEC_SHATTER = 1.0;
+const float SPEC_EARTH = 0.45;
+const float SPEC_MOSS = 0.12;
 
-vec3 illumination(vec3 texel, vec3 normal)
+vec3 illumination(vec3 texel, vec3 normal, float specScale)
 {
     // Double-sided lighting: flip the normal for back faces.
     vec3 n = gl_FrontFacing ? normal : -normal;
@@ -145,7 +152,8 @@ vec3 illumination(vec3 texel, vec3 normal)
 
     // Light intensity plumbing: defaults to (1,1,1), legacy look unchanged.
     vec3 diffuseCol = lightIntensity * Kd * max(dot(s, n), 0.0);
-    vec3 specCol = lightIntensity * Ks * pow(max(dot(h,n), 0.0), Shininess);
+    vec3 specCol = lightIntensity * Ks * specScale *
+        pow(max(dot(h,n), 0.0), Shininess);
 
     vec3 color = texel * (
                     // Ambient
@@ -165,12 +173,14 @@ void main()
 
     vec3 texel;
     vec3 texelNormal;
+    float specMask;
     float amount;
 
     if(fPosition.y < hStep)
     {
         texel = texture(texShatter, texcoords).rgb;
         texelNormal = texture(texNormalShatter, texcoords).rgb;
+        specMask = SPEC_SHATTER;
     }
     else if(fPosition.y < 2*hStep)
     {
@@ -181,6 +191,7 @@ void main()
         texelNormal = mix(texture(texNormalShatter, texcoords),
                     texture(texNormalEarth, texcoords),
                     amount).rgb;
+        specMask = mix(SPEC_SHATTER, SPEC_EARTH, amount);
     }
     else if(fPosition.y < 3*hStep)
     {
@@ -191,11 +202,13 @@ void main()
         texelNormal = mix(texture(texNormalEarth, texcoords),
                     texture(texNormalMoss, texcoords),
                     amount).rgb;
+        specMask = mix(SPEC_EARTH, SPEC_MOSS, amount);
     }
     else
     {
         texel = texture(texMoss, texcoords).rgb;
         texelNormal = texture(texNormalMoss, texcoords).rgb;
+        specMask = SPEC_MOSS;
     }
 
     // Linear workflow: decode the sRGB albedo to linear (normal map
@@ -205,7 +218,8 @@ void main()
                     computeFog(
                         illumination(
                             texel,
-                            computeNormal(texelNormal)
+                            computeNormal(texelNormal),
+                            specMask
                         )
                     )
                 , 1.0);
