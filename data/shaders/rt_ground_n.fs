@@ -3,7 +3,10 @@
 in vec3 fPosition;
 in vec3 fNormal;
 in vec4 fShadowcoord;
+in vec4 fShadowcoordCascade;
 in vec3 fLightDir;
+in vec3 vViewPos;
+in float vViewDepth;
 
 // Normal mapping
 in vec3 fTangent;
@@ -13,9 +16,17 @@ uniform sampler2D texNormalShatter;
 uniform sampler2D texNormalMoss;
 
 // Shadow mapping
-uniform sampler2D texShadow;
+uniform sampler2DShadow texShadow;
+uniform int cascadeShadow;
+uniform sampler2DShadow texShadowCascade;
+// Legacy resolution uniforms: actual texel size is derived per lookup
+// via textureSize() so inner and cascade maps stay correct even when
+// the two FBOs differ in size. Kept registered so Renderer transmit
+// never throws on missing uniforms.
 uniform float shadowResolution;
+uniform float shadowResolutionCascade;
 uniform int shadowQuality;
+uniform vec3 lightIntensity;
 
 uniform float tileSize;
 uniform float heightRange;
@@ -36,52 +47,66 @@ vec3 computeNormal(vec3 texel)
     return normalize(tsb * normalTex);
 }
 
-float shadowLookup(in vec4 coord, in vec2 offset)
+float shadowLookup(in sampler2DShadow tex, in vec4 coord, in vec2 texelOffset, in float bias)
 {
-    float distanceFromLight = texture(texShadow,coord.xy+offset/shadowResolution).z;
-
-    float shadow = 1.0;
-    if (fShadowcoord.w > 0.0)
-        shadow = float(distanceFromLight >= coord.z);
-
-    return shadow;
+    vec2 texelSize = 1.0 / vec2(textureSize(tex, 0));
+    vec4 c = vec4(coord.xy + texelOffset * texelSize * coord.w,
+                  coord.z - bias * coord.w,
+                  coord.w);
+    return textureProj(tex, c);
 }
 
-float computeShadow()
+float sampleShadowMap(in sampler2DShadow tex, in vec4 coord, in float bias)
 {
-    float shadow = 1.0;
-    if(all(lessThan(fShadowcoord.xy, vec2(1.0,1.0))) && all(greaterThan(fShadowcoord.xy, vec2(0.0,0.0))))
+    if (shadowQuality == 1)
     {
-        vec4 shadowCoordinate = fShadowcoord;// / fShadowcoord.w ;
-        // Used to lower moire pattern and self-shadowing
-        shadowCoordinate.z -= 0.001;
-
         float sum = 0.0;
-        if(shadowQuality == 1)
-        {
-            for(int i = -1; i < 2; ++i) for(int j = -1; j < 2; ++j)
-            {
-                sum += shadowLookup(shadowCoordinate, vec2(i*1.0,j*1.0));
-            }
+        for (int i = -1; i <= 1; ++i)
+            for (int j = -1; j <= 1; ++j)
+                sum += shadowLookup(tex, coord, vec2(float(i), float(j)), bias);
+        return sum / 9.0;
+    }
+    return shadowLookup(tex, coord, vec2(0.0, 0.0), bias);
+}
 
-            shadow = sum / 9.0;
-        }
-        else
-        {
-            shadow = shadowLookup(shadowCoordinate, vec2(0.0,0.0));
-        }
+bool insideFrustum(in vec3 proj)
+{
+    return all(greaterThanEqual(proj.xy, vec2(0.0, 0.0))) &&
+           all(lessThanEqual(proj.xy, vec2(1.0, 1.0)));
+}
+
+float computeShadow(in float nDotL)
+{
+    float bias = max(0.005 * (1.0 - max(nDotL, 0.0)), 0.0005);
+
+    if (fShadowcoord.w <= 0.0)
+        return 1.0;
+    vec3 projInner = fShadowcoord.xyz / fShadowcoord.w;
+    if (insideFrustum(projInner))
+        return sampleShadowMap(texShadow, fShadowcoord, bias);
+
+    if (cascadeShadow == 1)
+    {
+        if (fShadowcoordCascade.w <= 0.0)
+            return 1.0;
+        vec3 projCascade = fShadowcoordCascade.xyz / fShadowcoordCascade.w;
+        if (insideFrustum(projCascade))
+            return sampleShadowMap(texShadowCascade, fShadowcoordCascade, bias);
     }
 
-    return shadow;
+    // Outside every shadow frustum: lit, never dark.
+    return 1.0;
 }
 
+// Phase 4 unified fog: shared color/density with rt_basic (ground_n
+// values adopted). Formula reads vViewDepth, never window coordinates.
 const float LOG2 = 1.442695;
 const vec3 FOG_COLOR = vec3(0.796,0.918,0.949)*0.8;
 const float FOG_DENSITY = 0.006;
 
 vec3 computeFog(vec3 finalColor)
 {
-    float z = gl_FragCoord.z / gl_FragCoord.w;
+    float z = vViewDepth;
     float fogFactor = exp2( -FOG_DENSITY *
                            FOG_DENSITY *
                            z *
@@ -99,23 +124,29 @@ const float Shininess = 4.0;
 
 vec3 illumination(vec3 texel, vec3 normal)
 {
-    float shadow = computeShadow();
+    // Double-sided lighting: flip the normal for back faces.
+    vec3 n = gl_FrontFacing ? normal : -normal;
+    vec3 s = normalize(-fLightDir);
+    float nDotL = max(dot(s, n), 0.0);
+    float shadow = computeShadow(nDotL);
 
     // [OPT] Early exit
     if(shadow < 0.05) return texel * Ka;
 
-    vec3 n = normal;
-    vec3 s = normalize(-fLightDir);
-    vec3 v = normalize(-fPosition);
+    vec3 v = normalize(-vViewPos);
     vec3 h = normalize(v + s);
 
-    vec3 color = texel * ( 
+    // Light intensity plumbing: defaults to (1,1,1), legacy look unchanged.
+    vec3 diffuseCol = lightIntensity * Kd * max(dot(s, n), 0.0);
+    vec3 specCol = lightIntensity * Ks * pow(max(dot(h,n), 0.0), Shininess);
+
+    vec3 color = texel * (
                     // Ambient
                     Ka +
                     // Diffuse
-                    shadow * Kd * max(dot(s, n), 0.0)
+                    shadow * diffuseCol
                 ) + // Specular
-                    shadow * Ks * pow(max(dot(h,n), 0.0), Shininess);
+                    shadow * specCol;
 
     return color;
 }
@@ -160,10 +191,12 @@ void main()
         texelNormal = texture(texNormalMoss, texcoords).rgb;
     }
 
+    // Linear workflow: sampled values are already linear HDR; the
+    // display pass (ss_display) applies gamma once at the end.
     FragColor = vec4(
                     computeFog(
                         illumination(
-                            texel, 
+                            texel,
                             computeNormal(texelNormal)
                         )
                     )

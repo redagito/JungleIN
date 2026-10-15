@@ -13,6 +13,7 @@ public:
 
 	void setDiffuse(Texture* tex);
 	void setAlpha(Texture* tex);
+	void setAlphaCutoff(float f);
 
 	bool hasAlpha() const override;
 
@@ -26,4 +27,5 @@ protected:
 	Texture* alpha = nullptr;
 	bool hDiffuse = false;
 	bool hAlpha = false;
+	float alphaCutoff = 0.8f;
 };

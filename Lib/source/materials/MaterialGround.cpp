@@ -24,12 +24,19 @@ MaterialGround::~MaterialGround() {
 
 Shader* MaterialGround::bind() {
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	// Phase 4: opaque restores depth write here (was Renderer::drawSun).
+	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 
 	shader->bind();
 	shader->transmitUniform("tileSize", size);
 	shader->transmitUniform("heightRange", heightRange);
+	// No-op until the ground shader declares it; keeps the per-material
+	// alpha-test threshold plumbed like MaterialBasic.
+	if (shader->hasUniform("alphaCutoff"))
+		shader->transmitUniform("alphaCutoff", alphaCutoff);
 
 	moss->bind();
 	earth->bind();
@@ -48,3 +55,5 @@ Shader* MaterialGround::bind() {
 }
 
 void MaterialGround::setHeightRange(float f) { heightRange = f; }
+
+void MaterialGround::setAlphaCutoff(float f) { alphaCutoff = f; }

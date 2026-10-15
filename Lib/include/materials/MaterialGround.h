@@ -13,10 +13,12 @@ public:
   Shader *bind();
 
   void setHeightRange(float f);
+  void setAlphaCutoff(float f);
 
 protected:
   float size = 0.f;
   float heightRange = 0.f;
+  float alphaCutoff = 0.8f;
 
   Texture *moss = nullptr;
   Texture *earth = nullptr;

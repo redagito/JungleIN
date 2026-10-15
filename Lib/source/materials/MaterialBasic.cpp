@@ -14,10 +14,17 @@ MaterialBasic::~MaterialBasic() {
 
 Shader* MaterialBasic::bind() {
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	// Phase 4: opaque restores depth write here (was Renderer::drawSun).
+	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 
 	shader->bind();
+
+	// Per-material alpha-test threshold (default keeps the legacy 0.8 look).
+	if (shader->hasUniform("alphaCutoff"))
+		shader->transmitUniform("alphaCutoff", alphaCutoff);
 
 	if (hDiffuse) {
 		diffuse->bind();
@@ -28,6 +35,16 @@ Shader* MaterialBasic::bind() {
 		alpha->bind();
 		shader->transmitUniform("texAlpha", alpha);
 	}
+
+	// Stale-unit guard: rt_basic is shared by every mesh, so a sampler
+	// left over from another mesh's draw would sample garbage. Flag the
+	// absent maps so the shader never reads an unbound sampler.
+	if (shader->hasUniform("useDiffuse"))
+		shader->transmitUniform("useDiffuse", hDiffuse ? 1 : 0);
+	if (shader->hasUniform("useAlpha"))
+		shader->transmitUniform("useAlpha", hAlpha ? 1 : 0);
+	if (!hDiffuse && shader->hasUniform("diffuseColor"))
+		shader->transmitUniform("diffuseColor", color);
 
 	return shader;
 }
@@ -45,6 +62,8 @@ void MaterialBasic::setAlpha(Texture* tex) {
 	alpha = tex;
 	hAlpha = true;
 }
+
+void MaterialBasic::setAlphaCutoff(float f) { alphaCutoff = f; }
 
 bool MaterialBasic::hasAlpha() const { return hAlpha; }
 
