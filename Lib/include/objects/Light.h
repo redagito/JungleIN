@@ -28,6 +28,9 @@ public:
   Matrix4 &getProjMatrix();
   Matrix4 &getProjMatrixCascade();
   Matrix4 &getViewMatrix();
+  // Ortho-only: bias*ortho*view*model preserves w == 1 (asserted in
+  // debug). Shaders rely on this for textureProj; a perspective light
+  // would need an explicit divide-by-w instead.
   Matrix4 &getTextureProjMatrix(const Matrix4 &modelMatrix);
   Matrix4 &getTextureProjMatrixCascade(const Matrix4 &modelMatrix);
 

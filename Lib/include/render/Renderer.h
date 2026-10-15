@@ -91,5 +91,6 @@ private:
 	Ground* __ground = nullptr;
 	Matrix4 __mvp, __mv;
 	Vector3 __lightDir;
+	Vector3 __lightIntensity;
 	unsigned int __locPosition, __locColor, __locNormal, __locTexcoord, __locMVP;
 };

@@ -1,9 +1,29 @@
 #include "render/Renderer.h"
 
+#include <cassert>
+
+#include <glad/gl.h>
+
 #include "helpers/Logger.h"
 
 #define MAX_SHADOW_WIDTH_1 2048
 #define MAX_SHADOW_WIDTH_0 2048
+
+namespace {
+// Debug-only: after binding a target, the GL viewport must match that
+// target exactly. Catches passes that render with a leftover viewport.
+void AssertViewport(unsigned int width, unsigned int height) {
+#ifndef NDEBUG
+	GLint viewport[4] = { 0, 0, 0, 0 };
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	assert(viewport[2] == static_cast<GLint>(width) &&
+		viewport[3] == static_cast<GLint>(height));
+#else
+	(void)width;
+	(void)height;
+#endif
+}
+} // namespace
 
 Renderer::Renderer() {
 	active = false;
@@ -55,6 +75,7 @@ Renderer::~Renderer() {
 }
 
 void Renderer::init(Scene* _scene, unsigned int w, unsigned int h) {
+	assert(w > 0 && h > 0);
 	shadowMat = new MaterialShadow();
 
 	width = w;
@@ -113,6 +134,7 @@ void Renderer::render() {
 	scene->update(delta);
 
 	__lightDir = __sun->getLight()->getDirection();
+	__lightIntensity = __sun->getLight()->getIntensity();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
@@ -154,8 +176,24 @@ void Renderer::render() {
 }
 
 void Renderer::renderShadow() {
-	shadowFBO->bind();
-	shadowFBO->resizeViewport();
+	// Shadow pass state: front-face culling reduces self-acne, polygon
+	// offset pushes depth back without touching the lit-pass shaders.
+	// Both are restored below so the lit pass is unaffected.
+	GLboolean cullWasEnabled = glIsEnabled(GL_CULL_FACE);
+	GLint cullMode = GL_BACK;
+	glGetIntegerv(GL_CULL_FACE_MODE, &cullMode);
+	GLboolean polyOffsetWasEnabled = glIsEnabled(GL_POLYGON_OFFSET_FILL);
+	GLfloat polyFactor = 0.0f;
+	GLfloat polyUnits = 0.0f;
+	glGetFloatv(GL_POLYGON_OFFSET_FACTOR, &polyFactor);
+	glGetFloatv(GL_POLYGON_OFFSET_UNITS, &polyUnits);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(2.0f, 4.0f);
+
+	shadowFBO->bindAndViewport();
+	AssertViewport(shadowFBO->getWidth(), shadowFBO->getHeight());
 	shadowFBO->clear();
 
 	matrixProj = __sun->getLight()->getProjMatrix();
@@ -170,8 +208,9 @@ void Renderer::renderShadow() {
 	shadowFBO->unbind();
 
 	if (useShadowCascade) {
-		shadowFBOCascade->bind();
-		shadowFBOCascade->resizeViewport();
+		shadowFBOCascade->bindAndViewport();
+		AssertViewport(shadowFBOCascade->getWidth(),
+			shadowFBOCascade->getHeight());
 		shadowFBOCascade->clear();
 
 		matrixProj = __sun->getLight()->getProjMatrixCascade();
@@ -183,9 +222,23 @@ void Renderer::renderShadow() {
 
 		shadowFBOCascade->unbind();
 	}
+
+	if (cullWasEnabled == GL_FALSE)
+		glDisable(GL_CULL_FACE);
+	else
+		glCullFace(cullMode);
+	if (polyOffsetWasEnabled == GL_FALSE)
+		glDisable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(polyFactor, polyUnits);
 }
 
 void Renderer::drawSky() {
+	// Phase 4: skybox follows the camera every frame (skyPos = camPos).
+	// Scene::update already recenters it, but enforcing it here keeps
+	// the draw correct even if update order ever changes. Drawn first
+	// with LEQUAL + no depth write (see MaterialSkyBox), so opaque
+	// geometry always covers it and the sky never punches holes.
+	__skybox->setPosition(__camera->getPosition());
 	pushMatrix(__skybox->getMatrix());
 
 	__material = __skybox->getMaterial();
@@ -224,8 +277,6 @@ void Renderer::drawSun() {
 
 	__sun->drawWithVBO();
 
-	glDepthMask(GL_TRUE);
-
 	popMatrix();
 }
 
@@ -259,7 +310,12 @@ void Renderer::drawGround() {
 		__shader->transmitUniform("mv", __mv);
 	transmitShadowMatrix(__shader->hasUniform("shadowMatrixCascade"));
 	__shader->transmitUniform("lightDir", __lightDir);
+	if (__shader->hasUniform("lightIntensity"))
+		__shader->transmitUniform("lightIntensity", __lightIntensity);
 	__shader->transmitUniform("shadowResolution", (float)shadowFBO->getWidth());
+	if (__shader->hasUniform("shadowResolutionCascade"))
+		__shader->transmitUniform("shadowResolutionCascade",
+			(float)shadowFBOCascade->getWidth());
 	__shader->transmitUniform("shadowQuality", Utils::QUALITY);
 
 	__ground->drawWithVBO();
@@ -283,16 +339,26 @@ void Renderer::drawMeshes() {
 		__shader = __material->bind();
 
 		shadowFBO->bindAndTransmitTextures(__shader);
-		if (useShadowCascade) {
-			shadowFBOCascade->bindAndTransmitTextures(__shader);
-			__shader->transmitUniform("cascadeShadow", 1);
-		}
-		else {
-			__shader->transmitUniform("cascadeShadow", 0);
+		// Cascade on/off only switches the shader branch; the inner
+		// frustum size stays fixed (outside-frustum is lit, so no
+		// size hack is needed to hide a dark ring).
+		if (__shader->hasUniform("cascadeShadow")) {
+			if (useShadowCascade) {
+				shadowFBOCascade->bindAndTransmitTextures(__shader);
+				__shader->transmitUniform("cascadeShadow", 1);
+			}
+			else {
+				__shader->transmitUniform("cascadeShadow", 0);
+			}
 		}
 
 		__shader->transmitUniform("lightDir", __lightDir);
+		if (__shader->hasUniform("lightIntensity"))
+			__shader->transmitUniform("lightIntensity", __lightIntensity);
 		__shader->transmitUniform("shadowResolution", (float)shadowFBO->getWidth());
+		if (__shader->hasUniform("shadowResolutionCascade"))
+			__shader->transmitUniform("shadowResolutionCascade",
+				(float)shadowFBOCascade->getWidth());
 		__shader->transmitUniform("shadowQuality", Utils::QUALITY);
 
 		pushMatrix(m->getMatrix());
@@ -300,6 +366,8 @@ void Renderer::drawMeshes() {
 		transmitNormalMatrix();
 		transmitViewMatrix();
 		transmitMVP();
+		if (__shader->hasUniform("mv"))
+			__shader->transmitUniform("mv", __mv);
 		transmitShadowMatrix();
 
 		m->drawWithVBO();
@@ -316,6 +384,8 @@ void Renderer::drawMeshes() {
 			transmitNormalMatrix();
 			transmitViewMatrix();
 			transmitMVP();
+			if (__shader->hasUniform("mv"))
+				__shader->transmitUniform("mv", __mv);
 			transmitShadowMatrix();
 
 			m->drawWithVBO();
@@ -380,6 +450,7 @@ void Renderer::drawMeshesShadow() {
 }
 
 void Renderer::resize(unsigned int w, unsigned int h) {
+	assert(w > 0 && h > 0);
 	finalWidth = w;
 	finalHeight = h;
 	float a = w / static_cast<float>(h);
@@ -414,7 +485,7 @@ void Renderer::resize(unsigned int w, unsigned int h) {
 		__sun->getLight()->resize(1);
 
 	if (__camera != 0) {
-		__camera->setPerspective(65.0f, a, 0.1f, 500.0f);
+		__camera->setPerspective(Camera::kDefaultFov, a, Camera::kDefaultNear, Camera::kDefaultFar);
 		matrixProj = __camera->getProjection();
 	}
 }
@@ -437,6 +508,9 @@ void Renderer::calcMVP() {
 }
 
 void Renderer::transmitShadowMatrix(bool withCascade) {
+	// Ortho-only: the bias*ortho*view*model chain preserves w == 1, so
+	// the shader-side textureProj divide is a no-op. A perspective
+	// light would need an explicit divide-by-w here instead.
 	__shader->transmitUniform(
 		"shadowMatrix", __sun->getLight()->getTextureProjMatrix(matrixModel));
 	if (withCascade && useShadowCascade)
@@ -458,9 +532,11 @@ void Renderer::transmitViewMatrix() {
 }
 
 void Renderer::toggleShadowCascade(bool enabled) {
+	// Cascade on/off only switches the shader branch. The old size hack
+	// (growing the inner frustum to 120 m when disabled) is gone: with
+	// outside-frustum rendering lit, disabling the cascade simply drops
+	// far shadows instead of darkening the whole scene.
 	useShadowCascade = enabled;
-	__sun->getLight()->setSize(enabled ? 20.0f : 120.0f);
-	__sun->getLight()->resize(1.0);
 }
 
 void Renderer::setRatio(float r) {
@@ -474,17 +550,24 @@ void Renderer::loadShaders() {
 		<< "normal"
 		<< "texcoord",
 		std::vector<std::string>() << "mvp"
+		<< "mv"
 		<< "normalMatrix"
 		<< "viewMatrix"
 		<< "lightDir"
+		<< "lightIntensity"
 		<< "texDiffuse"
 		<< "texAlpha"
+		<< "alphaCutoff"
+		<< "useDiffuse"
+		<< "useAlpha"
+		<< "diffuseColor"
 		<< "shadowQuality"
 		<< "texShadow"
 		<< "shadowMatrix"
 		<< "shadowResolution"
 		<< "texShadowCascade"
 		<< "shadowMatrixCascade"
+		<< "shadowResolutionCascade"
 		<< "cascadeShadow");
 
 	ShaderLibrary::addShader("rt_sun", "data/shaders/rt_sun",
@@ -494,33 +577,18 @@ void Renderer::loadShaders() {
 		<< "texDiffuse"
 		<< "texAlpha");
 
-	ShaderLibrary::addShader("rt_ground", "data/shaders/rt_ground",
-		std::vector<std::string>() << "position"
-		<< "normal",
-		std::vector<std::string>() << "mvp"
-		<< "normalMatrix"
-		<< "viewMatrix"
-		<< "lightDir"
-		<< "heightRange"
-		<< "tileSize"
-		<< "texMoss"
-		<< "texEarth"
-		<< "texShatter"
-		<< "shadowQuality"
-		<< "texShadow"
-		<< "shadowMatrix"
-		<< "shadowResolution"
-		<< "texShadowCascade"
-		<< "shadowMatrixCascade"
-		<< "cascadeShadow");
-
 	ShaderLibrary::addShader("rt_ground_n", "data/shaders/rt_ground_n",
 		std::vector<std::string>() << "position"
 		<< "normal",
 		std::vector<std::string>() << "mvp"
 		<< "mv"
+		<< "normalMatrix"
+		<< "viewMatrix"
 		<< "shadowMatrix"
+		<< "shadowMatrixCascade"
+		<< "cascadeShadow"
 		<< "lightDir"
+		<< "lightIntensity"
 		<< "heightRange"
 		<< "tileSize"
 		<< "texMoss"
@@ -531,7 +599,9 @@ void Renderer::loadShaders() {
 		<< "texNormalShatter"
 		<< "shadowQuality"
 		<< "texShadow"
-		<< "shadowResolution");
+		<< "texShadowCascade"
+		<< "shadowResolution"
+		<< "shadowResolutionCascade");
 
 	ShaderLibrary::addShader("rt_shadow", "data/shaders/rt_shadow",
 		std::vector<std::string>() << "position"
