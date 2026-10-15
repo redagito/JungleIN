@@ -57,7 +57,7 @@ private:
 	bool cull(Instance* m, float offset = 0.0);
 
 	void calcMVP();
-	void transmitShadowMatrix();
+	void transmitShadowMatrix(bool withCascade = true);
 	void transmitMVP();
 	void transmitNormalMatrix();
 	void transmitViewMatrix();

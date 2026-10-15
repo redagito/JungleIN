@@ -131,6 +131,7 @@ void main()
 {
     vec3 texel = texture(texScene, uv).rgb;
         vec3 color = Vignette(ContrastSaturationBrightness(texel, 1.0, 1.1, 1.1));
+        color = GammaCorrection(color, gammaRGB);
     //if(uv.x < 0.5)
         FragColor = vec4( color, 1.0f );
     //else

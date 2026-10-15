@@ -382,6 +382,7 @@ void PostComposer::display() {
 	readBuffer->bindAndTransmitTextures(shaderDisplay);
 
 	shaderDisplay->transmitUniform("aspect", widthf / heightf);
+	shaderDisplay->transmitUniform("gammaRGB", gammaRGB);
 
 	quad->draw(shaderDisplay->attribute("position"));
 }

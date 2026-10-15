@@ -53,6 +53,10 @@ private:
 	// Throws if current shader is not active
 	void validateIsActive();
 
+	// Location lookup that fails fast: an unregistered uniform name is a
+	// wiring bug, and transmitting to location -1 would silently no-op.
+	int requireUniform(const std::string& key);
+
 	static GLuint s_activeShaderUid;
 	std::string name;
 	GLuint uid = 0;

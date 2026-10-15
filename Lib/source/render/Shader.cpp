@@ -180,56 +180,64 @@ bool Shader::hasUniform(std::string key) { return uniforms.count(key) != 0; }
 
 void Shader::transmitUniform(std::string key, const Texture* tex) {
 	validateIsActive();
-	glUniform1i(value(uniforms, key, -1), tex->index);
+	glUniform1i(requireUniform(key), tex->index);
 }
 
 void Shader::transmitUniform(std::string key, const TextureCube* tex) {
 	validateIsActive();
-	glUniform1i(value(uniforms, key, -1), tex->index);
+	glUniform1i(requireUniform(key), tex->index);
 }
 
 void Shader::transmitUniform(std::string key, int i) {
 	validateIsActive();
-	glUniform1i(value(uniforms, key, -1), i);
+	glUniform1i(requireUniform(key), i);
 }
 
 void Shader::transmitUniform(std::string key, float f) {
 	validateIsActive();
-	glUniform1f(value(uniforms, key, -1), f);
+	glUniform1f(requireUniform(key), f);
 }
 
 void Shader::transmitUniform(std::string key, float f1, float f2) {
 	validateIsActive();
-	glUniform2f(value(uniforms, key, -1), f1, f2);
+	glUniform2f(requireUniform(key), f1, f2);
 }
 
 void Shader::transmitUniform(std::string key, float f1, float f2, float f3) {
 	validateIsActive();
-	glUniform3f(value(uniforms, key, -1), f1, f2, f3);
+	glUniform3f(requireUniform(key), f1, f2, f3);
 }
 
 void Shader::transmitUniform(std::string key, const Vector3& vec3) {
 	validateIsActive();
-	glUniform3f(value(uniforms, key, -1), vec3.x, vec3.y, vec3.z);
+	glUniform3f(requireUniform(key), vec3.x, vec3.y, vec3.z);
 }
 
 void Shader::transmitUniform(std::string key, const Matrix3& mat3) {
 	validateIsActive();
-	glUniformMatrix3fv(value(uniforms, key, -1), 1, GL_TRUE, mat3.array);
+	glUniformMatrix3fv(requireUniform(key), 1, GL_TRUE, mat3.array);
 }
 
 void Shader::transmitUniform(std::string key, const Matrix4& mat4) {
 	validateIsActive();
-	glUniformMatrix4fv(value(uniforms, key, -1), 1, GL_TRUE, mat4.array);
+	glUniformMatrix4fv(requireUniform(key), 1, GL_TRUE, mat4.array);
 }
 
 void Shader::transmitUniform(std::string key, bool b) {
 	validateIsActive();
-	glUniform1i(value(uniforms, key, -1), b ? 1 : 0);
+	glUniform1i(requireUniform(key), b ? 1 : 0);
 }
 
 void Shader::validateIsActive()
 {
 	if (s_activeShaderUid != uid)
 		throw std::runtime_error("Current shader is not active");
+}
+
+int Shader::requireUniform(const std::string& key)
+{
+	auto found = uniforms.find(key);
+	if (found == uniforms.end())
+		throw std::runtime_error("Shader '" + name + "' has no uniform '" + key + "'");
+	return found->second;
 }

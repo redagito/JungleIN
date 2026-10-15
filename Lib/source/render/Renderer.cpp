@@ -234,20 +234,28 @@ void Renderer::drawGround() {
 	__shader = __material->bind();
 
 	shadowFBO->bindAndTransmitTextures(__shader);
-	if (useShadowCascade) {
-		shadowFBOCascade->bindAndTransmitTextures(__shader);
-		__shader->transmitUniform("cascadeShadow", 1);
-	}
-	else {
-		__shader->transmitUniform("cascadeShadow", 0);
+	// Cascade shadows are an optional shader capability (rt_ground_n
+	// predates them): only drive the cascade uniforms when declared.
+	// Anything transmitted below without a declaration throws instead.
+	if (__shader->hasUniform("cascadeShadow")) {
+		if (useShadowCascade) {
+			shadowFBOCascade->bindAndTransmitTextures(__shader);
+			__shader->transmitUniform("cascadeShadow", 1);
+		}
+		else {
+			__shader->transmitUniform("cascadeShadow", 0);
+		}
 	}
 
 	calcMVP();
-	transmitNormalMatrix();
-	transmitViewMatrix();
+	if (__shader->hasUniform("normalMatrix"))
+		transmitNormalMatrix();
+	if (__shader->hasUniform("viewMatrix"))
+		transmitViewMatrix();
 	transmitMVP();
-	__shader->transmitUniform("mv", __mv);
-	transmitShadowMatrix();
+	if (__shader->hasUniform("mv"))
+		__shader->transmitUniform("mv", __mv);
+	transmitShadowMatrix(__shader->hasUniform("shadowMatrixCascade"));
 	__shader->transmitUniform("lightDir", __lightDir);
 	__shader->transmitUniform("shadowResolution", (float)shadowFBO->getWidth());
 	__shader->transmitUniform("shadowQuality", Utils::QUALITY);
@@ -423,10 +431,10 @@ void Renderer::calcMVP() {
 	__mvp = matrixProj * __mv;
 }
 
-void Renderer::transmitShadowMatrix() {
+void Renderer::transmitShadowMatrix(bool withCascade) {
 	__shader->transmitUniform(
 		"shadowMatrix", __sun->getLight()->getTextureProjMatrix(matrixModel));
-	if (useShadowCascade)
+	if (withCascade && useShadowCascade)
 		__shader->transmitUniform(
 			"shadowMatrixCascade",
 			__sun->getLight()->getTextureProjMatrixCascade(matrixModel));
@@ -540,7 +548,8 @@ void Renderer::loadShaders() {
 	ShaderLibrary::addShader("ss_display", "data/shaders/ss_display",
 		std::vector<std::string>() << "position",
 		std::vector<std::string>() << "texScene"
-		<< "aspect");
+		<< "aspect"
+		<< "gammaRGB");
 
 	ShaderLibrary::addShader("ss_fxaa", "data/shaders/ss_fxaa",
 		std::vector<std::string>() << "position",
