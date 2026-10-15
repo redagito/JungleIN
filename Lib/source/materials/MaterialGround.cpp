@@ -3,7 +3,7 @@
 MaterialGround::MaterialGround(Texture* moss, Texture* earth, Texture* shatter,
 	Texture* mossNormal, Texture* earthNormal,
 	Texture* shatterNormal)
-	: Material("rt_ground") {
+	: Material("rt_ground_n") {
 	this->moss = moss;
 	this->earth = earth;
 	this->shatter = shatter;
@@ -40,6 +40,9 @@ Shader* MaterialGround::bind() {
 	shader->transmitUniform("texMoss", moss);
 	shader->transmitUniform("texEarth", earth);
 	shader->transmitUniform("texShatter", shatter);
+	shader->transmitUniform("texNormalMoss", mossNormal);
+	shader->transmitUniform("texNormalEarth", earthNormal);
+	shader->transmitUniform("texNormalShatter", shatterNormal);
 
 	return shader;
 }

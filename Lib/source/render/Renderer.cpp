@@ -246,6 +246,7 @@ void Renderer::drawGround() {
 	transmitNormalMatrix();
 	transmitViewMatrix();
 	transmitMVP();
+	__shader->transmitUniform("mv", __mv);
 	transmitShadowMatrix();
 	__shader->transmitUniform("lightDir", __lightDir);
 	__shader->transmitUniform("shadowResolution", (float)shadowFBO->getWidth());
@@ -499,6 +500,25 @@ void Renderer::loadShaders() {
 		<< "texShadowCascade"
 		<< "shadowMatrixCascade"
 		<< "cascadeShadow");
+
+	ShaderLibrary::addShader("rt_ground_n", "data/shaders/rt_ground_n",
+		std::vector<std::string>() << "position"
+		<< "normal",
+		std::vector<std::string>() << "mvp"
+		<< "mv"
+		<< "shadowMatrix"
+		<< "lightDir"
+		<< "heightRange"
+		<< "tileSize"
+		<< "texMoss"
+		<< "texEarth"
+		<< "texShatter"
+		<< "texNormalMoss"
+		<< "texNormalEarth"
+		<< "texNormalShatter"
+		<< "shadowQuality"
+		<< "texShadow"
+		<< "shadowResolution");
 
 	ShaderLibrary::addShader("rt_shadow", "data/shaders/rt_shadow",
 		std::vector<std::string>() << "position"
