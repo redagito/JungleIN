@@ -14,9 +14,9 @@ public:
 	void setDiffuse(Texture* tex);
 	void setAlpha(Texture* tex);
 
-	bool hasAlpha();
+	bool hasAlpha() const override;
 
-	Texture* getAlpha();
+	Texture* getAlpha() override;
 
 	Shader* bind();
 

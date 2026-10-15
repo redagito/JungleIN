@@ -19,6 +19,9 @@ public:
 
   virtual Shader *bind() { return shader; }
 
+  virtual bool hasAlpha() const { return false; }
+  virtual Texture *getAlpha() { return nullptr; }
+
 protected:
   Shader *shader;
 };

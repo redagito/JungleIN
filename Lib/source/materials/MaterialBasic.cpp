@@ -46,6 +46,6 @@ void MaterialBasic::setAlpha(Texture* tex) {
 	hAlpha = true;
 }
 
-bool MaterialBasic::hasAlpha() { return hAlpha; }
+bool MaterialBasic::hasAlpha() const { return hAlpha; }
 
 Texture* MaterialBasic::getAlpha() { return alpha; }

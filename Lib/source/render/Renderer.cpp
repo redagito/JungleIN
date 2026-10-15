@@ -329,9 +329,9 @@ void Renderer::drawMeshesShadow() {
 		__material = shadowMat;
 		__shader = __material->bind();
 
-		if (((MaterialBasic*)m->getMaterial())->hasAlpha()) {
+		if (m->getMaterial()->hasAlpha()) {
 
-			Texture* alpha = ((MaterialBasic*)m->getMaterial())->getAlpha();
+			Texture* alpha = m->getMaterial()->getAlpha();
 
 			alpha->bind();
 
