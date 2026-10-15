@@ -51,7 +51,7 @@ void Mesh::initVBO() {
 	// indices
 	glGenBuffers(1, &indices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, nbI * sizeof(int), 0, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, nbI * sizeof(unsigned int), 0, GL_STATIC_DRAW);
 	unsigned int* ind =
 		(unsigned int*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	if (ind == nullptr)
