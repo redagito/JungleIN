@@ -42,7 +42,7 @@ float shadowLookup(in vec4 coord, in vec2 offset)
 
     float shadow = 1.0;
     if (fShadowcoord.w > 0.0)
-        shadow = (float)(distanceFromLight >= coord.z);
+        shadow = float(distanceFromLight >= coord.z);
 
     return shadow;
 }
