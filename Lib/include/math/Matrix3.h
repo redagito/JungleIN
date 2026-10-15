@@ -6,8 +6,8 @@
 class Matrix3 {
 public:
   union {
-    float data[4][4];
-    float array[16];
+    float data[3][3];
+    float array[9];
   };
 
   Matrix3();
