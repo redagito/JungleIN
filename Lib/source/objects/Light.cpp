@@ -9,9 +9,11 @@ Light::Light(Vector3 position, Vector3 direction, Vector3 intensity) {
   size = 20;
   sizeCascade = 120;
 
-  projMatrix.setOrthogonal(-size, size, size, -size, 1, 200);
+  // Same depth ranges as resize(1) produces, so the first
+  // Renderer::resize does not pop the shadow frustum.
+  projMatrix.setOrthogonal(-size, size, size, -size, 60, 200);
   projMatrixCascade.setOrthogonal(-sizeCascade, sizeCascade, sizeCascade,
-                                  -sizeCascade, 1, 200);
+                                  -sizeCascade, 40, 300);
 
   biasMatrix.set(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 0.5f, 0.5f,
                  0.0f, 0.0f, 0.0f, 0.1f);
