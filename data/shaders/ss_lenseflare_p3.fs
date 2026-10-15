@@ -16,9 +16,11 @@ void main()
 	vec3 texel = vec3(texture(texScene, uv));
 	vec3 texelFlare = vec3(texture(texFlare, uv));
 	vec3 texelDirt = vec3(texture(texDirt, uv));
-  	FragColor = vec4( clamp(
+	// No 0..1 clamp: ACES in the display pass rolls highlights off.
+	// The 1.4 flare gain is untouched so this change isolates the clamp.
+  	FragColor = vec4(
   		texel
                 + texelDirt * texelFlare * 1.4 * flareIntensity
                 + texelFlare * 0.10 * flareIntensity
-        , 0.0, 1.0), 1.0f );
+        , 1.0f );
 }
