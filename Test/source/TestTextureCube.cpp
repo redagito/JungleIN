@@ -54,4 +54,11 @@ TEST_CASE("TextureCube requires uniform face dimensions",
     CHECK_THROWS_AS(new TextureCube(dir, ".bmp"), std::runtime_error);
     RemoveDir(dir);
   }
+
+  SECTION("non-square faces fail fast")
+  {
+    const std::string dir = WriteCubeFaces("junglein_cube_nonsquare", 2, 3, 64);
+    CHECK_THROWS_AS(new TextureCube(dir, ".bmp"), std::runtime_error);
+    RemoveDir(dir);
+  }
 }

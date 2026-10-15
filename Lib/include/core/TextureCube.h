@@ -8,8 +8,7 @@
 
 class TextureCube {
 public:
-  TextureCube(std::string texDir, std::string ext, unsigned int _index = 0,
-              unsigned int _size = 1024);
+  TextureCube(std::string texDir, std::string ext, unsigned int _index = 0);
   ~TextureCube();
 
   void init();
@@ -24,5 +23,4 @@ public:
 
 private:
   std::vector<Image> images;
-  unsigned int size = 0;
 };
