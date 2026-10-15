@@ -25,11 +25,11 @@ constexpr float kTauDarken = 1.5f;
 constexpr float kTauBrighten = 0.5f;
 // eps keeps log() defined on black pixels; the clamp ranges keep the
 // first frame, NaN readbacks, and tab-switch dt spikes sane.
-constexpr float kLuminanceEps = 1e-4f;
+constexpr float kLuminanceEps = 1e-2f;
 constexpr float kLuminanceMin = 1e-3f;
 constexpr float kLuminanceMax = 10.0f;
 constexpr float kExposureMin = 1e-3f;
-constexpr float kExposureMax = 10.0f;
+constexpr float kExposureMax = 4.0f;
 constexpr int kLuminanceSize = 64;
 } // namespace
 
