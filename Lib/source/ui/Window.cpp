@@ -222,6 +222,15 @@ void Window::initializeGL() {
 			Window::s_window->onMouseButton(button, action, mods);
 		});
 
+	// Window resize callback (aspect, FBOs and shadow maps follow)
+	glfwSetFramebufferSizeCallback(window,
+		[](GLFWwindow* /*w*/, int width, int height)
+		{
+			if (Window::s_window == nullptr)
+				return;
+			Window::s_window->resizeGL(width, height);
+		});
+
 	glfwShowWindow(window);
 
 	//
@@ -271,7 +280,12 @@ void Window::initializeObjects() {
 
 void Window::paintGL() { renderer->render(); }
 
-void Window::resizeGL(int w, int h) { renderer->resize(w, h); }
+void Window::resizeGL(int w, int h) {
+	// Iconified windows report zero area; there is nothing to resize to.
+	if (renderer == nullptr || w <= 0 || h <= 0)
+		return;
+	renderer->resize(w, h);
+}
 
 void Window::exQuality(int value) {
 	Utils::QUALITY = value;
