@@ -13,7 +13,7 @@ class Ground : public Mesh {
 private:
 	int numberVerticesX;
 	int numberVerticesZ;
-	Vector3* normals;
+	Vector3* faceNormals;
 	Path* path;
 	std::vector<Vector3*> rockPos;
 
@@ -21,7 +21,7 @@ public:
 	Ground(std::string filePath, MaterialGround* mat);
 	~Ground();
 
-	void setVectorToFloat(Vector3 normals, float* normalsF, int i);
+	void setVectorToFloat(Vector3 normal, float* normalsF, int i);
 	void firstLineNormals(float* normalsF);
 	void middleGridNormals(float* normalsF);
 	void firstVertexNormal(float* normalsF, int lineNumber);

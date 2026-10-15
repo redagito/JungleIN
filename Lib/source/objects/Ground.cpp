@@ -32,7 +32,7 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 	indicesTab =
 		new int[(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6];
 	// 2 normals for each quad (made with 2 triangles)
-	normals = new Vector3[(this->numberVerticesX - 1) *
+	faceNormals = new Vector3[(this->numberVerticesX - 1) *
 		(this->numberVerticesZ - 1) * 2];
 	// there is 3 coordinates for each normal
 	normalsF =
@@ -103,8 +103,8 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 				verticesTab[indiceHoriz + 5] - verticesTab[indiceHoriz + 2]);
 			v = v.normalize();
 
-			// set the normal in the normals array
-			normals[j] = normals[j].copy(temp.cross(u, v));
+			// set the normal in the face normals array
+			faceNormals[j] = faceNormals[j].copy(temp.cross(u, v));
 
 			// second triangle
 			// initialize u vector
@@ -119,8 +119,8 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 				verticesTab[indiceVer + 2] - verticesTab[indiceVer + 5]);
 			v = v.normalize();
 
-			// set the normal in the normals array
-			normals[j + 1] = normals[j + 1].copy(temp.cross(u, v));
+			// set the normal in the face normals array
+			faceNormals[j + 1] = faceNormals[j + 1].copy(temp.cross(u, v));
 			i += 6;
 			j += 2;
 		}
@@ -163,19 +163,19 @@ void Ground::setVectorToFloat(Vector3 normal, float* normalsF, int i) {
 // compute the normals of the first line of vertices
 void Ground::firstLineNormals(float* normalsF) {
 	int i, j;
-	Vector3 tmp = normals[0];
+	Vector3 tmp = faceNormals[0];
 	// normal of the first vertex
 	setVectorToFloat(tmp, normalsF, 0);
 
 	// normal of the first line exept the last vertice
 	for (i = 3, j = 0; i < (this->numberVerticesX - 1) * 3; i += 3, j += 2) {
-		tmp = (normals[j] + normals[j + 1] + normals[j + 2]);
+		tmp = (faceNormals[j] + faceNormals[j + 1] + faceNormals[j + 2]);
 		tmp.divideScalar(3);
 		setVectorToFloat(tmp, normalsF, i);
 	}
 
 	// normal of the last vertice of the first line
-	tmp = (normals[j] + normals[j + 1]);
+	tmp = (faceNormals[j] + faceNormals[j + 1]);
 	tmp.divideScalar(2);
 	setVectorToFloat(tmp, normalsF, i);
 }
@@ -191,16 +191,16 @@ void Ground::middleGridNormals(float* normalsF) {
 		// all verices except the last
 		for (int j = 1; j < k - 1; j += 2) {
 			int normalIndex = l * k + j;
-			tmp = (normals[normalIndex - k] + normals[normalIndex - k + 1] +
-				normals[normalIndex - k + 2] + normals[normalIndex - 1] +
-				normals[normalIndex] + normals[normalIndex + 1]);
+			tmp = (faceNormals[normalIndex - k] + faceNormals[normalIndex - k + 1] +
+				faceNormals[normalIndex - k + 2] + faceNormals[normalIndex - 1] +
+				faceNormals[normalIndex] + faceNormals[normalIndex + 1]);
 			tmp.divideScalar(6);
 			setVectorToFloat(tmp, normalsF,
 				(this->numberVerticesX * l + ((j + 1) / 2)) * 3);
 		}
 		// last vertex of the line
 		int t = l * k - 1;
-		tmp = (normals[t] + normals[t + k - 1] + normals[t + k]);
+		tmp = (faceNormals[t] + faceNormals[t + k - 1] + faceNormals[t + k]);
 		tmp.divideScalar(3);
 		setVectorToFloat(tmp, normalsF, (this->numberVerticesX * (l + 1) - 1) * 3);
 	}
@@ -215,13 +215,13 @@ void Ground::lastLineNormals(float* normalsF) {
 	Vector3 tmp;
 
 	// first vertex normal
-	tmp = (normals[indice + 1] + normals[indice + 2]);
+	tmp = (faceNormals[indice + 1] + faceNormals[indice + 2]);
 	tmp.divideScalar(2);
 	setVectorToFloat(tmp, normalsF, indice * 3);
 	// all vertices except the last
 	for (int i = 1, j = 0; i < this->numberVerticesX - 1; ++i, j += 2) {
 		int indTmp = l * k + j;
-		tmp = (normals[indTmp + 1] + normals[indTmp + 2] + normals[indTmp + 3]);
+		tmp = (faceNormals[indTmp + 1] + faceNormals[indTmp + 2] + faceNormals[indTmp + 3]);
 		tmp.divideScalar(3);
 		setVectorToFloat(tmp, normalsF, (indice + i) * 3);
 	}
@@ -229,7 +229,7 @@ void Ground::lastLineNormals(float* normalsF) {
 	// Yeah! It belongs to the second triangle of the last quad, whose face
 	// normal is the last entry of the face array.
 	setVectorToFloat(
-		normals[2 * (this->numberVerticesX - 1) * (this->numberVerticesZ - 1) - 1],
+		faceNormals[2 * (this->numberVerticesX - 1) * (this->numberVerticesZ - 1) - 1],
 		normalsF, (this->numberVerticesX * this->numberVerticesZ - 1) * 3);
 }
 
@@ -238,8 +238,8 @@ void Ground::lastLineNormals(float* normalsF) {
 void Ground::firstVertexNormal(float* normalsF, int lineNumber) {
 	Vector3 tmp;
 	int k = (this->numberVerticesX - 1) * 2;
-	tmp = (normals[lineNumber * k - k] + normals[lineNumber * k - k + 1] +
-		normals[lineNumber * k]);
+	tmp = (faceNormals[lineNumber * k - k] + faceNormals[lineNumber * k - k + 1] +
+		faceNormals[lineNumber * k]);
 	tmp.divideScalar(3);
 	setVectorToFloat(tmp, normalsF, this->numberVerticesX * lineNumber * 3);
 }
@@ -272,7 +272,7 @@ float Ground::getY(float px, float pz) {
 			->getVertices()[(indx + indz * this->numberVerticesX) * 3 + 2]);
 
 		// get the normal of the current plane to construct the plane equation
-		n = this->normals[(this->numberVerticesX - 1) * 2 * indz + indx * 2];
+		n = this->faceNormals[(this->numberVerticesX - 1) * 2 * indz + indx * 2];
 		// constant of the plane equation
 		double d = -(p.x * n.x + p.y * n.y + p.z * n.z);
 		// compute and return the interpolation
@@ -339,6 +339,6 @@ void Ground::removeRockPos() {
 Ground::~Ground()
 {
 	removeRockPos();
-	delete[] this->normals;
+	delete[] this->faceNormals;
 	delete this->path;
 }
