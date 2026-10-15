@@ -263,10 +263,16 @@ void SceneBuilder::createInstances(Mesh* mesh, Ground* ground, int nbInstance) {
 		double scale = Utils::random(mesh->getScaleRdn(),
 			mesh->getScaleRdn() + mesh->getRangeScale());
 		Instance* instance = mesh->newInstance();
-		if (mesh->getInstanceType() == Mesh::INSTANCE_ROCK)
-			instance->setPosition(ground->randomMapPos(mesh->getHeightRdn(), true));
-		else
-			instance->setPosition(ground->randomMapPos(mesh->getHeightRdn(), false));
+		const std::optional<Vector3> spot =
+			mesh->getInstanceType() == Mesh::INSTANCE_ROCK
+				? ground->randomMapPos(mesh->getHeightRdn(), true)
+				: ground->randomMapPos(mesh->getHeightRdn(), false);
+		if (!spot) {
+			mesh->getInstances().pop_back();
+			delete instance;
+			continue;
+		}
+		instance->setPosition(*spot);
 		instance->setRotation(Vector3(0, static_cast<float>(Utils::random(0.0, 360.0)), 0));
 		instance->setScale(Vector3(static_cast<float>(scale), static_cast<float>(scale), static_cast<float>(scale)));
 	}

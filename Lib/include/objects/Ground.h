@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <optional>
 
 #include "materials/MaterialGround.h"
 #include "math/Vector3.h"
@@ -28,7 +29,7 @@ public:
 	void lastLineNormals(float* normalsF);
 	float getY(float x, float z);
 	float getYApprox(float x, float z, float prevY);
-	Vector3 randomMapPos(double height = 0, bool isRock = false);
+	std::optional<Vector3> randomMapPos(double height = 0, bool isRock = false);
 	bool containInBoundingBox(double x, double z);
 	std::vector<Vector3*> getRockPos();
 	void removeRockPos();

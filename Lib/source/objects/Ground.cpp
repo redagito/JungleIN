@@ -295,7 +295,7 @@ float Ground::getYApprox(float x, float z, float prevY) {
 		2;
 }
 
-Vector3 Ground::randomMapPos(double height, bool isRock) {
+std::optional<Vector3> Ground::randomMapPos(double height, bool isRock) {
 	for (int samples = 0; samples < 20; ++samples) {
 		const double x = Utils::random(MAP_MIN, MAP_MAX);
 		const double z = Utils::random(MAP_MIN, MAP_MAX);
@@ -313,7 +313,7 @@ Vector3 Ground::randomMapPos(double height, bool isRock) {
 			static_cast<float>(z));
 	}
 
-	throw std::runtime_error("Ground::randomMapPos found no valid spot");
+	return std::nullopt;
 }
 
 bool Ground::containInBoundingBox(double x, double z) {
