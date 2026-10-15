@@ -19,7 +19,11 @@ Light::Light(Vector3 position, Vector3 direction, Vector3 intensity) {
                  0.0f, 0.0f, 0.0f, 0.1f);
 }
 
-void Light::setSize(float s) { size = s; }
+void Light::setSize(float s) {
+  size = s;
+  // Rebuild immediately so a lone setSize never leaves a stale projection.
+  resize(1.0f);
+}
 
 void Light::resize(float ratio) {
   projMatrix.setOrthogonal(-size, size, size / ratio, -size / ratio, 60.0,
