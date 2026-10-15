@@ -82,6 +82,7 @@ void Object3D::translateZ(float s) {
 void Object3D::translateRel(float s, Vector3 axis) {
   matrix.rotateAxis(axis);
   position += axis * s;
+  this->needUpdate = true;
 }
 
 void Object3D::translateRelX(float s) { translateRel(s, Vector3::X); }
