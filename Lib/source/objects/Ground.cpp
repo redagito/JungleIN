@@ -253,7 +253,13 @@ float Ground::getY(float px, float pz) {
 
 		// compute the nearest known vertex
 		indx = static_cast<int>(trunc((px + MAP_SIZE / 2) * (this->numberVerticesX - 1) / MAP_SIZE));
-		indz = static_cast<int>(trunc((pz + MAP_SIZE / 2) * (this->numberVerticesX - 1) / MAP_SIZE));
+		indz = static_cast<int>(trunc((pz + MAP_SIZE / 2) * (this->numberVerticesZ - 1) / MAP_SIZE));
+		// Clamp to quads: the last row/column has no face below/right of
+		// it, and float rounding at the border could step past the end.
+		if (indx < 0) indx = 0;
+		if (indz < 0) indz = 0;
+		if (indx > numberVerticesX - 2) indx = numberVerticesX - 2;
+		if (indz > numberVerticesZ - 2) indz = numberVerticesZ - 2;
 
 		// point of the plane use to compute the constant value
 		p.set(this->geometry
