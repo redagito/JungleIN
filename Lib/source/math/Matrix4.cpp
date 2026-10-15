@@ -97,6 +97,11 @@ Matrix4 &Matrix4::lookAt2(const Vector3 &eye, const Vector3 &target,
     z.z = 0.1f;
 
   x.cross(z, up).normalize();
+  if (x.isZero()) {
+    // View direction parallel to up (sun overhead): any perpendicular
+    // axis rebuilds a valid basis instead of zero rows.
+    x.cross(z, Vector3::Z).normalize();
+  }
   y.cross(x, z).normalize();
 
   identity();

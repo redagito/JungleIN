@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <cmath>
 
 #include "math/Matrix4.h"
 #include "math/Vector3.h"
@@ -51,4 +52,43 @@ TEST_CASE("Matrix4 identity and multiply", "[math][matrix4]")
 		for (int i = 0; i < 16; ++i)
 			CHECK_THAT(actual.array[i], WithinAbs(expected.array[i], 1e-5));
 	}
+}
+
+namespace {
+float RowLength(const Matrix4 &m, int row) {
+  return std::sqrt(m.data[row][0] * m.data[row][0] +
+                   m.data[row][1] * m.data[row][1] +
+                   m.data[row][2] * m.data[row][2]);
+}
+
+float RowDot(const Matrix4 &m, int a, int b) {
+  return m.data[a][0] * m.data[b][0] + m.data[a][1] * m.data[b][1] +
+         m.data[a][2] * m.data[b][2];
+}
+} // namespace
+
+TEST_CASE("Matrix4 lookAt2 stays orthonormal", "[math][matrix4]")
+{
+  SECTION("level view yields identity rotation")
+  {
+    Matrix4 m;
+    m.lookAt2(Vector3(0.0f, 0.0f, 5.0f), Vector3(0.0f, 0.0f, 0.0f),
+              Vector3::Y);
+    CHECK_THAT(RowLength(m, 0), WithinAbs(1.0f, 1e-5f));
+    CHECK_THAT(m.data[0][0], WithinAbs(1.0f, 1e-5f));
+    CHECK_THAT(m.data[2][2], WithinAbs(1.0f, 1e-5f));
+  }
+
+  SECTION("overhead view does not degenerate")
+  {
+    Matrix4 m;
+    m.lookAt2(Vector3(0.0f, 10.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f),
+              Vector3::Y);
+    CHECK_THAT(RowLength(m, 0), WithinAbs(1.0f, 1e-4f));
+    CHECK_THAT(RowLength(m, 1), WithinAbs(1.0f, 1e-4f));
+    CHECK_THAT(RowLength(m, 2), WithinAbs(1.0f, 1e-4f));
+    CHECK_THAT(RowDot(m, 0, 1), WithinAbs(0.0f, 1e-4f));
+    CHECK_THAT(RowDot(m, 0, 2), WithinAbs(0.0f, 1e-4f));
+    CHECK_THAT(RowDot(m, 1, 2), WithinAbs(0.0f, 1e-4f));
+  }
 }
