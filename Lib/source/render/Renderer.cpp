@@ -125,7 +125,6 @@ void Renderer::render() {
 	matrixView = __camera->getMatrix();
 
 	drawSky();
-	drawSun();
 
 	// matrixProj = __sun->getLight()->getProjMatrix();
 	// matrixView = __sun->getLight()->getViewMatrix();
@@ -136,6 +135,8 @@ void Renderer::render() {
 	drawMeshes();
 
 	popMatrix();
+
+	drawSun();
 
 	mainFBO->unbind();
 
@@ -217,6 +218,8 @@ void Renderer::drawSun() {
 	postComposer->setLightPosScreen(lightPosScreen);
 
 	__sun->drawWithVBO();
+
+	glDepthMask(GL_TRUE);
 
 	popMatrix();
 }

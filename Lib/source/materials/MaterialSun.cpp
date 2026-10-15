@@ -12,18 +12,19 @@ MaterialSun::~MaterialSun() {
 }
 
 Shader *MaterialSun::bind() {
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  shader->bind();
+	shader->bind();
 
-  diffuse->bind();
-  shader->transmitUniform("texDiffuse", diffuse);
+	diffuse->bind();
+	shader->transmitUniform("texDiffuse", diffuse);
 
-  alpha->bind();
-  shader->transmitUniform("texAlpha", alpha);
+	alpha->bind();
+	shader->transmitUniform("texAlpha", alpha);
 
-  return shader;
+	return shader;
 }
