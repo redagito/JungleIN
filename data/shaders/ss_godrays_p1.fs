@@ -26,6 +26,7 @@ void main()
     deltaTextCoord *= 1.0 /  float(NUM_SAMPLES) * density;
     vec2 coord = uv;
     float illuminationDecay = 1.0;
+    FragColor = vec4(0.0);
 
     for(int i=0; i < NUM_SAMPLES ; i++)
     {
