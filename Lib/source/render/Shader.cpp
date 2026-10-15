@@ -1,10 +1,35 @@
 #include "render/Shader.h"
 
 #include <stdexcept>
+#include <string>
 #include <vector>
 #include <fmtlog/fmtlog.h>
 
 #include "helpers/Utils.h"
+
+namespace {
+// Drivers report warnings and remarks through the info log even when
+// compilation/linking succeeds (status stays GL_TRUE). A non-empty log
+// means the driver had something to say, so surface it instead of
+// dropping it like the success path used to do.
+std::string fetchInfoLog(unsigned int object, bool isProgram) {
+	int length = 0;
+	if (isProgram)
+		glGetProgramiv(object, GL_INFO_LOG_LENGTH, &length);
+	else
+		glGetShaderiv(object, GL_INFO_LOG_LENGTH, &length);
+	if (length <= 1)
+		return {};
+	std::string text(static_cast<size_t>(length), '\0');
+	if (isProgram)
+		glGetProgramInfoLog(object, length, nullptr, text.data());
+	else
+		glGetShaderInfoLog(object, length, nullptr, text.data());
+	while (!text.empty() && text.back() == '\0')
+		text.pop_back();
+	return text;
+}
+}
 
 GLuint Shader::s_activeShaderUid = 0;
 
@@ -60,6 +85,8 @@ Shader& Shader::setup() {
 		throw std::runtime_error("Shader setup failed");
 	}
 	glAttachShader(pProgram, vshader);
+	if (std::string info = fetchInfoLog(vshader, false); !info.empty())
+		logw("Vertex shader info log of {}: {}", name, info);
 
 	unsigned int fshader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fshader, 1, &fragment, NULL);
@@ -74,6 +101,8 @@ Shader& Shader::setup() {
 		throw std::runtime_error("Shader setup failed");
 	}
 	glAttachShader(pProgram, fshader);
+	if (std::string info = fetchInfoLog(fshader, false); !info.empty())
+		logw("Fragment shader info log of {}: {}", name, info);
 
 	glLinkProgram(pProgram);
 	glGetProgramiv(pProgram, GL_LINK_STATUS, &status);
@@ -87,6 +116,8 @@ Shader& Shader::setup() {
 	}
 
 	uid = pProgram;
+	if (std::string info = fetchInfoLog(pProgram, true); !info.empty())
+		logw("Program info log of {}: {}", name, info);
 
 	return *this;
 }
