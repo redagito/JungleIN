@@ -69,36 +69,4 @@ final display pass applies auto-exposure (log-average luminance with
 temporal adaptation), ACES tonemapping and gamma 2.2. Per-frame
 exposure diagnostics are logged as `autoexposure ...` lines.
 
-# Original Readme
-JungleIN
-========
-
-An OpenGL jungle viewer: a small open-world tropical scene you can walk
-and fly through, written as a scholar project.
-
-[Web page of the project](http://bkcore.com/blog/3d/opengl-jungle-viewer-source-utbm.html)
-[Youtube demo video](http://youtu.be/4M-wfzuCgvs)
-
-Overview: dense procedurally scattered vegetation (trees, plants, rocks)
-on heightmapped terrain under a moving sun, with real-time shadows and
-cinematic post-processing. This code is raw, untested and thus should
-not be used in anything serious.
-
-Features:
-
-* First-person walk / fly camera with mouse look
-* Sun with day movement and shadow-casting light
-* Heightmapped terrain with moss / earth / rock texturing
-* Hundreds of instanced trees, plants and rocks
-* Sky with fog-blended horizon
-* Post effects: bloom, god rays, lens flares, FXAA
-* Adaptive exposure with filmic tonemapping
-* Ambient audio
-
-	Copyright (c) 2012 Thibaut Despoulain, Lauranne Didierjean, Baptiste Aubry, Adrien Mauranyapin.
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+See [OriginalReadme.md](OriginalReadme.md) for the original project readme.
