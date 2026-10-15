@@ -36,29 +36,26 @@ char *Utils::getFileContent(std::string path) {
 }
 
 double Utils::calculFPS() {
-  static double current_time = 0;
-  static double last_time = 0;
-  static double average = 0;
-  static int count = 0;
-  static double av = 0;
-  last_time = current_time;
+  using namespace std::chrono;
+  static steady_clock::time_point lastCall = steady_clock::now();
+  static double rateTotal = 0.0;
+  static int sampleCount = 0;
+  static double reportedFps = 0.0;
 
-  // QTime t;
-  current_time = 0; // t.currentTime().msec();
-
-  if (current_time > last_time) {
-    average += 1000 / (current_time - last_time);
-    count++;
+  const double seconds =
+      duration_cast<duration<double>>(steady_clock::now() - lastCall).count();
+  lastCall = steady_clock::now();
+  if (seconds > 0.0) {
+    rateTotal += 1.0 / seconds;
+    ++sampleCount;
   }
 
-  if (count == 30) {
-
-    // Utils::MAIN->getFPSDisplay()->display(average / count);
-    av = average / count;
-    count = 0;
-    average = 0;
+  if (sampleCount >= 30) {
+    reportedFps = rateTotal / sampleCount;
+    rateTotal = 0.0;
+    sampleCount = 0;
   }
-  return av;
+  return reportedFps;
 }
 
 double Utils::random(double min, double max) {
