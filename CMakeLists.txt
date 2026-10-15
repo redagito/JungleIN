@@ -5,8 +5,10 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Warnings as errors, warning level raised stepwise (W1 -> W4).
+# /external:W0 keeps third-party headers (marked SYSTEM where consumed)
+# out of our warning budget.
 if (MSVC)
-	add_compile_options(/WX /W3)
+	add_compile_options(/WX /W4 /external:W0)
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

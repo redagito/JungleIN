@@ -1,6 +1,6 @@
 #include "core/Image.h"
 
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>

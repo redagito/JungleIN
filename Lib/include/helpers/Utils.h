@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <stdexcept>
 
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>

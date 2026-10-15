@@ -9,16 +9,12 @@ const Vector3 Vector3::Y = Vector3(0.0, 1.0, 0.0);
 const Vector3 Vector3::Z = Vector3(0.0, 0.0, 1.0);
 const Vector3 Vector3::ZERO = Vector3(0.0, 0.0, 0.0);
 
-Vector3::Vector3(float x, float y, float z) {
-	this->x = x;
-	this->y = y;
-	this->z = z;
-}
+Vector3::Vector3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
 
-Vector3& Vector3::set(float x, float y, float z) {
-	this->x = x;
-	this->y = y;
-	this->z = z;
+Vector3& Vector3::set(float x_, float y_, float z_) {
+	this->x = x_;
+	this->y = y_;
+	this->z = z_;
 
 	return *this;
 }

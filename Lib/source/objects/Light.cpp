@@ -27,8 +27,8 @@ void Light::resize(float ratio) {
                                   40.0, 300.0);
 }
 
-void Light::setDirection(const Vector3 &direction) {
-  this->direction.copy(direction);
+void Light::setDirection(const Vector3 &v) {
+  this->direction.copy(v);
 }
 
 Vector3 &Light::getDirection() { return direction; }
@@ -42,14 +42,14 @@ void Light::lookAt(const Vector3 &target) {
 
 Vector3 &Light::getIntensity() { return intensity; }
 
-void Light::setIntensity(const Vector3 &intensity) {
-  this->intensity.copy(intensity);
+void Light::setIntensity(const Vector3 &v) {
+  this->intensity.copy(v);
 }
 
 Vector3 &Light::getPosition() { return position; }
 
-void Light::setPosition(const Vector3 &position) {
-  this->position.copy(position);
+void Light::setPosition(const Vector3 &v) {
+  this->position.copy(v);
 }
 
 Matrix4 &Light::getProjMatrix() { return projMatrix; }

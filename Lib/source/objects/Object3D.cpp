@@ -10,18 +10,18 @@ Object3D::Object3D() {
   visible = true;
 }
 
-void Object3D::setRotation(const Vector3 &rotation) {
-  this->rotation.set(rotation.x, rotation.y, rotation.z);
+void Object3D::setRotation(const Vector3 &v) {
+  this->rotation.set(v.x, v.y, v.z);
   this->needUpdate = true;
 }
 
-void Object3D::setPosition(const Vector3 &position) {
-  this->position.set(position.x, position.y, position.z);
+void Object3D::setPosition(const Vector3 &v) {
+  this->position.set(v.x, v.y, v.z);
   this->needUpdate = true;
 }
 
-void Object3D::setScale(const Vector3 &scale) {
-  this->scale.set(scale.x, scale.y, scale.z);
+void Object3D::setScale(const Vector3 &v) {
+  this->scale.set(v.x, v.y, v.z);
   this->needUpdate = true;
 }
 

@@ -1,6 +1,6 @@
 #include "render/Renderer.h"
 
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 #define MAX_SHADOW_WIDTH_1 2048
 #define MAX_SHADOW_WIDTH_0 2048
@@ -415,9 +415,9 @@ void Renderer::transmitViewMatrix() {
 		Matrix3().getInverse(matrixView).transpose());
 }
 
-void Renderer::toggleShadowCascade(bool active) {
-	useShadowCascade = active;
-	__sun->getLight()->setSize(active ? 20.0f : 120.0f);
+void Renderer::toggleShadowCascade(bool enabled) {
+	useShadowCascade = enabled;
+	__sun->getLight()->setSize(enabled ? 20.0f : 120.0f);
 	__sun->getLight()->resize(1.0);
 }
 

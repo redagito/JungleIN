@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 #include "helpers/Utils.h"
 

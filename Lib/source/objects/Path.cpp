@@ -1,7 +1,7 @@
 #include "objects/Path.h"
 #include "objects/Ground.h"
 
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 Path::Path(std::string file) {
 	// Path masks are data, not GL textures: keep the historical QImage

@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 /*!
  * Pathes order : px, nx, py, ny, pz, nz

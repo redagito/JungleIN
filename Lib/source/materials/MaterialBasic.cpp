@@ -1,5 +1,5 @@
 #include "materials/MaterialBasic.h"
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 MaterialBasic::MaterialBasic(const Vector3& _color) : Material("rt_basic") {
 	color.copy(_color);

@@ -1,4 +1,4 @@
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 #include "objects/Ground.h"
 #include <cmath>
@@ -151,12 +151,12 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 
 // put the values of the normal vector into the i, i+1, i+2 th positions of the
 // floats array
-void Ground::setVectorToFloat(Vector3 normals, float* normalsF, int i) {
+void Ground::setVectorToFloat(Vector3 normal, float* normalsF, int i) {
 	// print all the normals
-	// qDebug() << "indice : " <<i<<normals.toString();
-	normalsF[i] = normals.x;
-	normalsF[i + 1] = normals.y;
-	normalsF[i + 2] = normals.z;
+	// qDebug() << "indice : " <<i<<normal.toString();
+	normalsF[i] = normal.x;
+	normalsF[i + 1] = normal.y;
+	normalsF[i + 2] = normal.z;
 }
 
 // compute the normals of the first line of vertices
@@ -189,10 +189,10 @@ void Ground::middleGridNormals(float* normalsF) {
 		firstVertexNormal(normalsF, l);
 		// all verices except the last
 		for (int j = 1; j < k - 1; j += 2) {
-			int position = l * k + j;
-			tmp = (normals[position - k] + normals[position - k + 1] +
-				normals[position - k + 2] + normals[position - 1] +
-				normals[position] + normals[position + 1]);
+			int normalIndex = l * k + j;
+			tmp = (normals[normalIndex - k] + normals[normalIndex - k + 1] +
+				normals[normalIndex - k + 2] + normals[normalIndex - 1] +
+				normals[normalIndex] + normals[normalIndex + 1]);
 			tmp.divideScalar(6);
 			setVectorToFloat(tmp, normalsF,
 				(this->numberVerticesX * l + ((j + 1) / 2)) * 3);

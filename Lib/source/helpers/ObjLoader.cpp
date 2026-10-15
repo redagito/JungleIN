@@ -1,7 +1,7 @@
 #include "helpers/ObjLoader.h"
 
 #include <tiny_obj_loader.h>
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 #include <stdexcept>
 
 #include "materials/MaterialBasic.h"

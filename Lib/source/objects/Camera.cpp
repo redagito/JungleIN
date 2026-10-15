@@ -1,5 +1,5 @@
 #include "objects/Camera.h"
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 #include <cmath>
 
 #define DEG_TO_RAD 3.141592653 / 180.0

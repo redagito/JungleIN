@@ -1,5 +1,5 @@
 #include "materials/MaterialSkybox.h"
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 MaterialSkyBox::MaterialSkyBox(TextureCube *textureCube)
     : Material("rt_skybox") {

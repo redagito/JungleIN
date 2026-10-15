@@ -4,14 +4,14 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 #include "helpers/Utils.h"
 
-static void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-	const GLchar* message, const void* userParam)
+static void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei /*length*/,
+	const GLchar* message, const void* /*userParam*/)
 {
 	// ignore non-significant error/warning codes
 	if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
@@ -131,7 +131,7 @@ void Window::initializeGL() {
 		throw std::runtime_error{"Failed to initialize GLFW."};
 	}
 
-	glfwSetErrorCallback([](int code, const char* error) { throw std::runtime_error{error}; });
+	glfwSetErrorCallback([](int /*code*/, const char* error) { throw std::runtime_error{error}; });
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -171,7 +171,7 @@ void Window::initializeGL() {
 	// User input
 	// Key callback
 	glfwSetKeyCallback(window,
-		[](GLFWwindow* w, int key, int code, int action, int mods)
+		[](GLFWwindow* /*w*/, int key, int code, int action, int mods)
 		{
 			if (Window::s_window == nullptr)
 				return;
@@ -180,7 +180,7 @@ void Window::initializeGL() {
 
 	// Mouse move callback
 	glfwSetCursorPosCallback(window,
-		[](GLFWwindow* w, double x, double y)
+		[](GLFWwindow* /*w*/, double x, double y)
 		{
 			if (Window::s_window == nullptr)
 				return;
@@ -189,7 +189,7 @@ void Window::initializeGL() {
 
 	// Mouse button callback (press-and-hold to look around)
 	glfwSetMouseButtonCallback(window,
-		[](GLFWwindow* w, int button, int action, int mods)
+		[](GLFWwindow* /*w*/, int button, int action, int mods)
 		{
 			if (Window::s_window == nullptr)
 				return;
@@ -289,7 +289,7 @@ void Window::exShadowCascade(bool active) {
 
 void Window::exRenderRatio(int value) { renderer->setRatio(value / 10.0f); }
 
-void Window::playBtn(bool active) {
+void Window::playBtn(bool /*active*/) {
 	//  if (active)
 	//    musique->play();
 	//  else
@@ -309,7 +309,7 @@ void Window::onCursorMove(double x, double y)
 	scene->getCurrentCamera()->setMouse(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)));
 }
 
-void Window::onMouseButton(int button, int action, int mods)
+void Window::onMouseButton(int button, int action, int /*mods*/)
 {
 	if (scene == nullptr)
 		return;
@@ -317,7 +317,7 @@ void Window::onMouseButton(int button, int action, int mods)
 		scene->getCurrentCamera()->activeLook(action == GLFW_PRESS);
 }
 
-void Window::onKeyPress(int key, int code, int action, int mods)
+void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 {
 	if (action == GLFW_PRESS)
 	{

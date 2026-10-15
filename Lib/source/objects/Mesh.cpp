@@ -1,6 +1,6 @@
 #include "objects/Mesh.h"
 
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 #include <cassert>
 #include <stdexcept>
 

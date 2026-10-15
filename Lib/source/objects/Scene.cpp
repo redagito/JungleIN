@@ -50,13 +50,13 @@ void Scene::setCurrentCamera(Camera *camera) { currentCamera = camera; }
 
 void Scene::addMesh(Mesh *mesh) { meshes.push_back(mesh); }
 
-void Scene::setSun(Sun *sun) { this->sun = sun; }
+void Scene::setSun(Sun *v) { this->sun = v; }
 
 void Scene::addCamera(Camera *camera) { cameras.push_back(camera); }
 
-void Scene::setSky(SkyBox *sky) { this->sky = sky; }
+void Scene::setSky(SkyBox *v) { this->sky = v; }
 
-void Scene::setGround(Ground *ground) { this->ground = ground; }
+void Scene::setGround(Ground *v) { this->ground = v; }
 
 // void Scene::removeMesh(Mesh *mesh) { meshes.removeOne(mesh); }
 

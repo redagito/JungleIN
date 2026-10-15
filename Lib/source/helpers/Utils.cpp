@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <stdexcept>
-#include <fmtlog/fmtlog.h>
+#include "helpers/Logger.h"
 
 GLFWwindow *Utils::window = nullptr;
 bool Utils::USE_ANISO = false;

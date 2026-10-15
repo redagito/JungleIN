@@ -5,18 +5,14 @@
 
 #include "math/Math.h"
 
-Quaternion::Quaternion(float x, float y, float z, float w) {
-  this->x = x;
-  this->y = y;
-  this->z = z;
-  this->w = w;
-}
+Quaternion::Quaternion(float x_, float y_, float z_, float w_)
+    : x(x_), y(y_), z(z_), w(w_) {}
 
-Quaternion &Quaternion::set(float x, float y, float z, float w) {
-  this->x = x;
-  this->y = y;
-  this->z = z;
-  this->w = w;
+Quaternion &Quaternion::set(float x_, float y_, float z_, float w_) {
+  this->x = x_;
+  this->y = y_;
+  this->z = z_;
+  this->w = w_;
 
   return *this;
 }
@@ -35,10 +31,11 @@ Quaternion &Quaternion::copy(const Quaternion &v) {
  * http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
  */
 Quaternion &Quaternion::setFromVector(const Vector3 &v) {
-  float c = static_cast<float>(Pi / 360), x = v.x * c, y = v.y * c, z = v.z * c,
+  float c = static_cast<float>(Pi / 360), ex = v.x * c, ey = v.y * c,
+        ez = v.z * c,
 
-        c1 = std::cos(y), s1 = std::sin(y), c2 = std::cos(-z),
-        s2 = std::sin(-z), c3 = std::cos(x), s3 = std::sin(x),
+        c1 = std::cos(ey), s1 = std::sin(ey), c2 = std::cos(-ez),
+        s2 = std::sin(-ez), c3 = std::cos(ex), s3 = std::sin(ex),
 
         c1c2 = c1 * c2, s1s2 = s1 * s2;
 
