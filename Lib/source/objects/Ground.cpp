@@ -2,7 +2,18 @@
 
 #include "objects/Ground.h"
 #include <cmath>
+#include <limits>
 #include <stdexcept>
+
+namespace {
+// Zero-length vectors normalize to zero (no NaN); glm does not.
+glm::vec3 safeNormalize(const glm::vec3 &v) {
+	float len = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+	if (len > std::numeric_limits<float>::epsilon())
+		return v / len;
+	return glm::vec3(0.0f);
+}
+} // namespace
 
 // const used to define the ground's coordinates
 const float Ground::MAP_SIZE = 900.0;
@@ -32,7 +43,7 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 	indicesTab =
 		new int[(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6];
 	// 2 normals for each quad (made with 2 triangles)
-	faceNormals = new Vector3[(this->numberVerticesX - 1) *
+	faceNormals = new glm::vec3[(this->numberVerticesX - 1) *
 		(this->numberVerticesZ - 1) * 2];
 	// there is 3 coordinates for each normal
 	normalsF =
@@ -85,42 +96,41 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 			indicesTab[i + 4] = indiceVer;
 			indicesTab[i + 5] = indiceVer + 1;
 
-			Vector3 u;
-			Vector3 v;
-			Vector3 temp;
-			// make the match between the indices and the vertices' coordinates
-			indiceHoriz *= 3;
-			indiceVer *= 3;
-			// first triangle
-			// initialize u vector
-			u.set(verticesTab[indiceVer] - verticesTab[indiceHoriz],
-				verticesTab[indiceVer + 1] - verticesTab[indiceHoriz + 1],
-				verticesTab[indiceVer + 2] - verticesTab[indiceHoriz + 2]);
-			u = u.normalize();
-			// initialize v vector
-			v.set(verticesTab[indiceHoriz + 3] - verticesTab[indiceHoriz],
-				verticesTab[indiceHoriz + 4] - verticesTab[indiceHoriz + 1],
-				verticesTab[indiceHoriz + 5] - verticesTab[indiceHoriz + 2]);
-			v = v.normalize();
+		glm::vec3 u;
+		glm::vec3 v;
+		// make the match between the indices and the vertices' coordinates
+		indiceHoriz *= 3;
+		indiceVer *= 3;
+		// first triangle
+		// initialize u vector
+		u = glm::vec3(verticesTab[indiceVer] - verticesTab[indiceHoriz],
+			verticesTab[indiceVer + 1] - verticesTab[indiceHoriz + 1],
+			verticesTab[indiceVer + 2] - verticesTab[indiceHoriz + 2]);
+		u = safeNormalize(u);
+		// initialize v vector
+		v = glm::vec3(verticesTab[indiceHoriz + 3] - verticesTab[indiceHoriz],
+			verticesTab[indiceHoriz + 4] - verticesTab[indiceHoriz + 1],
+			verticesTab[indiceHoriz + 5] - verticesTab[indiceHoriz + 2]);
+		v = safeNormalize(v);
 
-			// set the normal in the face normals array
-			faceNormals[j] = faceNormals[j].copy(temp.cross(u, v));
+		// set the normal in the face normals array
+		faceNormals[j] = glm::cross(u, v);
 
-			// second triangle
-			// initialize u vector
-			u.set(verticesTab[indiceHoriz + 3] - verticesTab[indiceVer + 3],
-				verticesTab[indiceHoriz + 4] - verticesTab[indiceVer + 4],
-				verticesTab[indiceHoriz + 5] - verticesTab[indiceVer + 5]);
-			u = u.normalize();
+		// second triangle
+		// initialize u vector
+		u = glm::vec3(verticesTab[indiceHoriz + 3] - verticesTab[indiceVer + 3],
+			verticesTab[indiceHoriz + 4] - verticesTab[indiceVer + 4],
+			verticesTab[indiceHoriz + 5] - verticesTab[indiceVer + 5]);
+		u = safeNormalize(u);
 
-			// initialize v vector
-			v.set(verticesTab[indiceVer] - verticesTab[indiceVer + 3],
-				verticesTab[indiceVer + 1] - verticesTab[indiceVer + 4],
-				verticesTab[indiceVer + 2] - verticesTab[indiceVer + 5]);
-			v = v.normalize();
+		// initialize v vector
+		v = glm::vec3(verticesTab[indiceVer] - verticesTab[indiceVer + 3],
+			verticesTab[indiceVer + 1] - verticesTab[indiceVer + 4],
+			verticesTab[indiceVer + 2] - verticesTab[indiceVer + 5]);
+		v = safeNormalize(v);
 
-			// set the normal in the face normals array
-			faceNormals[j + 1] = faceNormals[j + 1].copy(temp.cross(u, v));
+		// set the normal in the face normals array
+		faceNormals[j + 1] = glm::cross(u, v);
 			i += 6;
 			j += 2;
 		}
@@ -152,9 +162,7 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 
 // put the values of the normal vector into the i, i+1, i+2 th positions of the
 // floats array
-void Ground::setVectorToFloat(Vector3 normal, float* normalsF, int i) {
-	// print all the normals
-	// qDebug() << "indice : " <<i<<normal.toString();
+void Ground::setVectorToFloat(glm::vec3 normal, float* normalsF, int i) {
 	normalsF[i] = normal.x;
 	normalsF[i + 1] = normal.y;
 	normalsF[i + 2] = normal.z;
@@ -163,20 +171,18 @@ void Ground::setVectorToFloat(Vector3 normal, float* normalsF, int i) {
 // compute the normals of the first line of vertices
 void Ground::firstLineNormals(float* normalsF) {
 	int i, j;
-	Vector3 tmp = faceNormals[0];
+	glm::vec3 tmp = faceNormals[0];
 	// normal of the first vertex
 	setVectorToFloat(tmp, normalsF, 0);
 
 	// normal of the first line exept the last vertice
 	for (i = 3, j = 0; i < (this->numberVerticesX - 1) * 3; i += 3, j += 2) {
-		tmp = (faceNormals[j] + faceNormals[j + 1] + faceNormals[j + 2]);
-		tmp.divideScalar(3);
+		tmp = (faceNormals[j] + faceNormals[j + 1] + faceNormals[j + 2]) / 3.0f;
 		setVectorToFloat(tmp, normalsF, i);
 	}
 
 	// normal of the last vertice of the first line
-	tmp = (faceNormals[j] + faceNormals[j + 1]);
-	tmp.divideScalar(2);
+	tmp = (faceNormals[j] + faceNormals[j + 1]) / 2.0f;
 	setVectorToFloat(tmp, normalsF, i);
 }
 
@@ -184,7 +190,7 @@ void Ground::firstLineNormals(float* normalsF) {
 // last
 void Ground::middleGridNormals(float* normalsF) {
 	int k = (this->numberVerticesX - 1) * 2;
-	Vector3 tmp;
+	glm::vec3 tmp;
 	for (int l = 1; l < this->numberVerticesZ - 1; ++l) {
 		// first vertex of the line
 		firstVertexNormal(normalsF, l);
@@ -193,15 +199,13 @@ void Ground::middleGridNormals(float* normalsF) {
 			int normalIndex = l * k + j;
 			tmp = (faceNormals[normalIndex - k] + faceNormals[normalIndex - k + 1] +
 				faceNormals[normalIndex - k + 2] + faceNormals[normalIndex - 1] +
-				faceNormals[normalIndex] + faceNormals[normalIndex + 1]);
-			tmp.divideScalar(6);
+				faceNormals[normalIndex] + faceNormals[normalIndex + 1]) / 6.0f;
 			setVectorToFloat(tmp, normalsF,
 				(this->numberVerticesX * l + ((j + 1) / 2)) * 3);
 		}
 		// last vertex of the line
 		int t = l * k - 1;
-		tmp = (faceNormals[t] + faceNormals[t + k - 1] + faceNormals[t + k]);
-		tmp.divideScalar(3);
+		tmp = (faceNormals[t] + faceNormals[t + k - 1] + faceNormals[t + k]) / 3.0f;
 		setVectorToFloat(tmp, normalsF, (this->numberVerticesX * (l + 1) - 1) * 3);
 	}
 }
@@ -212,17 +216,15 @@ void Ground::lastLineNormals(float* normalsF) {
 	int indice = this->numberVerticesX * (this->numberVerticesZ - 1);
 	int l = this->numberVerticesZ - 2;
 	int k = (this->numberVerticesX - 1) * 2;
-	Vector3 tmp;
+	glm::vec3 tmp;
 
 	// first vertex normal
-	tmp = (faceNormals[indice + 1] + faceNormals[indice + 2]);
-	tmp.divideScalar(2);
+	tmp = (faceNormals[indice + 1] + faceNormals[indice + 2]) / 2.0f;
 	setVectorToFloat(tmp, normalsF, indice * 3);
 	// all vertices except the last
 	for (int i = 1, j = 0; i < this->numberVerticesX - 1; ++i, j += 2) {
 		int indTmp = l * k + j;
-		tmp = (faceNormals[indTmp + 1] + faceNormals[indTmp + 2] + faceNormals[indTmp + 3]);
-		tmp.divideScalar(3);
+		tmp = (faceNormals[indTmp + 1] + faceNormals[indTmp + 2] + faceNormals[indTmp + 3]) / 3.0f;
 		setVectorToFloat(tmp, normalsF, (indice + i) * 3);
 	}
 	// last vertex of the last line. So, it's the last vertex of ALL the ground.
@@ -236,11 +238,10 @@ void Ground::lastLineNormals(float* normalsF) {
 // compute the normal of the first vertex of the line (doesn't work for the
 // first ans the last line)
 void Ground::firstVertexNormal(float* normalsF, int lineNumber) {
-	Vector3 tmp;
+	glm::vec3 tmp;
 	int k = (this->numberVerticesX - 1) * 2;
 	tmp = (faceNormals[lineNumber * k - k] + faceNormals[lineNumber * k - k + 1] +
-		faceNormals[lineNumber * k]);
-	tmp.divideScalar(3);
+		faceNormals[lineNumber * k]) / 3.0f;
 	setVectorToFloat(tmp, normalsF, this->numberVerticesX * lineNumber * 3);
 }
 
@@ -251,7 +252,7 @@ float Ground::getY(float px, float pz) {
 		pz > -MAP_SIZE / 2) {
 		int indx;
 		int indz;
-		Vector3 p, n;
+		glm::vec3 p, n;
 
 		// compute the nearest known vertex
 		indx = static_cast<int>(trunc((px + MAP_SIZE / 2) * (this->numberVerticesX - 1) / MAP_SIZE));
@@ -264,7 +265,7 @@ float Ground::getY(float px, float pz) {
 		if (indz > numberVerticesZ - 2) indz = numberVerticesZ - 2;
 
 		// point of the plane use to compute the constant value
-		p.set(this->geometry
+		p = glm::vec3(this->geometry
 			->getVertices()[(indx + indz * this->numberVerticesX) * 3],
 			this->geometry
 			->getVertices()[(indx + indz * this->numberVerticesX) * 3 + 1],
@@ -295,7 +296,7 @@ float Ground::getYApprox(float x, float z, float prevY) {
 		2;
 }
 
-std::optional<Vector3> Ground::randomMapPos(double height, bool isRock) {
+std::optional<glm::vec3> Ground::randomMapPos(double height, bool isRock) {
 	for (int samples = 0; samples < 20; ++samples) {
 		const double x = Utils::random(MAP_MIN, MAP_MAX);
 		const double z = Utils::random(MAP_MIN, MAP_MAX);
@@ -305,11 +306,11 @@ std::optional<Vector3> Ground::randomMapPos(double height, bool isRock) {
 			continue;
 
 		if (isRock)
-			rockPos.push_back(new Vector3(static_cast<float>(x), 0, static_cast<float>(z)));
+			rockPos.push_back(glm::vec3(static_cast<float>(x), 0, static_cast<float>(z)));
 
 		const double y =
 			getY(static_cast<float>(x), static_cast<float>(z)) + height;
-		return Vector3(static_cast<float>(x), static_cast<float>(y),
+		return glm::vec3(static_cast<float>(x), static_cast<float>(y),
 			static_cast<float>(z));
 	}
 
@@ -318,8 +319,8 @@ std::optional<Vector3> Ground::randomMapPos(double height, bool isRock) {
 
 bool Ground::containInBoundingBox(double x, double z) {
 
-	for (Vector3* rock : this->rockPos) {
-		if ((rock->x - x) * (rock->x - x) + (rock->z - z) * (rock->z - z) < 40) {
+	for (const glm::vec3& rock : this->rockPos) {
+		if ((rock.x - x) * (rock.x - x) + (rock.z - z) * (rock.z - z) < 40) {
 			return true;
 		}
 	}
@@ -327,18 +328,14 @@ bool Ground::containInBoundingBox(double x, double z) {
 	return false;
 }
 
-std::vector<Vector3*> Ground::getRockPos() { return this->rockPos; }
+std::vector<glm::vec3> Ground::getRockPos() { return this->rockPos; }
 
 void Ground::removeRockPos() {
-	for (Vector3* v : rockPos) {
-		delete v;
-	}
 	rockPos.clear();
 }
 
 Ground::~Ground()
 {
-	removeRockPos();
 	delete[] this->faceNormals;
 	delete this->path;
 }

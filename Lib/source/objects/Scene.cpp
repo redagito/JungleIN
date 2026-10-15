@@ -47,8 +47,8 @@ void Scene::update(float delta) {
   currentCamera->update(groundY, delta);
 
   float yaw = currentCamera->getYaw();
-  cameraZ.set(std::sin(yaw), 0, -std::cos(yaw));
-  Vector3 cameraPostion = currentCamera->getPosition();
+  cameraZ = glm::vec3(std::sin(yaw), 0, -std::cos(yaw));
+  glm::vec3 cameraPostion = currentCamera->getPosition();
 
   sky->setPosition(cameraPostion);
   sun->update(cameraPostion, cameraZ);
@@ -94,4 +94,4 @@ bool Scene::getRenderAble() { return this->renderAble; }
 
 void Scene::setRenderAble(bool renderable) { this->renderAble = renderable; }
 
-const Vector3 &Scene::getCameraZ() { return cameraZ; }
+const glm::vec3 &Scene::getCameraZ() { return cameraZ; }

@@ -3,7 +3,8 @@
 #include <cmath>
 #include <stack>
 
-#include "math/Matrix4.h"
+#include <glm/glm.hpp>
+
 #include "helpers/Utils.h"
 #include "helpers/Timer.h"
 #include "core/TextureCube.h"
@@ -51,7 +52,7 @@ public:
 	void setRatio(float r);
 
 private:
-	void pushMatrix(const Matrix4& mat);
+	void pushMatrix(const glm::mat4& mat);
 	void popMatrix();
 
 	bool cull(Instance* m, float offset = 0.0);
@@ -79,8 +80,8 @@ private:
 
 	bool useShadowCascade = false;
 
-	std::stack<Matrix4> xform;
-	Matrix4 matrixProj, matrixView, matrixModel;
+	std::stack<glm::mat4> xform;
+	glm::mat4 matrixProj, matrixView, matrixModel;
 
 	// Buffers
 	Camera* __camera = nullptr;
@@ -89,8 +90,8 @@ private:
 	SkyBox* __skybox = nullptr;
 	Sun* __sun = nullptr;
 	Ground* __ground = nullptr;
-	Matrix4 __mvp, __mv;
-	Vector3 __lightDir;
-	Vector3 __lightIntensity;
+	glm::mat4 __mvp, __mv;
+	glm::vec3 __lightDir;
+	glm::vec3 __lightIntensity;
 	unsigned int __locPosition, __locColor, __locNormal, __locTexcoord, __locMVP;
 };

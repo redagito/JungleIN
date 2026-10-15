@@ -30,7 +30,7 @@ Mesh* ObjLoader::loadObj(std::string fileName)
 	geometry->setNormals(flat.normals);
 	geometry->setTexCoords(flat.uvs);
 
-	Mesh* mesh = new Mesh(geometry, new MaterialBasic(Vector3(0.4f, 0.6f, 0.2f)));
+	Mesh* mesh = new Mesh(geometry, new MaterialBasic(glm::vec3(0.4f, 0.6f, 0.2f)));
 
 	return mesh;
 }

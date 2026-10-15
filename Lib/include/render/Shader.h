@@ -7,9 +7,9 @@
 
 #include <glad/gl.h>
 
-#include "math/Vector3.h"
-#include "math/Matrix3.h"
-#include "math/Matrix4.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "core/Texture.h"
 #include "core/TextureCube.h"
 
@@ -45,9 +45,9 @@ public:
 	void transmitUniform(std::string name, float f);
 	void transmitUniform(std::string name, float f1, float f2);
 	void transmitUniform(std::string name, float f1, float f2, float f3);
-	void transmitUniform(std::string name, const Vector3& vec3);
-	void transmitUniform(std::string name, const Matrix3& mat3);
-	void transmitUniform(std::string name, const Matrix4& mat4);
+	void transmitUniform(std::string name, const glm::vec3& vec3);
+	void transmitUniform(std::string name, const glm::mat3& mat3);
+	void transmitUniform(std::string name, const glm::mat4& mat4);
 	void transmitUniform(std::string name, bool b);
 
 private:

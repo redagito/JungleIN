@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include "render/FrameBuffer.h"
 #include "objects/SSQuad.h"
 
@@ -21,7 +23,7 @@ public:
 	void setFlareIntensity(float);
 	void setGamma(float);
 
-	void setLightPosScreen(const Vector3& pos);
+	void setLightPosScreen(const glm::vec3& pos);
 	void setFinalRenderSize(int w, int h);
 
 	void debugQuad(Texture* tex);
@@ -79,15 +81,15 @@ private:
 
 	int halfBuffersRatio = 0;
 
-	Vector3 gammaRGB;
+	glm::vec3 gammaRGB;
 
-	Vector3 flareThreshold;
+	glm::vec3 flareThreshold;
 	int flareSamples = 0;
 	float flareDispersal = 0.f;
 	float flareHaloWidth = 0.f;
-	Vector3 flareChromaDispertion;
+	glm::vec3 flareChromaDispertion;
 	float flareIntensity = 0.f;
 	Texture* flareDirt = nullptr;
 
-	Vector3 lightPosScreen;
+	glm::vec3 lightPosScreen;
 };

@@ -213,19 +213,19 @@ void Shader::transmitUniform(std::string key, float f1, float f2, float f3) {
 	glUniform3f(requireUniform(key), f1, f2, f3);
 }
 
-void Shader::transmitUniform(std::string key, const Vector3& vec3) {
+void Shader::transmitUniform(std::string key, const glm::vec3& vec3) {
 	validateIsActive();
 	glUniform3f(requireUniform(key), vec3.x, vec3.y, vec3.z);
 }
 
-void Shader::transmitUniform(std::string key, const Matrix3& mat3) {
+void Shader::transmitUniform(std::string key, const glm::mat3& mat3) {
 	validateIsActive();
-	glUniformMatrix3fv(requireUniform(key), 1, GL_TRUE, mat3.array);
+	glUniformMatrix3fv(requireUniform(key), 1, GL_FALSE, glm::value_ptr(mat3));
 }
 
-void Shader::transmitUniform(std::string key, const Matrix4& mat4) {
+void Shader::transmitUniform(std::string key, const glm::mat4& mat4) {
 	validateIsActive();
-	glUniformMatrix4fv(requireUniform(key), 1, GL_TRUE, mat4.array);
+	glUniformMatrix4fv(requireUniform(key), 1, GL_FALSE, glm::value_ptr(mat4));
 }
 
 void Shader::transmitUniform(std::string key, bool b) {

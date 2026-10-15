@@ -1,44 +1,43 @@
 #pragma once
 
-#include "math/Matrix4.h"
-#include "math/Vector3.h"
+#include <glm/glm.hpp>
 
 /*!
  * Object3D
- * Represents a 3D object holding a transformation Matrix4, and thus
- * position/rotation/scale Vector3s.
+ * Represents a 3D object holding a transformation matrix, and thus
+ * position/rotation/scale vectors.
  * @abstract
  */
 class Object3D {
 public:
   Object3D();
 
-  void setRotation(const Vector3 &);
-  void setPosition(const Vector3 &);
-  void setScale(const Vector3 &);
+  void setRotation(const glm::vec3 &);
+  void setPosition(const glm::vec3 &);
+  void setScale(const glm::vec3 &);
   void updateMatrix();
 
-  void rotate(const Vector3 &);
+  void rotate(const glm::vec3 &);
   void rotateX(float);
   void rotateY(float);
   void rotateZ(float);
-  void translate(const Vector3 &);
+  void translate(const glm::vec3 &);
   void translateX(float);
   void translateY(float);
   void translateZ(float);
-  void translateRel(float, Vector3);
+  void translateRel(float, glm::vec3);
   void translateRelX(float);
   void translateRelY(float);
   void translateRelZ(float);
 
-  Matrix4 &getMatrix();
-  Vector3 &getPosition();
+  glm::mat4 &getMatrix();
+  glm::vec3 &getPosition();
 
 protected:
-  Matrix4 matrix;
-  Vector3 rotation;
-  Vector3 position;
-  Vector3 scale;
+  glm::mat4 matrix;
+  glm::vec3 rotation;
+  glm::vec3 position;
+  glm::vec3 scale;
 
   bool needUpdate = false;
   bool visible = false;

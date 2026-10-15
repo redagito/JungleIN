@@ -143,4 +143,14 @@ TEST_CASE("Camera follows terrain and consumes look input", "[objects][camera]")
     camera.update(0.0, 1.0);
     CHECK_THAT(camera.getYaw(), WithinAbs(0.0f, 1e-5f));
   }
+
+  SECTION("target round-trips through the glm API")
+  {
+    Camera camera;
+    camera.setTarget(glm::vec3(1.0f, 2.0f, 3.0f));
+    const glm::vec3 target = camera.getTarget();
+    CHECK_THAT(target.x, WithinAbs(1.0f, 1e-5f));
+    CHECK_THAT(target.y, WithinAbs(2.0f, 1e-5f));
+    CHECK_THAT(target.z, WithinAbs(3.0f, 1e-5f));
+  }
 }

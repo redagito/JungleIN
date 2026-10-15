@@ -2,6 +2,8 @@
 #include "helpers/Logger.h"
 #include <cmath>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #define DEG_TO_RAD 3.141592653 / 180.0
 
 Camera::Camera() : Object3D() {
@@ -11,7 +13,7 @@ Camera::Camera() : Object3D() {
 	downKey = false;
 
 	setPerspective(kDefaultFov, 1.33f, kDefaultNear, kDefaultFar);
-	target.set(0, 0, 0);
+	target = glm::vec3(0.0f);
 
 	lookSpeed = 0.5f;
 	moveSpeed = 200.f;
@@ -25,15 +27,15 @@ void Camera::reset() {
 	yaw = 0.0;
 	pitch = 0.0;
 	heightOffset = 0.0;
-	position.set(0, 6, -1);
+	position = glm::vec3(0.0f, 6.0f, -1.0f);
 	logi("Reset Camera");
 }
 
 void Camera::setPerspective(float fov, float ratio, float near, float far) {
-	projection.setPerspective(fov, ratio, near, far);
+	projection = glm::perspective(glm::radians(fov), ratio, near, far);
 }
 
-Matrix4& Camera::getProjection() { return projection; }
+glm::mat4& Camera::getProjection() { return projection; }
 
 void Camera::setLeftKey(bool a) { leftKey = a; }
 
@@ -119,17 +121,17 @@ void Camera::update(double groundY, double delta) {
 	// Walking stays glued to the terrain, uphill and downhill.
 	position.y = static_cast<float>(groundY + height + heightOffset);
 
-	matrix.identity()
-		.translate(position * -1)
-		.rotate(yaw, Vector3::Y)
-		.rotate(pitch, Vector3::X);
+	// View matrix order: view = Rx * Ry * T(-p).
+	matrix = glm::rotate(glm::mat4(1.0f), glm::radians(pitch), glm::vec3(1, 0, 0))
+		* glm::rotate(glm::mat4(1.0f), glm::radians(yaw), glm::vec3(0, 1, 0))
+		* glm::translate(glm::mat4(1.0f), -position);
 }
 
-void Camera::setTarget(const Vector3& _target) {
-	target.set(_target.x, _target.y, _target.z);
+void Camera::setTarget(const glm::vec3& _target) {
+	target = _target;
 }
 
-Vector3 Camera::getTarget() { return target; }
+glm::vec3 Camera::getTarget() { return target; }
 
 void Camera::setMouse(int x, int y) {
 	mouseXold = mouseX;

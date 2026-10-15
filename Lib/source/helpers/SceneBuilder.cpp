@@ -94,9 +94,9 @@ Scene* SceneBuilder::build() {
 	rock1Alpha->init();
 	((MaterialBasic*)(rock1->getMaterial()))->setDiffuse(rock1Diffuse);
 	((MaterialBasic*)(rock1->getMaterial()))->setAlpha(rock1Alpha);
-	rock1->setPosition(Vector3(-3, 0.5, 0));
-	rock1->setScale(Vector3(0.6f, 0.6f, 0.6f));
-	rock1->setScale(Vector3(0.0, 0.0, 0.0));
+	rock1->setPosition(glm::vec3(-3, 0.5, 0));
+	rock1->setScale(glm::vec3(0.6f, 0.6f, 0.6f));
+	rock1->setScale(glm::vec3(0.0, 0.0, 0.0));
 	rock1->setScaleRdn(0.2f);
 	rock1->setHeightRdn(0.5f);
 	rock1->setPourcentage(0.2f);
@@ -118,9 +118,9 @@ Scene* SceneBuilder::build() {
 	palmAlpha->init();
 	((MaterialBasic*)(palm->getMaterial()))->setDiffuse(palmDiffuse);
 	((MaterialBasic*)(palm->getMaterial()))->setAlpha(palmAlpha);
-	palm->setPosition(Vector3(0, 0, -10));
-	palm->setScale(Vector3(2, 2, 2));
-	palm->setScale(Vector3(0, 0, 0));
+	palm->setPosition(glm::vec3(0, 0, -10));
+	palm->setScale(glm::vec3(2, 2, 2));
+	palm->setScale(glm::vec3(0, 0, 0));
 	palm->setScaleRdn(0.8f);
 	palm->setHeightRdn(-2.5f);
 	palm->setPourcentage(0.07f);
@@ -142,9 +142,9 @@ Scene* SceneBuilder::build() {
 	htreeAlpha->init();
 	((MaterialBasic*)(htree->getMaterial()))->setDiffuse(htreeDiffuse);
 	((MaterialBasic*)(htree->getMaterial()))->setAlpha(htreeAlpha);
-	htree->setPosition(Vector3(-6, 2, -16));
-	htree->setScale(Vector3(0.6f, 0.6f, 0.6f));
-	htree->setScale(Vector3(0, 0, 0));
+	htree->setPosition(glm::vec3(-6, 2, -16));
+	htree->setScale(glm::vec3(0.6f, 0.6f, 0.6f));
+	htree->setScale(glm::vec3(0, 0, 0));
 	htree->setScaleRdn(0.3f);
 	htree->setHeightRdn(-2.0f);
 	htree->setPourcentage(0.3f);
@@ -166,9 +166,9 @@ Scene* SceneBuilder::build() {
 	btreeAlpha->init();
 	((MaterialBasic*)(btree->getMaterial()))->setDiffuse(btreeDiffuse);
 	((MaterialBasic*)(btree->getMaterial()))->setAlpha(btreeAlpha);
-	btree->setPosition(Vector3(-4, -2, 4));
-	btree->setScale(Vector3(0.6f, 0.6f, 0.6f));
-	btree->setScale(Vector3(0, 0, 0));
+	btree->setPosition(glm::vec3(-4, -2, 4));
+	btree->setScale(glm::vec3(0.6f, 0.6f, 0.6f));
+	btree->setScale(glm::vec3(0, 0, 0));
 	btree->setScaleRdn(0.3f);
 	btree->setHeightRdn(-2.0f);
 	btree->setPourcentage(0.15f);
@@ -190,9 +190,9 @@ Scene* SceneBuilder::build() {
 	gpalmAlpha->init();
 	((MaterialBasic*)(gpalm->getMaterial()))->setDiffuse(gpalmDiffuse);
 	((MaterialBasic*)(gpalm->getMaterial()))->setAlpha(gpalmAlpha);
-	gpalm->setPosition(Vector3(-3, -1, 0));
+	gpalm->setPosition(glm::vec3(-3, -1, 0));
 	gpalm->setScaleRdn(0.9f);
-	gpalm->setScale(Vector3(0, 0, 0));
+	gpalm->setScale(glm::vec3(0, 0, 0));
 	gpalm->setHeightRdn(-1.0);
 	gpalm->setPourcentage(0.14f);
 	gpalm->setInstanceType(Mesh::INSTANCE_GPALM);
@@ -213,8 +213,8 @@ Scene* SceneBuilder::build() {
 	splant1Alpha->init();
 	((MaterialBasic*)(splant1->getMaterial()))->setDiffuse(splant1Diffuse);
 	((MaterialBasic*)(splant1->getMaterial()))->setAlpha(splant1Alpha);
-	splant1->setPosition(Vector3(2,4,-8));
-	splant1->setScale(Vector3(0.6,0.6,0.6));
+	splant1->setPosition(glm::vec3(2,4,-8));
+	splant1->setScale(glm::vec3(0.6,0.6,0.6));
 	splant1->castsShadows(true);*/
 
 	// BUSH 1
@@ -230,9 +230,9 @@ Scene* SceneBuilder::build() {
 	bush1Alpha->init();
 	((MaterialBasic*)(bush1->getMaterial()))->setDiffuse(bush1Diffuse);
 	((MaterialBasic*)(bush1->getMaterial()))->setAlpha(bush1Alpha);
-	bush1->setPosition(Vector3(-3, 0, 0));
-	bush1->setScale(Vector3(0.6f, 0.6f, 0.6f));
-	bush1->setScale(Vector3(0, 0, 0));
+	bush1->setPosition(glm::vec3(-3, 0, 0));
+	bush1->setScale(glm::vec3(0.6f, 0.6f, 0.6f));
+	bush1->setScale(glm::vec3(0, 0, 0));
 	bush1->setScaleRdn(0.3f);
 	bush1->setHeightRdn(0.0);
 	bush1->setPourcentage(0.14f);
@@ -266,7 +266,7 @@ void SceneBuilder::createInstances(Mesh* mesh, Ground* ground, int nbInstance) {
 		double scale = Utils::random(mesh->getScaleRdn(),
 			mesh->getScaleRdn() + mesh->getRangeScale());
 		Instance* instance = mesh->newInstance();
-		const std::optional<Vector3> spot =
+		const std::optional<glm::vec3> spot =
 			mesh->getInstanceType() == Mesh::INSTANCE_ROCK
 				? ground->randomMapPos(mesh->getHeightRdn(), true)
 				: ground->randomMapPos(mesh->getHeightRdn(), false);
@@ -276,8 +276,8 @@ void SceneBuilder::createInstances(Mesh* mesh, Ground* ground, int nbInstance) {
 			continue;
 		}
 		instance->setPosition(*spot);
-		instance->setRotation(Vector3(0, static_cast<float>(Utils::random(0.0, 360.0)), 0));
-		instance->setScale(Vector3(static_cast<float>(scale), static_cast<float>(scale), static_cast<float>(scale)));
+		instance->setRotation(glm::vec3(0, static_cast<float>(Utils::random(0.0, 360.0)), 0));
+		instance->setScale(glm::vec3(static_cast<float>(scale), static_cast<float>(scale), static_cast<float>(scale)));
 	}
 }
 

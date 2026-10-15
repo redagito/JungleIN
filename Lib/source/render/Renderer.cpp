@@ -107,7 +107,7 @@ void Renderer::init(Scene* _scene, unsigned int w, unsigned int h) {
 
 	matrixProj = __camera->getProjection();
 	matrixView = __camera->getMatrix();
-	matrixModel.identity();
+	matrixModel = glm::mat4(1.0f);
 	xform.push(matrixModel);
 
 }
@@ -265,13 +265,14 @@ void Renderer::drawSun() {
 	// Perspective-divide by clip w, then map NDC [-1,1] to UV [0,1].
 	// Guard w <= 0 (sun behind camera): park the anchor off-screen so
 	// the god-rays pass discards instead of firing from screen centre.
-	float clipW = __mvp.data[3][3];
-	Vector3 lightPosScreen(-1.0f, -1.0f, -1.0f);
+	// Column-major: the translation column is __mvp[3].
+	float clipW = __mvp[3][3];
+	glm::vec3 lightPosScreen(-1.0f);
 	if (clipW > 0.0f) {
-		lightPosScreen.set(
-			__mvp.data[0][3] / clipW * 0.5f + 0.5f,
-			__mvp.data[1][3] / clipW * 0.5f + 0.5f,
-			__mvp.data[2][3] / clipW * 0.5f + 0.5f);
+		lightPosScreen = glm::vec3(
+			__mvp[3][0] / clipW * 0.5f + 0.5f,
+			__mvp[3][1] / clipW * 0.5f + 0.5f,
+			__mvp[3][2] / clipW * 0.5f + 0.5f);
 	}
 	postComposer->setLightPosScreen(lightPosScreen);
 
@@ -327,10 +328,12 @@ bool Renderer::cull(Instance* m, float offset) {
 	// NOTE: the threshold is in SQUARED distance units (500 ~= 22 m radius),
 	// deliberately tight for 1400+ instances. Comparing against plain
 	// meters here would disable culling almost entirely.
-	return (m->getPosition().distanceSq(__camera->getPosition()) > 500 + offset &&
-		(m->getPosition() -
-			(__camera->getPosition() - scene->getCameraZ() * 20.0))
-		.dot(scene->getCameraZ()) < 0);
+	glm::vec3 meshPos = m->getPosition();
+	glm::vec3 camPos = __camera->getPosition();
+	glm::vec3 camZ = scene->getCameraZ();
+	glm::vec3 toMesh = meshPos - camPos;
+	return (glm::dot(toMesh, toMesh) > 500 + offset &&
+		glm::dot(meshPos - (camPos - camZ * 20.0f), camZ) < 0);
 }
 
 void Renderer::drawMeshes() {
@@ -492,9 +495,11 @@ void Renderer::resize(unsigned int w, unsigned int h) {
 
 PostComposer* Renderer::getPostComposer() { return postComposer; }
 
-void Renderer::pushMatrix(const Matrix4& mat) {
+void Renderer::pushMatrix(const glm::mat4& mat) {
 	xform.push(matrixModel);
-	matrixModel *= mat;
+	// model = base * local. The scene base is
+	// identity, so stacked results match the old products.
+	matrixModel = matrixModel * mat;
 }
 
 void Renderer::popMatrix() {
@@ -521,14 +526,23 @@ void Renderer::transmitShadowMatrix(bool withCascade) {
 
 void Renderer::transmitMVP() { __shader->transmitUniform("mvp", __mvp); }
 
+namespace {
+// Inverse-transpose of the upper 3x3, falling back to identity on
+// near-singular input (|det| <= 1e-6) instead of producing 1/det garbage.
+glm::mat3 InverseTranspose3x3(const glm::mat4& m) {
+	glm::mat3 m3(m);
+	if (std::fabs(glm::determinant(m3)) <= 1e-6f)
+		return glm::mat3(1.0f);
+	return glm::transpose(glm::inverse(m3));
+}
+} // namespace
+
 void Renderer::transmitNormalMatrix() {
-	__shader->transmitUniform("normalMatrix",
-		Matrix3().getInverse(__mv).transpose());
+	__shader->transmitUniform("normalMatrix", InverseTranspose3x3(__mv));
 }
 
 void Renderer::transmitViewMatrix() {
-	__shader->transmitUniform("viewMatrix",
-		Matrix3().getInverse(matrixView).transpose());
+	__shader->transmitUniform("viewMatrix", InverseTranspose3x3(matrixView));
 }
 
 void Renderer::toggleShadowCascade(bool enabled) {

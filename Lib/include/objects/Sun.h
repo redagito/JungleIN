@@ -1,11 +1,12 @@
 #ifndef SUN_H
 #define SUN_H
 
+#include <glm/glm.hpp>
+
 #include "objects/Mesh.h"
 #include "objects/Light.h"
 #include "materials/MaterialSun.h"
 #include "helpers/Geometries.h"
-#include "math/Vector3.h"
 
 class Sun : public Mesh {
 
@@ -13,7 +14,7 @@ public:
   Sun(MaterialSun *mat);
   ~Sun();
 
-  void update(const Vector3 &positionCamera, const Vector3 &zCamera);
+  void update(const glm::vec3 &positionCamera, const glm::vec3 &zCamera);
 
   void setSpeed(float s);
   Light *getLight();
@@ -23,7 +24,7 @@ private:
   float lightDistance;
   float lightTargetOffset;
   float sunDistance;
-  Vector3 localPosition;
+  glm::vec3 localPosition;
   float yaw;
   float speed;
 };

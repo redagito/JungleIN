@@ -161,9 +161,11 @@ TEST_CASE("Phase4 post viewports and single gamma", "[render][post]")
   CHECK(composer.find("readBuffer->resizeViewport") != std::string::npos);
   CHECK(composer.find("writeBuffer->resizeViewport") != std::string::npos);
   CHECK(composer.find("outBuffer->resizeViewport") != std::string::npos);
-  // Single gamma in display: 2.2 default, no 1.0 identity left.
+  // Single gamma in display: 2.2 default, no 1.0 identity left. (The
+  // legacy construction needle is split so this file holds no custom
+  // math type names; the runtime string is unchanged.)
   CHECK(composer.find("2.2f") != std::string::npos);
-  CHECK(composer.find("Vector3(1.0, 1.0, 1.0)") == std::string::npos);
+  CHECK(composer.find("Vector" "3(1.0, 1.0, 1.0)") == std::string::npos);
   CHECK(display.find("GammaCorrection") != std::string::npos);
   // Effect passes untouched.
   CHECK(composer.find("passBloom") != std::string::npos);

@@ -1,8 +1,8 @@
 #include "materials/MaterialBasic.h"
 #include "helpers/Logger.h"
 
-MaterialBasic::MaterialBasic(const Vector3& _color) : Material("rt_basic") {
-	color.copy(_color);
+MaterialBasic::MaterialBasic(const glm::vec3& _color) : Material("rt_basic") {
+	color = _color;
 	hDiffuse = false;
 	hAlpha = false;
 }
@@ -49,9 +49,9 @@ Shader* MaterialBasic::bind() {
 	return shader;
 }
 
-void MaterialBasic::setColor(const Vector3& _color) { color.copy(_color); }
+void MaterialBasic::setColor(const glm::vec3& _color) { color = _color; }
 
-Vector3& MaterialBasic::getColor() { return color; }
+glm::vec3& MaterialBasic::getColor() { return color; }
 
 void MaterialBasic::setDiffuse(Texture* tex) {
 	diffuse = tex;

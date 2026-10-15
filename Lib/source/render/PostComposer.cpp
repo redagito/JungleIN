@@ -64,13 +64,13 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	// Phase 4: gamma lives only in the final display pass (ss_display
 	// applies pow(color, 1/gamma)). 2.2 restores the intended brightness;
 	// 1.0 was an identity that left the linear HDR output dark.
-	gammaRGB = Vector3(2.2f, 2.2f, 2.2f);
+	gammaRGB = glm::vec3(2.2f, 2.2f, 2.2f);
 
-	flareThreshold = Vector3(0.5, 0.5, 0.5);
+	flareThreshold = glm::vec3(0.5, 0.5, 0.5);
 	flareSamples = 12;
 	flareDispersal = 0.10f;
 	flareHaloWidth = 0.22f;
-	flareChromaDispertion = Vector3(1.02f, 1.0f, 0.98f);
+	flareChromaDispertion = glm::vec3(1.02f, 1.0f, 0.98f);
 	flareIntensity = 1.0;
 	flareDirt = new Texture("data/resources/maps/post/lensdirt_highc.png", 2);
 	flareDirt->init();
@@ -452,10 +452,10 @@ void PostComposer::setFlareDispersal(float value) { flareDispersal = value; }
 
 void PostComposer::setFlareIntensity(float value) { flareIntensity = value; }
 
-void PostComposer::setGamma(float value) { gammaRGB.set(value, value, value); }
+void PostComposer::setGamma(float value) { gammaRGB = glm::vec3(value); }
 
-void PostComposer::setLightPosScreen(const Vector3& pos) {
-	lightPosScreen.copy(pos);
+void PostComposer::setLightPosScreen(const glm::vec3& pos) {
+	lightPosScreen = pos;
 }
 
 void PostComposer::setFinalRenderSize(int w, int h) {

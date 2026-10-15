@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include "objects/Object3D.h"
 
 /*!
@@ -21,13 +23,13 @@ public:
 
   void setPerspective(float fov, float ratio, float near, float far);
 
-  Matrix4 &getProjection();
+  glm::mat4 &getProjection();
 
   void update(double groundY, double delta = 1.0);
   void reset();
 
-  void setTarget(const Vector3 &_target);
-  Vector3 getTarget();
+  void setTarget(const glm::vec3 &_target);
+  glm::vec3 getTarget();
 
   void setMouse(int x, int y);
   void setLookAccel(int x, int y);
@@ -47,9 +49,9 @@ public:
   float getPitch();
 
 private:
-  Matrix4 projection;
+  glm::mat4 projection;
 
-  Vector3 target;
+  glm::vec3 target;
 
   // Camera look around control
   bool look = false;

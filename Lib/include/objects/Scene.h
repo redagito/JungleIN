@@ -1,6 +1,8 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <glm/glm.hpp>
+
 #include <vector>
 #include "objects/Mesh.h"
 #include "objects/Sun.h"
@@ -43,7 +45,7 @@ public:
   bool getRenderAble();
   void setRenderAble(bool renderAble);
 
-  const Vector3 &getCameraZ();
+  const glm::vec3 &getCameraZ();
 
 private:
   std::vector<Mesh *> meshes;
@@ -53,7 +55,7 @@ private:
   Ground *ground = nullptr;
 
   Camera *currentCamera = nullptr;
-  Vector3 cameraZ;
+  glm::vec3 cameraZ;
   bool renderAble = false;
 };
 
