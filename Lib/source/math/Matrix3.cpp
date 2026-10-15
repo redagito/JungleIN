@@ -21,7 +21,7 @@ Matrix3 &Matrix3::getInverse(const Matrix4 &m) {
     return identity();
   }
 
-  float idet = 1.0 / det;
+  float idet = 1.0f / det;
 
   array[0] = idet * a11;
   array[1] = idet * a21;

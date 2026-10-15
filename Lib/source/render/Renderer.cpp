@@ -84,7 +84,7 @@ void Renderer::render() {
 		return;
 
 	// TODO Why?
-	delta = timer.restart() / Utils::TARGET_FPS;
+	delta = static_cast<float>(timer.restart() / Utils::TARGET_FPS);
 
 	scene->update(delta);
 
@@ -417,12 +417,12 @@ void Renderer::transmitViewMatrix() {
 
 void Renderer::toggleShadowCascade(bool active) {
 	useShadowCascade = active;
-	__sun->getLight()->setSize(active ? 20.0 : 120.0);
+	__sun->getLight()->setSize(active ? 20.0f : 120.0f);
 	__sun->getLight()->resize(1.0);
 }
 
 void Renderer::setRatio(float r) {
-	ratio = r > 0.0 && r < 1.0 ? r : 1.0;
+	ratio = r > 0.0f && r < 1.0f ? r : 1.0f;
 	resize(finalWidth, finalHeight);
 }
 

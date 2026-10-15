@@ -16,8 +16,8 @@ Path::Path(std::string file) {
 bool Path::validate(double x, double z) const {
 	float range = Ground::MAP_MAX - Ground::MAP_MIN;
 	const float offset = -Ground::MAP_MIN;
-	float xr = (x + offset) / range;
-	float yr = (z + offset) / range;
+	float xr = static_cast<float>((x + offset) / range);
+	float yr = static_cast<float>((z + offset) / range);
 	// Pixel indices: truncating a non-negative ratio is exact flooring;
 	// negatives fall through to the bounds check below.
 	int xp = static_cast<int>(xr * width);

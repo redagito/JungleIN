@@ -122,7 +122,7 @@ Matrix4 &Matrix4::lookAt2(const Vector3 &eye, const Vector3 &target,
 
 Matrix4 &Matrix4::setPerspective(float fov, float ratio, float near,
                                  float far) {
-  float thetaY = 0.5f * (Pi * fov / 180.0f);
+  float thetaY = 0.5f * static_cast<float>(Pi * fov / 180.0f);
   float tanThetaY = std::tan(thetaY);
   float tanThetaX = tanThetaY * ratio;
   float halfW = tanThetaX * near;
@@ -190,7 +190,7 @@ Matrix4 &Matrix4::setOrthogonal(float left, float right, float top,
 Matrix4 &Matrix4::setRotationMatrix(float angle, const Vector3 &xyz) {
   float x = xyz.x, y = xyz.y, z = xyz.z;
 
-  float rAngle = Pi * angle / 180.0f;
+  float rAngle = static_cast<float>(Pi * angle / 180.0f);
   float c = std::cos(rAngle);
   float s = std::sin(rAngle);
 
@@ -396,7 +396,7 @@ Matrix4 Matrix4::inverse() const {
     return t.zero();
   }
 
-  float s = 1.0 / d;
+  float s = 1.0f / d;
   t *= s;
 
   return t;

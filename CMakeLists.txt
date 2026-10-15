@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Warnings as errors, warning level raised stepwise (W1 -> W4).
 if (MSVC)
-	add_compile_options(/WX /W2)
+	add_compile_options(/WX /W3)
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

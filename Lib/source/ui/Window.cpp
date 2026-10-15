@@ -265,17 +265,17 @@ void Window::exPostBloom(bool active) {
 }
 
 void Window::exFlareDisp(int value) {
-	renderer->getPostComposer()->setFlareDispersal(value / 100.0);
+	renderer->getPostComposer()->setFlareDispersal(value / 100.0f);
 }
 
 void Window::exFlareIntensity(int value) {
-	renderer->getPostComposer()->setFlareIntensity(value / 100.0);
+	renderer->getPostComposer()->setFlareIntensity(value / 100.0f);
 }
 
-void Window::exSunSpeed(int value) { scene->getSun()->setSpeed(value / 10.0); }
+void Window::exSunSpeed(int value) { scene->getSun()->setSpeed(value / 10.0f); }
 
 void Window::exGamma(int value) {
-	renderer->getPostComposer()->setGamma(value / 100.0);
+	renderer->getPostComposer()->setGamma(value / 100.0f);
 }
 
 void Window::exAnisotropy(bool active) {
@@ -287,7 +287,7 @@ void Window::exShadowCascade(bool active) {
 	renderer->toggleShadowCascade(active);
 }
 
-void Window::exRenderRatio(int value) { renderer->setRatio(value / 10.0); }
+void Window::exRenderRatio(int value) { renderer->setRatio(value / 10.0f); }
 
 void Window::playBtn(bool active) {
 	//  if (active)

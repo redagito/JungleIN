@@ -1,8 +1,8 @@
 #include "helpers/Utils.h"
 
 #include <chrono>
-#include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <stdexcept>
 #include <fmtlog/fmtlog.h>
 
@@ -14,34 +14,23 @@ int Utils::QUALITY = 1;
 double Utils::TARGET_FPS = 32.0;
 
 char *Utils::getFileContent(std::string path) {
-  FILE *fp;
-  char *content = NULL;
-  long length;
-
-  fp = fopen(path.c_str(), "rb");
-  if (!fp) {
+  std::ifstream file(path, std::ios::binary | std::ios::ate);
+  if (!file)
     throw std::runtime_error("Failed to read file: " + path);
+
+  const auto end = file.tellg();
+  if (end == std::ifstream::pos_type(-1) || !file.seekg(0))
+    throw std::runtime_error("Failed to size file: " + path);
+
+  const size_t length = static_cast<size_t>(end);
+  char *content = new char[length + 1];
+  if (length > 0) {
+    file.read(content, static_cast<std::streamsize>(length));
+    if (!file) {
+      delete[] content;
+      throw std::runtime_error("Failed to read file content: " + path);
+    }
   }
-  if (fseek(fp, 0, SEEK_END) != 0) {
-    fclose(fp);
-    throw std::runtime_error("Failed to seek file: " + path);
-  }
-  length = ftell(fp);
-  if (length < 0) {
-    fclose(fp);
-    throw std::runtime_error("Failed to tell file size: " + path);
-  }
-  if (fseek(fp, 0, SEEK_SET) != 0) {
-    fclose(fp);
-    throw std::runtime_error("Failed to rewind file: " + path);
-  }
-  content = new char[length + 1];
-  if (length > 0 && fread(content, sizeof(char), length, fp) != static_cast<size_t>(length)) {
-    delete[] content;
-    fclose(fp);
-    throw std::runtime_error("Failed to read file content: " + path);
-  }
-  fclose(fp);
   content[length] = '\0';
 
   return content;

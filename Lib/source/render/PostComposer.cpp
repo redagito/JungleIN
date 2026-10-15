@@ -323,7 +323,7 @@ void PostComposer::passBloom() {
  * http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
  */
 void PostComposer::passBlurLinear(bool useHalf) {
-	float res = useHalf ? 2.0 : 1.0;
+	float res = useHalf ? 2.0f : 1.0f;
 
 	FrameBuffer* inBuffer = useHalf ? readHalfBuffer : readBuffer;
 	FrameBuffer* outBuffer = useHalf ? writeHalfBuffer : writeBuffer;

@@ -25,8 +25,8 @@ Geometry::Geometry(std::vector<float> vertices,
   verticesTab = vertices;
   indicesTab = indices;
 
-  verticesCount = vertices.size();
-  indicesCount = indices.size();
+  verticesCount = static_cast<int>(vertices.size());
+  indicesCount = static_cast<int>(indices.size());
 
   hNormals = false;
   hTexCoords = false;
@@ -61,7 +61,7 @@ void Geometry::setNormals(float *normals) {
 }
 
 void Geometry::setTexCoords(std::vector<float> texCoords) {
-  texCoordsCount = texCoords.size();
+  texCoordsCount = static_cast<int>(texCoords.size());
   texCoordsTab = texCoords;
   hTexCoords = true;
 }

@@ -57,8 +57,8 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 			auto color = img.getPixel(x, z);
 			// the (0,0,0) point is at the center of the map
 			verticesTab[i] = (MAP_SIZE * x / (numberVerticesX - 1)) - MAP_SIZE / 2;
-			verticesTab[i + 1] =
-				MAX_HEIGHT * poolEffect * ((color.r + color.g + color.b) / 3) / 255;
+		verticesTab[i + 1] =
+			static_cast<float>(MAX_HEIGHT * poolEffect * ((color.r + color.g + color.b) / 3) / 255);
 			verticesTab[i + 2] =
 				(MAP_SIZE * z / (numberVerticesZ - 1)) - MAP_SIZE / 2;
 
@@ -269,7 +269,7 @@ float Ground::getY(float px, float pz) {
 		double d = -(p.x * n.x + p.y * n.y + p.z * n.z);
 		// compute and return the interpolation
 		//        qDebug() << -(d + n.z * pz + n.x * px)/n.y;
-		return -(d + n.z * pz + n.x * px) / n.y;
+		return static_cast<float>(-(d + n.z * pz + n.x * px) / n.y);
 	}
 	// default result returned if the camera is not above the ground
 	return MAX_HEIGHT / 2;
@@ -300,10 +300,10 @@ Vector3 Ground::randomMapPos(double height, bool isRock) {
 		samples-- > 0);
 
 	if (isRock)
-		rockPos.push_back(new Vector3(x, 0, z));
+		rockPos.push_back(new Vector3(static_cast<float>(x), 0, static_cast<float>(z)));
 
-	double y = getY(x, z) + height;
-	return Vector3(x, y, z);
+	double y = getY(static_cast<float>(x), static_cast<float>(z)) + height;
+	return Vector3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 }
 
 bool Ground::containInBoundingBox(double x, double z) {

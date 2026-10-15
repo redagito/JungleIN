@@ -73,40 +73,40 @@ void Camera::update(double groundY, double delta) {
 	}
 
 	if (leftKey) {
-		position.x -= moveSpeed * std::sin((yaw + 90) * DEG_TO_RAD) * delta;
-		position.z += moveSpeed * std::cos((yaw + 90) * DEG_TO_RAD) * delta;
+		position.x -= static_cast<float>(moveSpeed * std::sin((yaw + 90) * DEG_TO_RAD) * delta);
+		position.z += static_cast<float>(moveSpeed * std::cos((yaw + 90) * DEG_TO_RAD) * delta);
 	}
 
 	if (rightKey) {
-		position.x -= moveSpeed * std::sin((yaw - 90) * DEG_TO_RAD) * delta;
-		position.z += moveSpeed * std::cos((yaw - 90) * DEG_TO_RAD) * delta;
+		position.x -= static_cast<float>(moveSpeed * std::sin((yaw - 90) * DEG_TO_RAD) * delta);
+		position.z += static_cast<float>(moveSpeed * std::cos((yaw - 90) * DEG_TO_RAD) * delta);
 	}
 
 	if (upKey) {
-		position.x += moveSpeed * std::sin(yaw * DEG_TO_RAD) * delta;
-		position.z -= moveSpeed * std::cos(yaw * DEG_TO_RAD) * delta;
+		position.x += static_cast<float>(moveSpeed * std::sin(yaw * DEG_TO_RAD) * delta);
+		position.z -= static_cast<float>(moveSpeed * std::cos(yaw * DEG_TO_RAD) * delta);
 	}
 
 	if (downKey) {
-		position.x -= moveSpeed * std::sin(yaw * DEG_TO_RAD) * delta;
-		position.z += moveSpeed * std::cos(yaw * DEG_TO_RAD) * delta;
+		position.x -= static_cast<float>(moveSpeed * std::sin(yaw * DEG_TO_RAD) * delta);
+		position.z += static_cast<float>(moveSpeed * std::cos(yaw * DEG_TO_RAD) * delta);
 	}
 
 	// Fly higher / lower: adjusts the offset above the terrain.
 	if (eKey)
 	{
-		heightOffset += moveSpeed * delta;
+		heightOffset += static_cast<float>(moveSpeed * delta);
 		if (heightOffset > 200.f) heightOffset = 200.f;
 	}
 
 	if (qKey)
 	{
-		heightOffset -= moveSpeed * delta;
+		heightOffset -= static_cast<float>(moveSpeed * delta);
 		if (heightOffset < 0.f) heightOffset = 0.f;
 	}
 
 	// Walking stays glued to the terrain, uphill and downhill.
-	position.y = groundY + height + heightOffset;
+	position.y = static_cast<float>(groundY + height + heightOffset);
 
 	matrix.identity()
 		.translate(position * -1)
@@ -136,8 +136,8 @@ void Camera::setLookAccel(int x, int y) {
 
 void Camera::activeLook(bool active) { look = active; }
 
-float Camera::getYaw() { return yaw * DEG_TO_RAD; }
+float Camera::getYaw() { return static_cast<float>(yaw * DEG_TO_RAD); }
 
-float Camera::getPitch() { return pitch * DEG_TO_RAD; }
+float Camera::getPitch() { return static_cast<float>(pitch * DEG_TO_RAD); }
 
 void Camera::setPositionY(float y) { this->position.y = y; }

@@ -21,11 +21,11 @@ Sun::Sun(MaterialSun *mat) : Mesh() {
 }
 
 void Sun::update(const Vector3 &positionCamera, const Vector3 &zCamera) {
-  yaw += SUN_ANGLE_STEP * speed;
+  yaw += static_cast<float>(SUN_ANGLE_STEP * speed);
   if (yaw > SUN_YAW_END)
     yaw = static_cast<float>(SUN_YAW_START);
 
-  localPosition.set(std::cos(yaw), std::sin(yaw), -std::sin(yaw) / 3.0);
+  localPosition.set(std::cos(yaw), std::sin(yaw), static_cast<float>(-std::sin(yaw) / 3.0));
   position.copy(positionCamera + localPosition * sunDistance);
 
   matrix.lookAt(position, positionCamera, Vector3::Y);

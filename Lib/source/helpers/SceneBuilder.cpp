@@ -264,8 +264,8 @@ void SceneBuilder::createInstances(Mesh* mesh, Ground* ground, int nbInstance) {
 			instance->setPosition(ground->randomMapPos(mesh->getHeightRdn(), true));
 		else
 			instance->setPosition(ground->randomMapPos(mesh->getHeightRdn(), false));
-		instance->setRotation(Vector3(0, Utils::random(0.0, 360.0), 0));
-		instance->setScale(Vector3(scale, scale, scale));
+		instance->setRotation(Vector3(0, static_cast<float>(Utils::random(0.0, 360.0)), 0));
+		instance->setScale(Vector3(static_cast<float>(scale), static_cast<float>(scale), static_cast<float>(scale)));
 	}
 }
 

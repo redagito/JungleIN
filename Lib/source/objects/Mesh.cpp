@@ -161,7 +161,7 @@ void Mesh::castsShadows(bool active) { castShadows = active; }
 bool Mesh::castsShadows() { return castShadows; }
 
 Instance* Mesh::newInstance() {
-	Instance* instance = new Instance(this, instances.size());
+	Instance* instance = new Instance(this, static_cast<int>(instances.size()));
 	instances.push_back(instance);
 
 	return instance;

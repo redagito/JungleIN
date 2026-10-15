@@ -46,7 +46,7 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, uid);
 
-	int bcount = texturesNames.size(); //+ (hasDepth ? 1 : 0);
+	int bcount = static_cast<int>(texturesNames.size()); //+ (hasDepth ? 1 : 0);
 	if (bcount <= 0) {
 		logi("Empty framebuffer.");
 		return;
@@ -80,7 +80,7 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 			tex->init();
 			tex->bind();
 
-			unsigned int attachment = getAttachementFromIndex(i);
+			unsigned int attachment = getAttachementFromIndex(static_cast<unsigned int>(i));
 
 			glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D,
 				tex->gluid, 0);
