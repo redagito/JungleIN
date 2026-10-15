@@ -124,7 +124,7 @@ vec3 computeFog(vec3 finalColor)
     return mix(FOG_COLOR, finalColor, fogFactor);
 }
 
-const float Ka = 0.5;
+const float Ka = 0.1;
 const float Kd = 0.7;
 const float Ks = 0.4;
 const float Shininess = 4.0;
