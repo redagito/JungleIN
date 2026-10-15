@@ -25,8 +25,13 @@ void main()
 	float grey = max(texel.r, max(texel.g, texel.b));
 
 
-	// Threshold
-        vec3 color = vec3(clamp(((grey) - 0.3), 0.0, 0.3));
+	// HDR Phase 3: scene-referred threshold for linear HDR. Diffuse
+	// rarely exceeds 1.0 pre-tonemap; only highlights do. The LDR-era
+	// low threshold bloomed mid-tones, so the knee now starts at 1.0
+	// and smoothsteps to full response at 2.0 instead of hard-clipping.
+	// Output stays desaturated grey like before; ss_bloom_p2 adds it
+	// onto the scene pre-tonemap.
+	vec3 color = vec3(smoothstep(1.0, 2.0, grey));
 
         // Highlight boost
         //color = 1.0f-min(0.25+(1.0f-color), 1.0f);

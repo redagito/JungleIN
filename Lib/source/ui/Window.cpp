@@ -10,6 +10,8 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
+#include <algorithm>
+
 #include "helpers/Utils.h"
 #include "helpers/Profiler.h"
 
@@ -363,6 +365,18 @@ void Window::exPostBloom(bool active) {
 	renderer->getPostComposer()->toggleBloom(active);
 }
 
+// HDR Phase 3: auto-exposure switch and manual bias, mirroring the
+// other exPost toggles. Bias range 0.25-4.0 matches the composer
+// clamp headroom (exposure itself clamps to 1e-3..10).
+void Window::exPostAutoExposure(bool active) {
+	renderer->getPostComposer()->toggleAutoExposure(active);
+}
+
+void Window::exExposureBias(float value) {
+	exposureBias = std::clamp(value, 0.25f, 4.0f);
+	renderer->getPostComposer()->setExposureBias(exposureBias);
+}
+
 void Window::exFlareDisp(int value) {
 	renderer->getPostComposer()->setFlareDispersal(value / 100.0f);
 }
@@ -468,6 +482,18 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 			break;
 		case GLFW_KEY_4:
 			exPostLenseFlares(false);
+			break;
+		case GLFW_KEY_5:
+			exPostAutoExposure(true);
+			break;
+		case GLFW_KEY_6:
+			exPostAutoExposure(false);
+			break;
+		case GLFW_KEY_7:
+			exExposureBias(exposureBias * 0.8f);
+			break;
+		case GLFW_KEY_8:
+			exExposureBias(exposureBias * 1.25f);
 			break;
 
 			// Mouse movement

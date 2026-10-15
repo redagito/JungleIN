@@ -46,6 +46,8 @@ public:
 	void exPostDistord(bool active);
 	void exPostGodrays(bool active);
 	void exPostBloom(bool active);
+	void exPostAutoExposure(bool active);
+	void exExposureBias(float value);
 	void exFlareDisp(int value);
 	void exFlareIntensity(int value);
 	void exSunSpeed(int value);
@@ -71,6 +73,9 @@ private:
 	Renderer* renderer = nullptr;
 	LoadingScreen* loading = nullptr;
 	AudioEngine* audio = nullptr;
+	// HDR Phase 3: last exposure bias sent to the composer (keys 7/8
+	// step it multiplicatively from here; composer default is 1.0).
+	float exposureBias = 1.0f;
 	std::future<AudioClip> pendingClip;
 	bool audioStarted = false;
 };

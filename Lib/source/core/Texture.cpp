@@ -4,13 +4,26 @@
 
 namespace {
 // Sized and unsized depth internal formats all upload as float depth;
-// anything else stays an unsigned-byte color texture.
+// half-float color formats (the HDR render targets) upload as half
+// float; anything else stays an unsigned-byte color texture.
 bool IsDepthFormat(unsigned int format) {
 	return format == GL_DEPTH_COMPONENT ||
 		format == GL_DEPTH_COMPONENT16 ||
 		format == GL_DEPTH_COMPONENT24 ||
 		format == GL_DEPTH_COMPONENT32 ||
 		format == GL_DEPTH_COMPONENT32F;
+}
+// HDR Phase 3: RGBA16F targets must declare GL_HALF_FLOAT. The old
+// GL_UNSIGNED_BYTE worked only because uploads pass NULL data (no
+// conversion happens); the type still documents the texture and
+// matters the moment real data is uploaded (resize included).
+bool IsHalfFloatFormat(unsigned int format) {
+	return format == GL_RGBA16F || format == GL_RGB16F ||
+		format == GL_RG16F || format == GL_R16F;
+}
+bool IsFloatFormat(unsigned int format) {
+	return format == GL_RGBA32F || format == GL_RGB32F ||
+		format == GL_RG32F || format == GL_R32F;
 }
 } // namespace
 
@@ -45,8 +58,9 @@ Texture::Texture(std::string path, unsigned int _index) {
 	shadowCompare = false;
 }
 
-// NOTE: render-target buffers stay 8-bit GL_RGBA by design for now;
-// float HDR buffers (e.g. RGBA16F) are planned for a later pass.
+// NOTE: render-target buffers default to RGBA16F half float (HDR
+// Phase 1); 16F is filterable and costs half the bandwidth of 32F.
+// Image uploads keep the 8-bit GL_RGBA byte path via hasImage.
 Texture::Texture(unsigned int _index) {
 	height = 0;
 	width = 0;
@@ -97,7 +111,10 @@ void Texture::setupForFramebuffer(unsigned int _width, unsigned int _height,
 	height = _height;
 	format = _format;
 	globalFormat = _globalFormat;
-	pixelType = IsDepthFormat(format) ? GL_FLOAT : GL_UNSIGNED_BYTE;
+	pixelType = IsDepthFormat(format) ? GL_FLOAT
+		: IsHalfFloatFormat(format)   ? GL_HALF_FLOAT
+		: IsFloatFormat(format)       ? GL_FLOAT
+		                              : GL_UNSIGNED_BYTE;
 	shadowCompare = false;
 	minFilter = GL_LINEAR;
 	magFilter = GL_LINEAR;
