@@ -1,6 +1,7 @@
 #include <exception>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 
 #include "helpers/Logger.h"
 #include "helpers/Utils.h"
@@ -37,6 +38,8 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	try
 	{
+		// Procedural scattering reshuffles every run by design.
+		std::srand(static_cast<unsigned int>(std::time(nullptr)));
 		Profiler::mark("process start");
 		Window window;
 		window.initializeGL();
