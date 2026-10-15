@@ -208,13 +208,16 @@ Matrix4 &Matrix4::setRotationMatrix(float angle, const Vector3 &xyz) {
 
   data[0][0] = x * x * (1.0f - c) + c;
   data[0][1] = x * y * (1.0f - c) - z * s;
-  data[0][2] = x * z * (1.0f - c) + y * s; // data[0][3] = 0.0f;
+  data[0][2] = x * z * (1.0f - c) + y * s;
+  data[0][3] = 0.0f;
   data[1][0] = y * x * (1.0f - c) + z * s;
   data[1][1] = y * y * (1.0f - c) + c;
-  data[1][2] = y * z * (1.0f - c) - x * s; // data[1][3] = 0.0f;
+  data[1][2] = y * z * (1.0f - c) - x * s;
+  data[1][3] = 0.0f;
   data[2][0] = z * x * (1.0f - c) - y * s;
   data[2][1] = y * z * (1.0f - c) + x * s;
-  data[2][2] = z * z * (1.0f - c) + c; // data[2][3] = 0.0f;
+  data[2][2] = z * z * (1.0f - c) + c;
+  data[2][3] = 0.0f;
   // data[3][0] = 0.0f;                       data[3][1] = 0.0f;
   // data[3][2] = 0.0f;                       data[3][3] = 1.0f;
 
@@ -231,14 +234,17 @@ Matrix4 &Matrix4::setRotationMatrix(const Quaternion &q) {
   data[0][0] = 1 - (yy + zz);
   data[0][1] = xy - wz;
   data[0][2] = xz + wy;
+  data[0][3] = 0.0f;
 
   data[1][0] = xy + wz;
   data[1][1] = 1 - (xx + zz);
   data[1][2] = yz - wx;
+  data[1][3] = 0.0f;
 
   data[2][0] = xz - wy;
   data[2][1] = yz + wx;
   data[2][2] = 1 - (xx + yy);
+  data[2][3] = 0.0f;
 
   return *this;
 }
