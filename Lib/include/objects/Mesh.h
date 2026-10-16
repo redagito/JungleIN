@@ -30,7 +30,6 @@ public:
   bool castsShadows();
 
   Instance *newInstance();
-  // void removeInstance(int id);
   void clearInstances();
   Instance *getInstance(int id);
   std::vector<Instance *> &getInstances();
@@ -69,9 +68,12 @@ protected:
 
   bool castShadows = false;
 
-  unsigned int locVertices = 0;
-  unsigned int locNormals = 0;
-  unsigned int locTexCoords = 0;
+  // Attribute locations are -1 until initVBO resolves them against the
+  // material shader; drawing or transmitting with an unset location
+  // throws instead of aliasing position's slot 0.
+  int locVertices = -1;
+  int locNormals = -1;
+  int locTexCoords = -1;
 
   float scaleRdn = 1.f;
   float rangeScale = 1.f;

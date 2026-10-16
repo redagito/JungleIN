@@ -22,6 +22,10 @@ public:
   virtual bool hasAlpha() const { return false; }
   virtual Texture *getAlpha() { return nullptr; }
 
+  // Per-material alpha-test threshold. The shadow pass transmits the same
+  // value as the lit pass so cutout shadows match cutout shading.
+  virtual float getAlphaCutoff() const { return 0.8f; }
+
 protected:
   Shader *shader;
 };

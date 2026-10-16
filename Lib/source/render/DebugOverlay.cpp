@@ -391,13 +391,9 @@ void DebugOverlay::draw(int fbWidth, int fbHeight) {
     return;
   ensureGL();
 
-  Shader* shader = nullptr;
-  try {
-    shader = ShaderLibrary::getShader("ss_debugtext");
-  }
-  catch (...) {
-    return;
-  }
+  // A missing overlay shader is a broken install: let
+  // ShaderLibrary::getShader throw instead of swallowing it.
+  Shader* shader = ShaderLibrary::getShader("ss_debugtext");
 
   std::vector<float> verts;
   buildVertices(fbWidth, fbHeight, verts);

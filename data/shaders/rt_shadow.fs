@@ -4,6 +4,7 @@ in vec2 fTexcoord;
 
 uniform sampler2D texAlpha;
 uniform int useAlpha;
+uniform float alphaCutoff;
 
 
 void main()
@@ -11,7 +12,7 @@ void main()
     if(useAlpha == 1)
     {
         float texelAlpha = texture(texAlpha, fTexcoord).r;
-        if(texelAlpha < 0.8) discard;
+        if(texelAlpha < alphaCutoff) discard;
     }
     // Depth is automatically stored
 }

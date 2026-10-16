@@ -1,6 +1,5 @@
 #version 400
 
-in vec3 fPosition;
 in vec2 fTexcoord;
 
 uniform sampler2D texDiffuse;

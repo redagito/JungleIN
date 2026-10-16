@@ -192,10 +192,9 @@ void Window::run() {
 		}
 	}
 	// Dump-on-close: one CSV next to the working dir (same place as log.txt).
-	Profiler::dumpFrameStats("profiling.csv");
+	if (!Profiler::dumpFrameStats("profiling.csv"))
+		loge("Failed to write profiling.csv");
 }
-
-// void Window::timerEvent(QTimerEvent *) { updateGL(); }
 
 void Window::initializeGL() {
 	Profiler::mark("initializeGL start");
@@ -292,7 +291,11 @@ void Window::initializeGL() {
 				glfwSwapBuffers(Window::s_window->window);
 			}
 			catch (const std::exception& e) {
+				// Cannot throw through the GLFW callback: log and shut
+				// down cleanly instead of presenting a half-resized chain.
 				loge("Resize render failed: {}", e.what());
+				glfwSetWindowShouldClose(Window::s_window->window,
+					GLFW_TRUE);
 			}
 		});
 
@@ -460,16 +463,11 @@ std::vector<std::string> Window::overlayStatusLines(bool fxaa, bool flares,
 }
 
 void Window::playBtn(bool /*active*/) {
-	//  if (active)
-	//    musique->play();
-	//  else
-	//    musique->stop();
 }
 
 void Window::reGenerate() {
-	ReloadWindow* test = new ReloadWindow();
-	test->reGenerate();
-	// test->show();
+	ReloadWindow helper;
+	helper.reGenerate();
 }
 
 void Window::onCursorMove(double x, double y)
@@ -624,24 +622,3 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 		}
 	}
 }
-
-//  case Qt::Key_Escape:
-//    Utils::MAIN->showNormal();
-//    break;
-//  case Qt::Key_O:
-//    ((MainWindow *)(Utils::MAIN))->getDock()->isHidden()
-//        ? ((MainWindow *)(Utils::MAIN))->getDock()->show()
-//        : ((MainWindow *)(Utils::MAIN))->getDock()->hide();
-//    break;
-//  default:
-//    break;
-//  }
-//}
-//
-// void Window::mousePressEvent(QMouseEvent *) {
-//  scene->getCurrentCamera()->activeLook(true);
-//}
-//
-// void Window::mouseReleaseEvent(QMouseEvent *) {
-//  scene->getCurrentCamera()->activeLook(false);
-//}

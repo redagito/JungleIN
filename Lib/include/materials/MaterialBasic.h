@@ -16,6 +16,7 @@ public:
 	void setDiffuse(Texture* tex);
 	void setAlpha(Texture* tex);
 	void setAlphaCutoff(float f);
+	float getAlphaCutoff() const override;
 
 	bool hasAlpha() const override;
 

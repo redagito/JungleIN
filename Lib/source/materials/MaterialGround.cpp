@@ -33,10 +33,6 @@ Shader* MaterialGround::bind() {
 	shader->bind();
 	shader->transmitUniform("tileSize", size);
 	shader->transmitUniform("heightRange", heightRange);
-	// No-op until the ground shader declares it; keeps the per-material
-	// alpha-test threshold plumbed like MaterialBasic.
-	if (shader->hasUniform("alphaCutoff"))
-		shader->transmitUniform("alphaCutoff", alphaCutoff);
 
 	moss->bind();
 	earth->bind();

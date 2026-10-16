@@ -63,8 +63,8 @@ void Mesh::initVBO() {
 	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
 	// vertices
-	locVertices = material->getShader()->attribute("position");
-	if (locVertices == static_cast<unsigned int>(-1))
+	locVertices = static_cast<int>(material->getShader()->attribute("position"));
+	if (locVertices < 0)
 		throw std::runtime_error("Mesh::initVBO without position attribute");
 	glGenBuffers(1, &vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, vertices);
@@ -79,7 +79,7 @@ void Mesh::initVBO() {
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 
 	if (hasNormals) {
-		locNormals = material->getShader()->attribute("normal");
+		locNormals = static_cast<int>(material->getShader()->attribute("normal"));
 		glGenBuffers(1, &normals);
 		glBindBuffer(GL_ARRAY_BUFFER, normals);
 		glBufferData(GL_ARRAY_BUFFER, nbV * sizeof(float), 0, GL_STATIC_DRAW);
@@ -94,7 +94,7 @@ void Mesh::initVBO() {
 	}
 
 	if (hasTexCoords) {
-		locTexCoords = material->getShader()->attribute("texcoord");
+		locTexCoords = static_cast<int>(material->getShader()->attribute("texcoord"));
 		glGenBuffers(1, &texcoords);
 		glBindBuffer(GL_ARRAY_BUFFER, texcoords);
 		glBufferData(GL_ARRAY_BUFFER, nbT * sizeof(float), 0, GL_STATIC_DRAW);
@@ -146,6 +146,8 @@ void Mesh::drawWithVBO() {
 
 	if (geometry == nullptr)
 		throw std::runtime_error("Mesh::drawWithVBO without geometry");
+	if (VAO == 0)
+		throw std::runtime_error("Mesh::drawWithVBO without initVBO");
 
 	glBindVertexArray(VAO);
 	glDrawElements(geometry->getPrimitive(), geometry->getIndicesCount(),
@@ -156,6 +158,8 @@ void Mesh::debugDrawWithVBO() {
 
 	if (geometry == nullptr)
 		throw std::runtime_error("Mesh::debugDrawWithVBO without geometry");
+	if (VAO == 0)
+		throw std::runtime_error("Mesh::debugDrawWithVBO without initVBO");
 
 	glBindVertexArray(VAO);
 
@@ -179,15 +183,6 @@ Instance* Mesh::newInstance() {
 
 	return instance;
 }
-
-// void Mesh::removeInstance(int id) {
-//  Instance *instance = instances.at(id);
-//  if (instance == 0)
-//    return;
-//
-//  delete instance;
-//  instances.removeAt(id);
-//}
 
 void Mesh::clearInstances() {
 	for (Instance* i : instances) {

@@ -65,6 +65,8 @@ void MaterialBasic::setAlpha(Texture* tex) {
 
 void MaterialBasic::setAlphaCutoff(float f) { alphaCutoff = f; }
 
+float MaterialBasic::getAlphaCutoff() const { return alphaCutoff; }
+
 bool MaterialBasic::hasAlpha() const { return hAlpha; }
 
 Texture* MaterialBasic::getAlpha() { return alpha; }

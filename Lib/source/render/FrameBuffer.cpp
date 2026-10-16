@@ -3,7 +3,6 @@
 #include <cassert>
 #include <stdexcept>
 #include <string>
-#include "helpers/Logger.h"
 #include <glad/gl.h>
 
 #include "helpers/Utils.h"
@@ -54,8 +53,7 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 
 	int bcount = static_cast<int>(texturesNames.size()); //+ (hasDepth ? 1 : 0);
 	if (bcount <= 0) {
-		logi("Empty framebuffer.");
-		return;
+		throw std::runtime_error("FrameBuffer::init with no targets");
 	}
 	else {
 		size = bcount;

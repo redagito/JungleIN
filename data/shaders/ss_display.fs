@@ -125,6 +125,11 @@ layout (location = 0) out vec4 FragColor;
  *   (display-referred looks) -> gamma.
  * Bloom/godrays/flare thresholds stay scene-referred (Phase 3 owns
  * their retune); only this final mapping changes.
+ * NOTE: both directions use a pure pow(2.2), not the true sRGB transfer
+ * function. The round-trip is self-consistent (decode * encode ~= 1),
+ * but displayed mid-tones deviate slightly from authored sRGB values.
+ * Kept deliberately: exact sRGB costs a branchy transfer per sample
+ * for no visible gain on this content.
  */
 vec3 ACESFilm(vec3 x)
 {

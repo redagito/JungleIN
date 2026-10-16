@@ -53,8 +53,7 @@ void main()
   // Object-space position: stable tiling coordinates for the ground maps.
   fPosition = position;
   fShadowcoord = shadowMatrix * vec4(position, 1.0f);
-  if (cascadeShadow == 1)
-    fShadowcoordCascade = shadowMatrixCascade * vec4(position, 1.0f);
+  fShadowcoordCascade = shadowMatrixCascade * vec4(position, 1.0f);
   // World-space light direction to view space: rotation only.
   fLightDir = viewMatrix * lightDir;
 

@@ -14,6 +14,8 @@ public:
 
   void setHeightRange(float f);
   void setAlphaCutoff(float f);
+  // Inline: MaterialGround.cpp is owned by another worker.
+  float getAlphaCutoff() const override { return alphaCutoff; }
 
 protected:
   float size = 0.f;
