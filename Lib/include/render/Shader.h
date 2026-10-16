@@ -42,6 +42,14 @@ public:
 	bool hasAttribute(std::string name);
 	bool hasUniform(std::string name);
 
+	// Location lookup for hot loops: throws exactly like transmitting
+	// to the uniform (same fail-fast error when unregistered or
+	// optimized out), without transmitting. Resolve once per material
+	// bind and reuse the int with glUniform* in per-instance loops;
+	// string-keyed map lookup per draw showed up hot.
+	// Call only with this program bound (same rule as transmitUniform).
+	int requireLocation(const std::string& key) const;
+
 	void transmitUniform(std::string name, const Texture* tex);
 	void transmitUniform(std::string name, const TextureCube* tex);
 	void transmitUniform(std::string name, int i);
@@ -63,7 +71,7 @@ private:
 
 	// Location lookup that fails fast: an unregistered uniform name is a
 	// wiring bug, and transmitting to location -1 would silently no-op.
-	int requireUniform(const std::string& key);
+	int requireUniform(const std::string& key) const;
 
 	static GLuint s_activeShaderUid;
 	std::string name;

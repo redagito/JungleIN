@@ -148,6 +148,30 @@ TEST_CASE("Shader transmitUniform throws for missing uniforms",
       std::runtime_error);
 }
 
+// Location resolve for hot loops: same fail-fast as transmitting
+// (optimized-out and undeclared both throw), but a live uniform
+// resolves once to a reusable location.
+TEST_CASE("Shader requireLocation resolves live uniforms",
+    "[render][shader][gl]")
+{
+  HiddenGL gl;
+  if (!gl.ok)
+    SKIP("No GL context available for shader uniform fail-fast test");
+
+  Shader dead("ff_unused_loc");
+  dead.load(WriteUnusedUniformShaders(), {"position"}, {"uCutoff"});
+  CHECK_THROWS_AS(dead.requireLocation("uCutoff"), std::runtime_error);
+  CHECK_THROWS_AS(dead.requireLocation("undeclared-xyz"),
+      std::runtime_error);
+
+  const std::string prefix =
+      (std::filesystem::path(JUNGLEIN_DATA_DIR) / "shaders" / "rt_ground_n")
+          .string();
+  Shader live("ff_ground_loc");
+  live.load(prefix, {"position", "normal"}, {"tileSize"});
+  CHECK(live.requireLocation("tileSize") >= 0);
+}
+
 // Item 4: the ground shader has no alpha-tested path, so it must not
 // declare alphaCutoff. Registering the dead name proves the program
 // really lacks the uniform (location -1 -> hasUniform false).

@@ -247,7 +247,7 @@ void Shader::validateIsActive()
 		throw std::runtime_error("Current shader is not active");
 }
 
-int Shader::requireUniform(const std::string& key)
+int Shader::requireUniform(const std::string& key) const
 {
 	auto found = uniforms.find(key);
 	if (found == uniforms.end())
@@ -255,4 +255,8 @@ int Shader::requireUniform(const std::string& key)
 	if (found->second == -1)
 		throw std::runtime_error("Shader '" + name + "' has no uniform '" + key + "'");
 	return found->second;
+}
+
+int Shader::requireLocation(const std::string& key) const {
+	return requireUniform(key);
 }

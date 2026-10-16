@@ -5,6 +5,8 @@
 
 #include <glad/gl.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "helpers/Logger.h"
 #include "helpers/Profiler.h"
 
@@ -13,6 +15,11 @@
 #define MAX_SHADOW_WIDTH 2048
 
 namespace {
+// Inverse-transpose of the upper 3x3 (normal matrix); declared here,
+// defined with the other transmit helpers below, so the per-instance
+// draw loops above can share it.
+glm::mat3 InverseTranspose3x3(const glm::mat4& m);
+
 // Debug-only: after binding a target, the GL viewport must match that
 // target exactly. Catches passes that render with a leftover viewport.
 void AssertViewport(unsigned int width, unsigned int height) {
@@ -421,6 +428,17 @@ void Renderer::drawMeshes() {
 
 		calcMVP();
 		transmitMVP();
+		// Locations resolved once per bind for the instance loop below:
+		// the transmits above already threw for this shader when
+		// something is missing, so the loop can skip both the active
+		// check and the string-keyed lookup. Valid only while this
+		// program stays bound, which the loop guarantees (no binds in
+		// it, draws bind VAOs, never programs).
+		int locMvp = -1;
+		int locNormal = -1;
+		int locMv = -1;
+		int locShadow = -1;
+		int locShadowCascade = -1;
 		if (materialOverride == nullptr) {
 			TransmitShadowState(m_shader, shadowFBO, shadowFBOCascade,
 				useShadowCascade, nullptr);
@@ -429,6 +447,15 @@ void Renderer::drawMeshes() {
 			if (m_shader->hasUniform("lightIntensity"))
 				m_shader->transmitUniform("lightIntensity", m_lightIntensity);
 			m_shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
+
+			locMvp = m_shader->requireLocation("mvp");
+			locNormal = m_shader->requireLocation("normalMatrix");
+			locMv = m_shader->hasUniform("mv") ?
+				m_shader->requireLocation("mv") : -1;
+			locShadow = m_shader->requireLocation("shadowMatrix");
+			if (useShadowCascade)
+				locShadowCascade =
+					m_shader->requireLocation("shadowMatrixCascade");
 		}
 
 		pushMatrix(m->getMatrix());
@@ -453,16 +480,24 @@ void Renderer::drawMeshes() {
 
 			pushMatrix(i->getMatrix());
 			calcMVP();
-			transmitMVP();
+			glUniformMatrix4fv(locMvp, 1, GL_FALSE, glm::value_ptr(m_mvp));
 			if (materialOverride == nullptr) {
-				transmitNormalMatrix();
-				// No transmitViewMatrix here: matrixView is constant for
-				// the whole drawMeshes call and was already transmitted
+				glUniformMatrix3fv(locNormal, 1, GL_FALSE,
+					glm::value_ptr(InverseTranspose3x3(m_mv)));
+				// No view matrix here: matrixView is constant for the
+				// whole drawMeshes call and was already transmitted
 				// to this same shader above. Only per-model state
-				// (mv, shadow matrices) is refreshed per instance.
-				if (m_shader->hasUniform("mv"))
-					m_shader->transmitUniform("mv", m_mv);
-				transmitShadowMatrix();
+				// (normal, mv, shadow matrices) is refreshed per instance.
+				if (locMv != -1)
+					glUniformMatrix4fv(locMv, 1, GL_FALSE,
+						glm::value_ptr(m_mv));
+				glUniformMatrix4fv(locShadow, 1, GL_FALSE,
+					glm::value_ptr(m_sun->getLight()->getTextureProjMatrix(
+						matrixModel)));
+				if (locShadowCascade != -1)
+					glUniformMatrix4fv(locShadowCascade, 1, GL_FALSE,
+						glm::value_ptr(m_sun->getLight()
+							->getTextureProjMatrixCascade(matrixModel)));
 			}
 
 			m->drawWithVBO();
@@ -490,6 +525,10 @@ void Renderer::drawMeshesShadow() {
 
 		transmitMVP();
 
+		// Resolved once per bind for the instance loop below (same
+		// shader, already validated by the transmit above).
+		const int locShadowMvp = m_shader->requireLocation("mvp");
+
 		m->drawWithVBO();
 
 		popMatrix();
@@ -503,7 +542,8 @@ void Renderer::drawMeshesShadow() {
 
 			calcMVP();
 
-			transmitMVP();
+			glUniformMatrix4fv(locShadowMvp, 1, GL_FALSE,
+				glm::value_ptr(m_mvp));
 
 			m->drawWithVBO();
 
