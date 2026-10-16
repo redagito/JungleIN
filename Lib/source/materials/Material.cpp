@@ -8,3 +8,11 @@ Material::Material(std::string shader) {
 Material::Material(Shader *shader) { this->shader = shader; }
 
 Shader *Material::getShader() { return this->shader; }
+
+Shader *Material::bind() { return shader; }
+
+bool Material::hasAlpha() const { return false; }
+
+Texture *Material::getAlpha() { return nullptr; }
+
+float Material::getAlphaCutoff() const { return 0.8f; }

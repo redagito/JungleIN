@@ -1,7 +1,9 @@
 #include "objects/Mesh.h"
 
 #include "helpers/Logger.h"
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <stdexcept>
 
 #include "core/Image.h"
@@ -271,6 +273,38 @@ void Mesh::drawInstanced(size_t count) {
 		geometry->getIndicesCount(), GL_UNSIGNED_INT, 0,
 		static_cast<GLsizei>(count));
 	glBindVertexArray(0);
+}
+
+ModelBox Mesh::boundingBox() {
+	if (!boundingBox_) {
+		if (geometry == nullptr)
+			throw std::runtime_error("Mesh::boundingBox without geometry");
+		ModelBox box;
+		bool empty = true;
+		const float* positions = geometry->getVertices();
+		const int floats = geometry->getVertexFloatCount();
+		for (int i = 0; i + 2 < floats; i += 3) {
+			const glm::vec3 vertex(
+				positions[i], positions[i + 1], positions[i + 2]);
+			if (empty) {
+				box.min = vertex;
+				box.max = vertex;
+				empty = false;
+			}
+			else {
+				box.min.x = std::min(box.min.x, vertex.x);
+				box.min.y = std::min(box.min.y, vertex.y);
+				box.min.z = std::min(box.min.z, vertex.z);
+				box.max.x = std::max(box.max.x, vertex.x);
+				box.max.y = std::max(box.max.y, vertex.y);
+				box.max.z = std::max(box.max.z, vertex.z);
+			}
+		}
+		if (empty)
+			throw std::runtime_error("Mesh::boundingBox without vertices");
+		boundingBox_ = box;
+	}
+	return *boundingBox_;
 }
 
 Geometry* Mesh::getGeometry() { return geometry.get(); }

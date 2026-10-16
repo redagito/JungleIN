@@ -9,6 +9,7 @@
 
 #include "helpers/Logger.h"
 #include "helpers/Profiler.h"
+#include "helpers/Frustum.h"
 
 // Single shadow-map size: quality levels historically selected between
 // two defines that held the same value, so the branch was dead.
@@ -400,26 +401,15 @@ void Renderer::drawGround() {
 	popMatrix();
 }
 
-bool Renderer::cull(Instance* m, float offset) {
-	// Squared-distance threshold in m^2 (~22 m radius for 500), tight on
-	// purpose for 1400+ instances. Compares against squared distance:
-	// passing plain meters here would disable culling almost entirely.
-	// The forward-plane margin is in plain meters.
-	constexpr float kCullDistSq = 500.0f;
-	constexpr float kCullForwardMargin = 20.0f;
-	glm::vec3 meshPos = m->getPosition();
-	glm::vec3 camPos = m_camera->getPosition();
-	glm::vec3 camZ = scene->getCameraZ();
-	glm::vec3 toMesh = meshPos - camPos;
-	return (glm::dot(toMesh, toMesh) > kCullDistSq + offset &&
-		glm::dot(meshPos - (camPos - camZ * kCullForwardMargin), camZ) < 0);
-}
-
 void Renderer::drawMeshes() {
+	// One frustum for the whole pass (camera clip space here): plane
+	// extraction per frame, box test per instance below.
+	const Frustum frustum = Frustum::extract(matrixProj * matrixView);
 	for (Mesh* m : scene->getMeshes()) {
 		m_material = (materialOverride != nullptr) ? materialOverride
 			: m->getMaterial();
 		m_shader = m_material->bind();
+		const ModelBox meshBox = m->boundingBox();
 
 		if (materialOverride != nullptr) {
 			// Diagnostic wireframe (key 0): legacy per-draw path,
@@ -438,7 +428,8 @@ void Renderer::drawMeshes() {
 			popMatrix();
 
 			for (Instance* i : m->getInstances()) {
-				if (cull(i, 250)) {
+				const glm::mat4 world = matrixModel * i->getMatrix();
+				if (CullWorldBox(frustum, world, meshBox)) {
 					continue;
 				}
 
@@ -482,10 +473,11 @@ void Renderer::drawMeshes() {
 		// products, including cull order.
 		instanceStaging_.clear();
 		for (Instance* i : m->getInstances()) {
-			if (cull(i, 250)) {
+			const glm::mat4 world = matrixModel * i->getMatrix();
+			if (CullWorldBox(frustum, world, meshBox)) {
 				continue;
 			}
-			instanceStaging_.push_back(matrixModel * i->getMatrix());
+			instanceStaging_.push_back(world);
 		}
 		// The mesh-level template draw is skipped: zero-scale model
 		// means degenerate triangles, provably zero fragments.
@@ -498,6 +490,10 @@ void Renderer::drawMeshes() {
 }
 
 void Renderer::drawMeshesShadow() {
+	// Light clip space for this cascade pass (set by renderShadow
+	// before each call): instances outside the shadow frustum skip
+	// both shadow maps, not just the far half like the old test.
+	const Frustum frustum = Frustum::extract(matrixProj * matrixView);
 	for (Mesh* m : scene->getMeshes()) {
 		if (!m->castsShadows()) {
 			continue;
@@ -516,12 +512,14 @@ void Renderer::drawMeshesShadow() {
 
 		// matrixModel is the scene base here, same product the old
 		// pushMatrix-per-instance loop computed.
+		const ModelBox meshBox = m->boundingBox();
 		instanceStaging_.clear();
 		for (Instance* i : m->getInstances()) {
-			if (cull(i, 2000)) {
+			const glm::mat4 world = matrixModel * i->getMatrix();
+			if (CullWorldBox(frustum, world, meshBox)) {
 				continue;
 			}
-			instanceStaging_.push_back(matrixModel * i->getMatrix());
+			instanceStaging_.push_back(world);
 		}
 		// The mesh-level template draw is skipped: zero-scale model
 		// means degenerate triangles, provably zero fragments.

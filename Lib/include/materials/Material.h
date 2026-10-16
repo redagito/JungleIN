@@ -12,18 +12,19 @@ class Material {
 public:
   Material(std::string shader);
   Material(Shader *shader);
-  virtual ~Material() {}
+  virtual ~Material() = default;
 
   Shader *getShader();
 
-  virtual Shader *bind() { return shader; }
+  virtual Shader *bind();
 
-  virtual bool hasAlpha() const { return false; }
-  virtual Texture *getAlpha() { return nullptr; }
+  virtual bool hasAlpha() const;
+
+  virtual Texture *getAlpha();
 
   // Per-material alpha-test threshold. The shadow pass transmits the same
   // value as the lit pass so cutout shadows match cutout shading.
-  virtual float getAlphaCutoff() const { return 0.8f; }
+  virtual float getAlphaCutoff() const;
 
 protected:
   Shader *shader;

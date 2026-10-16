@@ -1,7 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <vector>
+
+#include "helpers/Frustum.h"
 
 #include "objects/Object3D.h"
 #include "materials/Material.h"
@@ -70,6 +73,11 @@ public:
   void setInstanceType(unsigned int i);
   unsigned int getInstanceType() const;
 
+  // Model-space bounding box (min/max over the vertices), computed
+  // once and cached: vertex positions never change after load. Throws
+  // without geometry like the other fail-fast entry points.
+  ModelBox boundingBox();
+
   static const unsigned int INSTANCE_NONE;
   static const unsigned int INSTANCE_PALM;
   static const unsigned int INSTANCE_HTREE;
@@ -116,4 +124,6 @@ protected:
 private:
   void initVBOOrThrow();
   void cleanupVBO();
+
+  std::optional<ModelBox> boundingBox_;
 };

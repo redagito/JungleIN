@@ -64,8 +64,6 @@ private:
 	void pushMatrix(const glm::mat4& mat);
 	void popMatrix();
 
-	bool cull(Instance* m, float offset = 0.0);
-
 	void calcMVP();	void transmitShadowMatrix(bool withCascade = true);
 	void transmitMVP();
 	void transmitNormalMatrix();

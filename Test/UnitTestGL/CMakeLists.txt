@@ -28,4 +28,4 @@ target_compile_definitions(UnitTestGL
 # The GL binary runs all its cases in one process, serially: a single
 # ctest entry, so parallel presets cannot interleave hidden GL contexts
 # (concurrent contexts contend on GPU/driver-shared state and flake).
-add_test(NAME GLTests COMMAND UnitTestGL)
+add_test(NAME UnitTestGL COMMAND UnitTestGL)
