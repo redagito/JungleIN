@@ -8,6 +8,7 @@
 #include "objects/Scene.h"
 #include "render/Renderer.h"
 #include "render/LoadingScreen.h"
+#include "render/DebugOverlay.h"
 #include "audio/AudioClip.h"
 #include "audio/AudioEngine.h"
 #include "ui/ReloadWindow.h"
@@ -55,6 +56,8 @@ public:
 	void exAnisotropy(bool active);
 	void exShadowCascade(bool active);
 	void exRenderRatio(int value);
+	void exDebugOverlay(bool active);
+	void exVSync(bool active);
 
 	void playBtn(bool active);
 	void reGenerate();
@@ -72,10 +75,13 @@ private:
 	Scene* scene = nullptr;
 	Renderer* renderer = nullptr;
 	LoadingScreen* loading = nullptr;
+	DebugOverlay* overlay = nullptr;
 	AudioEngine* audio = nullptr;
 	// HDR Phase 3: last exposure bias sent to the composer (keys 7/8
 	// step it multiplicatively from here; composer default is 1.0).
 	float exposureBias = 1.0f;
+	// Swap interval state: vsync on (1) by default, F4 toggles uncapped.
+	bool vsyncOn = true;
 	std::future<AudioClip> pendingClip;
 	bool audioStarted = false;
 };

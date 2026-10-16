@@ -702,4 +702,9 @@ void Renderer::loadShaders() {
 		std::vector<std::string>() << "position",
 		std::vector<std::string>() << "texScene"
 		<< "texBloom");
+
+	ShaderLibrary::addShader("ss_debugtext", "data/shaders/ss_debugtext",
+		std::vector<std::string>() << "position"
+		<< "texcoord",
+		std::vector<std::string>() << "texAtlas");
 }

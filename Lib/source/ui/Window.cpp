@@ -128,6 +128,8 @@ Window::~Window() {
 	audio = nullptr;
 	delete loading;
 	loading = nullptr;
+	delete overlay;
+	overlay = nullptr;
 	delete renderer;
 	renderer = nullptr;
 	delete scene;
@@ -144,6 +146,8 @@ Window::~Window() {
 }
 
 void Window::run() {
+	using clock = std::chrono::steady_clock;
+	auto last = clock::now();
 	while (glfwWindowShouldClose(Utils::window) == 0) {
 		glfwPollEvents();
 
@@ -159,6 +163,20 @@ void Window::run() {
 
 		paintGL();
 
+		// Real frame dt drives the overlay FPS EMA and the profiler ring.
+		const auto now = clock::now();
+		const double dtSeconds =
+			std::chrono::duration<double>(now - last).count();
+		last = now;
+		Profiler::recordFrame(dtSeconds * 1000.0);
+		if (overlay != nullptr) {
+			overlay->update(dtSeconds);
+			int fbWidth = 0;
+			int fbHeight = 0;
+			glfwGetFramebufferSize(Utils::window, &fbWidth, &fbHeight);
+			overlay->draw(fbWidth, fbHeight);
+		}
+
 		glfwSwapBuffers(Utils::window);
 
 		static bool firstFrame = true;
@@ -167,6 +185,8 @@ void Window::run() {
 			Profiler::mark("first frame presented");
 		}
 	}
+	// Dump-on-close: one CSV next to the working dir (same place as log.txt).
+	Profiler::dumpFrameStats("profiling.csv");
 }
 
 // void Window::timerEvent(QTimerEvent *) { updateGL(); }
@@ -305,6 +325,16 @@ void Window::initializeObjects() {
 	renderer->loadShaders();
 	Profiler::mark("shaders loaded");
 
+	// Debug overlay stays hidden until F3; its atlas texture uploads
+	// lazily on the first visible draw. The static key cheat-sheet is
+	// set once: only charset characters render, so keep it plain ASCII.
+	overlay = new DebugOverlay();
+	overlay->setLines({
+		"1/2 FXAA  3/4 Flares",
+		"5/6 AutoExp  7/8 Bias",
+		"F1/F2 Mouse  F3 Overlay  F4 VSync",
+	});
+
 	scene = SceneBuilder::build();
 	Profiler::mark("scene built");
 
@@ -401,6 +431,18 @@ void Window::exShadowCascade(bool active) {
 }
 
 void Window::exRenderRatio(int value) { renderer->setRatio(value / 10.0f); }
+
+void Window::exDebugOverlay(bool active) {
+	if (overlay != nullptr)
+		overlay->setVisible(active);
+}
+
+void Window::exVSync(bool active) {
+	// Swap interval applies to this context on call; uncapped (0) is for
+	// profiling runs, vsync (1) is the default.
+	vsyncOn = active;
+	glfwSwapInterval(active ? 1 : 0);
+}
 
 void Window::playBtn(bool /*active*/) {
 	//  if (active)
@@ -505,6 +547,12 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 		case GLFW_KEY_F2:
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			scene->getCurrentCamera()->activeLook(false);
+			break;
+		case GLFW_KEY_F3:
+			exDebugOverlay(overlay == nullptr || !overlay->isVisible());
+			break;
+		case GLFW_KEY_F4:
+			exVSync(!vsyncOn);
 			break;
 		default:
 			break;
