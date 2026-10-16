@@ -24,12 +24,13 @@ public:
   void setPerspective(float fov, float ratio, float near, float far);
 
   glm::mat4 &getProjection();
+  const glm::mat4 &getProjection() const;
 
   void update(double groundY, double delta = 1.0);
   void reset();
 
   void setTarget(const glm::vec3 &_target);
-  glm::vec3 getTarget();
+  glm::vec3 getTarget() const;
 
   void setMouse(int x, int y);
   void setLookAccel(int x, int y);
@@ -45,8 +46,8 @@ public:
 
   void activeLook(bool);
 
-  float getYaw();
-  float getPitch();
+  float getYaw() const;
+  float getPitch() const;
 
 private:
   glm::mat4 projection;

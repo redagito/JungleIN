@@ -285,8 +285,8 @@ void SceneBuilder::reloadGo(int density, int spacing) {
 
 	ground2->removeRockPos();
 
-	Ground::MAP_MAX = static_cast<float>(spacing);
-	Ground::MAP_MIN = static_cast<float>(-spacing);
+	ground2->setMapBounds(static_cast<float>(-spacing),
+		static_cast<float>(spacing));
 	scene2->setRenderAble(false);
 
 	for (Mesh* mesh : scene2->getMeshes()) {

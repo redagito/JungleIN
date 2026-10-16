@@ -5,7 +5,11 @@
 
 ReloadWindow::ReloadWindow() {
   this->density = SceneBuilder::NB_INSTANCE;
-  this->spacing = static_cast<unsigned int>(Ground::MAP_MAX);
+  // ground2 is null before SceneBuilder::build (e.g. standalone tests):
+  // fall back to the Ground default instead of dereferencing null.
+  this->spacing = SceneBuilder::ground2 != nullptr
+      ? static_cast<unsigned int>(SceneBuilder::ground2->getMapMax())
+      : static_cast<unsigned int>(Ground::kDefaultMapMax);
 }
 
 void ReloadWindow::reGenerate() {

@@ -171,11 +171,15 @@ void Mesh::debugDrawWithVBO() {
 
 Geometry* Mesh::getGeometry() { return geometry; }
 
+const Geometry* Mesh::getGeometry() const { return geometry; }
+
 Material* Mesh::getMaterial() { return material; }
+
+const Material* Mesh::getMaterial() const { return material; }
 
 void Mesh::castsShadows(bool active) { castShadows = active; }
 
-bool Mesh::castsShadows() { return castShadows; }
+bool Mesh::castsShadows() const { return castShadows; }
 
 Instance* Mesh::newInstance() {
 	Instance* instance = new Instance(this, static_cast<int>(instances.size()));
@@ -193,13 +197,17 @@ void Mesh::clearInstances() {
 
 Instance* Mesh::getInstance(int id) { return instances.at(id); }
 
+const Instance* Mesh::getInstance(int id) const { return instances.at(id); }
+
 std::vector<Instance*>& Mesh::getInstances() { return instances; }
 
-float Mesh::getScaleRdn() { return scaleRdn; }
+const std::vector<Instance*>& Mesh::getInstances() const { return instances; }
+
+float Mesh::getScaleRdn() const { return scaleRdn; }
 
 void Mesh::setScaleRdn(float sRdn) { this->scaleRdn = sRdn; }
 
-float Mesh::getHeightRdn() { return this->heightRdn; }
+float Mesh::getHeightRdn() const { return this->heightRdn; }
 
 Mesh::~Mesh() {
 	for (Instance* i : instances) {
@@ -225,14 +233,14 @@ Mesh::~Mesh() {
 
 void Mesh::setPourcentage(float pct) { this->pourcentage = pct; }
 
-float Mesh::getRangeScale() { return rangeScale; }
+float Mesh::getRangeScale() const { return rangeScale; }
 
 void Mesh::setRangeScale(float range) { this->rangeScale = range; }
 
 void Mesh::setInstanceType(unsigned int i) { this->instanceType = i; }
 
-float Mesh::getPourcentage() { return this->pourcentage; }
+float Mesh::getPourcentage() const { return this->pourcentage; }
 
 void Mesh::setHeightRdn(float height) { this->heightRdn = height; }
 
-unsigned int Mesh::getInstanceType() { return this->instanceType; }
+unsigned int Mesh::getInstanceType() const { return this->instanceType; }

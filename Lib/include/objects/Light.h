@@ -17,17 +17,23 @@ public:
 
   void setDirection(const glm::vec3 &direction);
   glm::vec3 &getDirection();
+  const glm::vec3 &getDirection() const;
   void lookAt(const glm::vec3 &target);
 
   glm::vec3 &getIntensity();
+  const glm::vec3 &getIntensity() const;
   void setIntensity(const glm::vec3 &intensity);
 
   glm::vec3 &getPosition();
+  const glm::vec3 &getPosition() const;
   void setPosition(const glm::vec3 &position);
 
   glm::mat4 &getProjMatrix();
+  const glm::mat4 &getProjMatrix() const;
   glm::mat4 &getProjMatrixCascade();
+  const glm::mat4 &getProjMatrixCascade() const;
   glm::mat4 &getViewMatrix();
+  const glm::mat4 &getViewMatrix() const;
   // Ortho-only: bias*ortho*view*model preserves w == 1 (asserted in
   // debug). Shaders rely on this for textureProj; a perspective light
   // would need an explicit divide-by-w instead.

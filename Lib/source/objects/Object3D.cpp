@@ -1,31 +1,18 @@
 #include "objects/Object3D.h"
 
-#include <cmath>
 #include <limits>
 
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 namespace {
-// Euler-to-quaternion with degrees input and the historical half-angle
-// products, then mat4_cast.
+// Euler-to-quat with degrees input: delegate to glm::quat on the
+// radian vector (XYZ euler order). The previous bespoke half-angle
+// products negated the Z rotation; single-axis 90-degree cases are
+// pinned against this reference in TestQuickWins.
 glm::quat EulerToQuat(const glm::vec3 &v) {
-  constexpr float kDegToHalfRad =
-      3.14159265358979323846f / 360.0f;
-  const float ex = v.x * kDegToHalfRad;
-  const float ey = v.y * kDegToHalfRad;
-  const float ez = v.z * kDegToHalfRad;
-  const float c1 = std::cos(ey);
-  const float s1 = std::sin(ey);
-  const float c2 = std::cos(-ez);
-  const float s2 = std::sin(-ez);
-  const float c3 = std::cos(ex);
-  const float s3 = std::sin(ex);
-  const float c1c2 = c1 * c2;
-  const float s1s2 = s1 * s2;
-  return glm::quat(c1c2 * c3 - s1s2 * s3, c1c2 * s3 + s1s2 * c3,
-                   s1 * c2 * c3 + c1 * s2 * s3,
-                   c1 * s2 * c3 - s1 * c2 * s3);
+  return glm::quat(glm::radians(v));
 }
 } // namespace
 
@@ -53,7 +40,7 @@ void Object3D::setScale(const glm::vec3 &v) {
   this->needUpdate = true;
 }
 
-void Object3D::updateMatrix() {
+void Object3D::updateMatrix() const {
   // Model is T * R * S.
   this->matrix = glm::translate(glm::mat4(1.0f), this->position) *
                  glm::mat4_cast(EulerToQuat(this->rotation)) *
@@ -125,9 +112,16 @@ void Object3D::translateRelY(float s) { translateRel(s, glm::vec3(0, 1, 0)); }
 void Object3D::translateRelZ(float s) { translateRel(s, glm::vec3(0, 0, 1)); }
 
 glm::mat4 &Object3D::getMatrix() {
+  return const_cast<glm::mat4 &>(
+      static_cast<const Object3D &>(*this).getMatrix());
+}
+
+const glm::mat4 &Object3D::getMatrix() const {
   if (needUpdate)
     updateMatrix();
   return this->matrix;
 }
 
 glm::vec3 &Object3D::getPosition() { return position; }
+
+const glm::vec3 &Object3D::getPosition() const { return position; }

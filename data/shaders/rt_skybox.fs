@@ -12,6 +12,10 @@ layout (location = 1) out vec4 FragThreshold;
 // where distant fogged ground meets the sky. Zenith keeps the cubemap.
 // sRGB inputs are linearized (display gamma-encodes once); the authored
 // color is stored linear so the horizon displays as designed.
+// Horizon seam note: the blend exponent (8.0) and the full-fog
+// below-horizon (dir.y < 0.0) are eye-tuned against the ground fog in
+// rt_ground_n.fs (same values adopted in rt_basic.fs). Retune here if
+// FOG_COLOR/FOG_DENSITY change there.
 const vec3 FOG_COLOR = pow(vec3(0.796,0.918,0.949)*0.8, vec3(2.2));
 
 vec3 srgbToLinear(vec3 c) { return pow(c, vec3(2.2)); }

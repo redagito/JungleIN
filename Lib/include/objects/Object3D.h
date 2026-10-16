@@ -15,7 +15,8 @@ public:
   void setRotation(const glm::vec3 &);
   void setPosition(const glm::vec3 &);
   void setScale(const glm::vec3 &);
-  void updateMatrix();
+  // Logically const: only refreshes the mutable matrix cache.
+  void updateMatrix() const;
 
   void rotate(const glm::vec3 &);
   void rotateX(float);
@@ -31,14 +32,17 @@ public:
   void translateRelZ(float);
 
   glm::mat4 &getMatrix();
+  const glm::mat4 &getMatrix() const;
   glm::vec3 &getPosition();
+  const glm::vec3 &getPosition() const;
 
 protected:
-  glm::mat4 matrix;
+  // Mutable cache: getMatrix refreshes it even on const objects.
+  mutable glm::mat4 matrix;
   glm::vec3 rotation;
   glm::vec3 position;
   glm::vec3 scale;
 
-  bool needUpdate = false;
+  mutable bool needUpdate = false;
   bool visible = false;
 };

@@ -24,26 +24,30 @@ public:
   void debugDrawWithVBO();
 
   Geometry *getGeometry();
+  const Geometry *getGeometry() const;
   Material *getMaterial();
+  const Material *getMaterial() const;
 
   void castsShadows(bool active);
-  bool castsShadows();
+  bool castsShadows() const;
 
   Instance *newInstance();
   void clearInstances();
   Instance *getInstance(int id);
+  const Instance *getInstance(int id) const;
   std::vector<Instance *> &getInstances();
-  float getScaleRdn();
+  const std::vector<Instance *> &getInstances() const;
+  float getScaleRdn() const;
   void setScaleRdn(float sRdn);
-  float getHeightRdn();
+  float getHeightRdn() const;
   void setHeightRdn(float height);
-  float getPourcentage();
+  float getPourcentage() const;
   void setPourcentage(float pct);
-  float getRangeScale();
+  float getRangeScale() const;
   void setRangeScale(float range);
 
   void setInstanceType(unsigned int i);
-  unsigned int getInstanceType();
+  unsigned int getInstanceType() const;
 
   static const unsigned int INSTANCE_NONE;
   static const unsigned int INSTANCE_PALM;

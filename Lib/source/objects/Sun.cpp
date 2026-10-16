@@ -15,6 +15,11 @@ constexpr double kPi = 3.14159265358979323846;
 #define SUN_YAW_END kPi + SUN_YAW_OFFSET
 
 namespace {
+// Sun light level, tuned below unity: at 1.0 the direct sun outranges
+// ambient/fog by ~200x in shade views, forcing the auto-exposure to
+// its ceiling and clipping sky and sunlit leaves.
+constexpr float kSunIntensity = 0.7f;
+
 // Zero-length maps to zero, never NaN.
 glm::vec3 safeNormalize(const glm::vec3 &v) {
   float len = glm::length(v);
@@ -30,9 +35,10 @@ Sun::Sun(MaterialSun *mat) : Mesh() {
   light = new Light();
   // Tuned below unity: at 1.0 the direct sun outranges ambient/fog by
   // ~200x in shade views, forcing the auto-exposure to its ceiling and
-  // clipping sky and sunlit leaves. 0.7 keeps sunlit hierarchy without
-  // the blowout; revisit with the exposure log if shade goes too dark.
-  light->setIntensity(glm::vec3(0.7f));
+  // clipping sky and sunlit leaves. kSunIntensity keeps sunlit
+  // hierarchy without the blowout; revisit with the exposure log if
+  // shade goes too dark.
+  light->setIntensity(glm::vec3(kSunIntensity));
   lightDistance = 150.0;
   lightTargetOffset = 13;
   sunDistance = 6.0;

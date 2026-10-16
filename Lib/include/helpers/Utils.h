@@ -26,6 +26,10 @@ public:
 
 	static double TARGET_FPS;
 
+	// Design note: a non-positive clock sample (same-tick or backward
+	// clock) is dropped, so the reported rate freezes instead of
+	// spiking or dividing by zero. The freeze clears once 30 fresh
+	// positive samples refill the window.
 	static double calculFPS();
 
 	static double random(double min, double max);

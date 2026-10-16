@@ -1,6 +1,5 @@
 #pragma once
 
-#include "render/Renderer.h"
 #include "objects/Scene.h"
 #include "objects/Ground.h"
 #include "helpers/ObjLoader.h"

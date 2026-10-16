@@ -6,6 +6,16 @@
 
 #define DEG_TO_RAD 3.141592653 / 180.0
 
+namespace {
+// Camera feel tuning: mouse-look gain, walk speed (doubled while
+// sprinting, co-tuned with Utils::movementDelta), eye height above the
+// terrain, and the E/Q fly-offset ceiling.
+constexpr float kLookSpeed = 0.5f;
+constexpr float kMoveSpeed = 200.0f;
+constexpr float kEyeHeight = 2.2f;
+constexpr float kMaxHeightOffset = 200.0f;
+} // namespace
+
 Camera::Camera() : Object3D() {
 	leftKey = false;
 	rightKey = false;
@@ -15,12 +25,12 @@ Camera::Camera() : Object3D() {
 	setPerspective(kDefaultFov, 1.33f, kDefaultNear, kDefaultFar);
 	target = glm::vec3(0.0f);
 
-	lookSpeed = 0.5f;
-	moveSpeed = 200.f;
+	lookSpeed = kLookSpeed;
+	moveSpeed = kMoveSpeed;
 
 	look = false;
 
-	height = 2.2f;
+	height = kEyeHeight;
 }
 
 void Camera::reset() {
@@ -48,6 +58,8 @@ void Camera::setPerspective(float fov, float ratio, float near, float far) {
 }
 
 glm::mat4& Camera::getProjection() { return projection; }
+
+const glm::mat4& Camera::getProjection() const { return projection; }
 
 void Camera::setLeftKey(bool a) { leftKey = a; }
 
@@ -121,7 +133,7 @@ void Camera::update(double groundY, double delta) {
 	if (eKey)
 	{
 		heightOffset += static_cast<float>(moveSpeed * delta);
-		if (heightOffset > 200.f) heightOffset = 200.f;
+		if (heightOffset > kMaxHeightOffset) heightOffset = kMaxHeightOffset;
 	}
 
 	if (qKey)
@@ -143,7 +155,7 @@ void Camera::setTarget(const glm::vec3& _target) {
 	target = _target;
 }
 
-glm::vec3 Camera::getTarget() { return target; }
+glm::vec3 Camera::getTarget() const { return target; }
 
 void Camera::setMouse(int x, int y) {
 	mouseXold = mouseX;
@@ -161,8 +173,8 @@ void Camera::setLookAccel(int x, int y) {
 
 void Camera::activeLook(bool active) { look = active; }
 
-float Camera::getYaw() { return static_cast<float>(yaw * DEG_TO_RAD); }
+float Camera::getYaw() const { return static_cast<float>(yaw * DEG_TO_RAD); }
 
-float Camera::getPitch() { return static_cast<float>(pitch * DEG_TO_RAD); }
+float Camera::getPitch() const { return static_cast<float>(pitch * DEG_TO_RAD); }
 
 void Camera::setPositionY(float y) { this->position.y = y; }

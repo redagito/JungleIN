@@ -18,6 +18,8 @@ private:
 	glm::vec3* faceNormals;
 	Path* path;
 	std::vector<glm::vec3> rockPos;
+	float mapMin = -120.0f;
+	float mapMax = 120.0f;
 
 public:
 	Ground(std::string filePath, MaterialGround* mat);
@@ -39,11 +41,19 @@ public:
 		float x, float z);
 	std::optional<glm::vec3> randomMapPos(double height = 0, bool isRock = false);
 	bool containInBoundingBox(double x, double z);
+	// Instance map bounds (replaces the old mutable MAP_MIN/MAX statics):
+	// randomMapPos samples inside them and Path::validate maps them onto
+	// the mask. reloadGo retunes them for a new spacing.
+	void setMapBounds(float minV, float maxV);
+	float getMapMin() const;
+	float getMapMax() const;
 	std::vector<glm::vec3> getRockPos();
 	void removeRockPos();
 
 	static const float MAP_SIZE;
-	static float MAP_MIN;
-	static float MAP_MAX;
 	static const float MAX_HEIGHT;
+	// Default instance bounds (also the member initializers above):
+	// the pre-build fallback when no Ground exists yet.
+	static constexpr float kDefaultMapMin = -120.0f;
+	static constexpr float kDefaultMapMax = 120.0f;
 };

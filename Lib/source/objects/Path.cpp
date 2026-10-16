@@ -1,5 +1,4 @@
 #include "objects/Path.h"
-#include "objects/Ground.h"
 
 #include "helpers/Logger.h"
 
@@ -13,9 +12,9 @@ Path::Path(std::string file) {
 }
 
 // compute if the position x, z is contained in the path.
-bool Path::validate(double x, double z) const {
-	float range = Ground::MAP_MAX - Ground::MAP_MIN;
-	const float offset = -Ground::MAP_MIN;
+bool Path::validate(double x, double z, double mapMin, double mapMax) const {
+	float range = static_cast<float>(mapMax - mapMin);
+	const float offset = static_cast<float>(-mapMin);
 	float xr = static_cast<float>((x + offset) / range);
 	float yr = static_cast<float>((z + offset) / range);
 	// Pixel indices: truncating a non-negative ratio is exact flooring;

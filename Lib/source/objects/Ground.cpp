@@ -6,6 +6,11 @@
 #include <stdexcept>
 
 namespace {
+// Radial pooling of the heightmap rim (bowl falloff scale) and the
+// squared rock-exclusion radius behind containInBoundingBox.
+constexpr double kPoolIntensity = 20.0;
+constexpr double kRockExclusionRadiusSq = 40.0;
+
 // Zero-length vectors normalize to zero (no NaN); glm does not.
 glm::vec3 safeNormalize(const glm::vec3 &v) {
 	float len = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
@@ -17,8 +22,6 @@ glm::vec3 safeNormalize(const glm::vec3 &v) {
 
 // const used to define the ground's coordinates
 const float Ground::MAP_SIZE = 900.0;
-float Ground::MAP_MIN = -120.0;
-float Ground::MAP_MAX = 120.0;
 const float Ground::MAX_HEIGHT = 10.0;
 
 Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
@@ -52,7 +55,7 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 		new float[(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6];
 
 	double poolEffect = 0.0;
-	double poolIntensity = 20.0;
+	double poolIntensity = kPoolIntensity;
 	double centerx = this->numberVerticesX / 2.0;
 	double centery = this->numberVerticesZ / 2.0;
 	double curx, cury;
@@ -310,9 +313,9 @@ float Ground::getYApprox(float x, float z, float prevY) {
 
 std::optional<glm::vec3> Ground::randomMapPos(double height, bool isRock) {
 	for (int samples = 0; samples < 20; ++samples) {
-		const double x = Utils::random(MAP_MIN, MAP_MAX);
-		const double z = Utils::random(MAP_MIN, MAP_MAX);
-		if (!this->path->validate(x, z))
+		const double x = Utils::random(mapMin, mapMax);
+		const double z = Utils::random(mapMin, mapMax);
+		if (!this->path->validate(x, z, mapMin, mapMax))
 			continue;
 		if (!isRock && this->containInBoundingBox(x, z))
 			continue;
@@ -332,7 +335,7 @@ std::optional<glm::vec3> Ground::randomMapPos(double height, bool isRock) {
 bool Ground::containInBoundingBox(double x, double z) {
 
 	for (const glm::vec3& rock : this->rockPos) {
-		if ((rock.x - x) * (rock.x - x) + (rock.z - z) * (rock.z - z) < 40) {
+		if ((rock.x - x) * (rock.x - x) + (rock.z - z) * (rock.z - z) < kRockExclusionRadiusSq) {
 			return true;
 		}
 	}
@@ -345,6 +348,15 @@ std::vector<glm::vec3> Ground::getRockPos() { return this->rockPos; }
 void Ground::removeRockPos() {
 	rockPos.clear();
 }
+
+void Ground::setMapBounds(float minV, float maxV) {
+	mapMin = minV;
+	mapMax = maxV;
+}
+
+float Ground::getMapMin() const { return mapMin; }
+
+float Ground::getMapMax() const { return mapMax; }
 
 Ground::~Ground()
 {

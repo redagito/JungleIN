@@ -68,6 +68,8 @@ void Light::setDirection(const glm::vec3 &v) {
 
 glm::vec3 &Light::getDirection() { return direction; }
 
+const glm::vec3 &Light::getDirection() const { return direction; }
+
 void Light::lookAt(const glm::vec3 &target) {
   // Degenerate target: throw before mutating any state. The old code
   // zeroed the direction and silently kept the previous viewMatrix.
@@ -87,11 +89,15 @@ void Light::lookAt(const glm::vec3 &target) {
 
 glm::vec3 &Light::getIntensity() { return intensity; }
 
+const glm::vec3 &Light::getIntensity() const { return intensity; }
+
 void Light::setIntensity(const glm::vec3 &v) {
   this->intensity = v;
 }
 
 glm::vec3 &Light::getPosition() { return position; }
+
+const glm::vec3 &Light::getPosition() const { return position; }
 
 void Light::setPosition(const glm::vec3 &v) {
   this->position = v;
@@ -99,9 +105,17 @@ void Light::setPosition(const glm::vec3 &v) {
 
 glm::mat4 &Light::getProjMatrix() { return projMatrix; }
 
+const glm::mat4 &Light::getProjMatrix() const { return projMatrix; }
+
 glm::mat4 &Light::getProjMatrixCascade() { return projMatrixCascade; }
 
+const glm::mat4 &Light::getProjMatrixCascade() const {
+  return projMatrixCascade;
+}
+
 glm::mat4 &Light::getViewMatrix() { return viewMatrix; }
+
+const glm::mat4 &Light::getViewMatrix() const { return viewMatrix; }
 
 glm::mat4 &Light::getTextureProjMatrix(const glm::mat4 &modelMatrix) {
   textureProjMatrix = biasMatrix * projMatrix * viewMatrix * modelMatrix;

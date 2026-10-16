@@ -9,7 +9,7 @@
 using TestFiles::WriteBMP;
 
 // Path masks follow the historical QImage top-left origin: pixel row 0
-// is the top row of the file. validate() maps z=MAP_MIN to row 0.
+// is the top row of the file. validate() maps the min bound to row 0.
 TEST_CASE("Path mask orientation", "[objects][path]")
 {
   // 2x2 mask: top row black (walkable), bottom row white (blocked).
@@ -21,9 +21,9 @@ TEST_CASE("Path mask orientation", "[objects][path]")
 
   const Path path(file.string());
   // (-60,-60) samples pixel (0,0): black -> walkable.
-  CHECK(path.validate(-60.0, -60.0));
+  CHECK(path.validate(-60.0, -60.0, -120.0, 120.0));
   // (-60,60) samples pixel (0,1): white -> blocked.
-  CHECK_FALSE(path.validate(-60.0, 60.0));
+  CHECK_FALSE(path.validate(-60.0, 60.0, -120.0, 120.0));
 
   std::filesystem::remove(file);
 }
