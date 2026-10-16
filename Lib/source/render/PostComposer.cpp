@@ -2,6 +2,7 @@
 
 #include "render/ShaderLibrary.h"
 #include "helpers/Logger.h"
+#include "helpers/Profiler.h"
 #include "helpers/Utils.h"
 
 #include <algorithm>
@@ -142,23 +143,42 @@ void PostComposer::swapHalfBuffers() {
 }
 
 void PostComposer::render(float dtSeconds, bool effectsEnabled) {
-	compose();
-	updateAutoExposure(dtSeconds);
-
-	if (effectsEnabled) {
-		if (doFXAA)
-			passFXAA();
-		if (doBloom)
-			passBloom();
-		if (doLenseFlares)
-			passLenseFlare();
-		if (doGodrays)
-			passGodrays();
-		if (doDistord)
-			passDistortion();
+	{
+		Profiler::Scope scope("post.compose");
+		compose();
+	}
+	{
+		Profiler::Scope scope("post.autoexposure");
+		updateAutoExposure(dtSeconds);
 	}
 
-	display();
+	if (effectsEnabled) {
+		if (doFXAA) {
+			Profiler::Scope scope("post.fxaa");
+			passFXAA();
+		}
+		if (doBloom) {
+			Profiler::Scope scope("post.bloom");
+			passBloom();
+		}
+		if (doLenseFlares) {
+			Profiler::Scope scope("post.flare");
+			passLenseFlare();
+		}
+		if (doGodrays) {
+			Profiler::Scope scope("post.godrays");
+			passGodrays();
+		}
+		if (doDistord) {
+			Profiler::Scope scope("post.distortion");
+			passDistortion();
+		}
+	}
+
+	{
+		Profiler::Scope scope("post.display");
+		display();
+	}
 }
 
 void PostComposer::compose() {

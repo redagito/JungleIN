@@ -83,6 +83,113 @@ TEST_CASE("Profiler ring cap drops oldest samples", "[util][profiler]") {
   std::filesystem::remove(path);
 }
 
+// Sections: per-pass timings accumulate in bounded rings and report
+// sorted by total time descending, so the biggest loser is first.
+// Pure CPU, no GL, no logging.
+TEST_CASE("Profiler sections sort by total time", "[util][profiler]") {
+  Profiler::clearSections();
+  Profiler::recordSection("shadow", 3.0);
+  Profiler::recordSection("shadow", 5.0);
+  Profiler::recordSection("meshes", 10.0);
+
+  const auto stats = Profiler::sectionStats();
+  REQUIRE(stats.size() == 2);
+  // meshes total 10.0 beats shadow total 8.0.
+  CHECK(stats[0].name == "meshes");
+  CHECK(stats[0].count == 1);
+  CHECK(stats[0].total == Catch::Approx(10.0).margin(1e-9));
+  CHECK(stats[0].mean == Catch::Approx(10.0).margin(1e-9));
+  CHECK(stats[0].max == Catch::Approx(10.0).margin(1e-9));
+  CHECK(stats[1].name == "shadow");
+  CHECK(stats[1].count == 2);
+  CHECK(stats[1].total == Catch::Approx(8.0).margin(1e-9));
+  CHECK(stats[1].mean == Catch::Approx(4.0).margin(1e-9));
+  CHECK(stats[1].max == Catch::Approx(5.0).margin(1e-9));
+  Profiler::clearSections();
+  CHECK(Profiler::sectionStats().empty());
+}
+
+// Running aggregates stay in sync with the ring across eviction: the
+// reported means must reflect the last kMaxSectionSamples only, not the
+// session lifetime (observer cost stays O(1) per frame either way).
+TEST_CASE("Profiler section aggregates follow eviction", "[util][profiler]") {
+  Profiler::clearSections();
+  for (std::size_t i = 0; i < Profiler::kMaxSectionSamples; ++i)
+    Profiler::recordSection("shadow", 1.0);
+  for (int i = 0; i < 100; ++i)
+    Profiler::recordSection("shadow", 3.0);
+  const auto stats = Profiler::sectionStats();
+  REQUIRE(stats.size() == 1);
+  CHECK(stats[0].count == Profiler::kMaxSectionSamples);
+  CHECK(stats[0].total == Catch::Approx(500.0 * 1.0 + 100.0 * 3.0).margin(1e-6));
+  CHECK(stats[0].mean == Catch::Approx(800.0 / 600.0).margin(1e-9));
+  CHECK(stats[0].max == Catch::Approx(3.0).margin(1e-9));
+  Profiler::clearSections();
+}
+
+TEST_CASE("Profiler section max resets after eviction", "[util][profiler]") {
+  Profiler::clearSections();
+  Profiler::recordSection("shadow", 50.0);
+  for (std::size_t i = 0; i < Profiler::kMaxSectionSamples; ++i)
+    Profiler::recordSection("shadow", 1.0);
+  const auto stats = Profiler::sectionStats();
+  REQUIRE(stats.size() == 1);
+  CHECK(stats[0].count == Profiler::kMaxSectionSamples);
+  CHECK(stats[0].max == Catch::Approx(1.0).margin(1e-9));
+  CHECK(stats[0].total == Catch::Approx(600.0).margin(1e-6));
+  Profiler::clearSections();
+}
+
+// Section rings are bounded: old samples drop out, so per-frame stats
+// cost stays flat no matter how long the session runs.
+TEST_CASE("Profiler section rings drop oldest samples", "[util][profiler]") {
+  Profiler::clearSections();
+  const std::size_t over = Profiler::kMaxSectionSamples + 100;
+  for (std::size_t i = 0; i < over; ++i)
+    Profiler::recordSection("shadow", 2.0);
+  const auto stats = Profiler::sectionStats();
+  REQUIRE(stats.size() == 1);
+  CHECK(stats[0].count == Profiler::kMaxSectionSamples);
+  CHECK(stats[0].total ==
+    Catch::Approx(2.0 * Profiler::kMaxSectionSamples).margin(1e-6));
+  Profiler::clearSections();
+}
+
+TEST_CASE("Profiler Scope records elapsed time", "[util][profiler]") {
+  Profiler::clearSections();
+  {
+    const Profiler::Scope scope("update");
+    CHECK(Profiler::sectionStats().empty());
+  }
+  const auto stats = Profiler::sectionStats();
+  REQUIRE(stats.size() == 1);
+  CHECK(stats[0].name == "update");
+  CHECK(stats[0].count == 1);
+  CHECK(stats[0].total >= 0.0);
+  Profiler::clearSections();
+}
+
+TEST_CASE("Profiler section dump file format", "[util][profiler]") {
+  Profiler::clearSections();
+  Profiler::recordSection("shadow", 3.0);
+  Profiler::recordSection("meshes", 10.0);
+
+  const auto path = ScratchPath("junglein_profiler_sections.csv");
+  REQUIRE(Profiler::dumpSectionStats(path.string()));
+  const std::string body = ReadFile(path);
+
+  // One section= line per section, biggest total first, trailing newline.
+  CHECK(body.rfind("section,", 0) == 0);
+  REQUIRE(!body.empty());
+  CHECK(body.back() == '\n');
+  CHECK(body.find("name=meshes") != std::string::npos);
+  CHECK(body.find("name=shadow") != std::string::npos);
+  CHECK(body.find("name=meshes") < body.find("name=shadow"));
+  CHECK(body.find("total=") != std::string::npos);
+  Profiler::clearSections();
+  std::filesystem::remove(path);
+}
+
 // Dump format: one summary line carrying every required aggregate
 // token, and nothing else (no per-sample data).
 TEST_CASE("Profiler dump file format", "[util][profiler]") {

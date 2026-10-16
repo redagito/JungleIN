@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iomanip>
 #include <mutex>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "helpers/Logger.h"
@@ -21,6 +23,31 @@ std::mutex& ProfilerMutex() {
 std::deque<double>& FrameSamples() {
   static std::deque<double> samples;
   return samples;
+}
+
+// Running aggregates per section: sectionStats must stay O(sections),
+// never O(samples). Scanning rings per frame would charge the measured
+// overlay scope for observer work that grows while rings fill.
+struct SectionRing {
+  std::deque<double> samples;
+  double total = 0.0;
+  double max = 0.0;
+};
+
+std::unordered_map<std::string, SectionRing>& SectionRings() {
+  static std::unordered_map<std::string, SectionRing> rings;
+  return rings;
+}
+
+double RingMax(const std::deque<double>& samples) {
+  double max = 0.0;
+  for (double v : samples) {
+    if (!std::isfinite(v))
+      continue;
+    if (v > max)
+      max = v;
+  }
+  return max;
 }
 
 // Nearest-rank percentile over ascending sorted data (rank = ceil(q*n)).
@@ -111,4 +138,96 @@ std::size_t Profiler::frameCount() {
 void Profiler::clearFrames() {
   std::lock_guard<std::mutex> lock(ProfilerMutex());
   FrameSamples().clear();
+}
+
+void Profiler::recordSection(const char* name, double ms) {
+  if (name == nullptr)
+    return;
+  std::lock_guard<std::mutex> lock(ProfilerMutex());
+  auto& rings = SectionRings();
+  auto found = rings.find(name);
+  if (found == rings.end()) {
+    if (rings.size() >= kMaxSections)
+      return;
+    found = rings.emplace(name, SectionRing()).first;
+  }
+  SectionRing& ring = found->second;
+  if (std::isfinite(ms)) {
+    ring.total += ms;
+    if (ms > ring.max)
+      ring.max = ms;
+  }
+  ring.samples.push_back(ms);
+  while (ring.samples.size() > kMaxSectionSamples) {
+    const double evicted = ring.samples.front();
+    ring.samples.pop_front();
+    // Keep the running aggregates exactly in sync with the ring:
+    // otherwise the reported means would drift as sessions run long.
+    if (std::isfinite(evicted)) {
+      ring.total -= evicted;
+      if (evicted >= ring.max)
+        ring.max = RingMax(ring.samples);
+    }
+  }
+}
+
+std::vector<Profiler::SectionStats> Profiler::sectionStats() {
+  // Zero-copy read of running aggregates under one lock hold: the caller
+  // is often the per-frame overlay itself, so any per-sample work here
+  // would charge the measured scope for its own observer overhead.
+  std::lock_guard<std::mutex> lock(ProfilerMutex());
+  const auto& rings = SectionRings();
+  std::vector<SectionStats> stats;
+  stats.reserve(rings.size());
+  for (const auto& entry : rings) {
+    const SectionRing& ring = entry.second;
+    if (ring.samples.empty())
+      continue;
+    SectionStats s;
+    s.name = entry.first;
+    s.count = ring.samples.size();
+    s.total = ring.total;
+    s.max = ring.max;
+    s.mean = s.total / static_cast<double>(s.count);
+    stats.push_back(std::move(s));
+  }
+  std::sort(stats.begin(), stats.end(),
+    [](const SectionStats& a, const SectionStats& b) {
+      return a.total > b.total;
+    });
+  return stats;
+}
+
+void Profiler::clearSections() {
+  std::lock_guard<std::mutex> lock(ProfilerMutex());
+  SectionRings().clear();
+}
+
+bool Profiler::dumpSectionStats(const std::string& path) {
+  const std::vector<SectionStats> stats = sectionStats();
+  std::ofstream out(path, std::ios::out | std::ios::trunc);
+  if (!out.good())
+    return false;
+  out << std::setprecision(6) << std::fixed;
+  for (const SectionStats& s : stats) {
+    out << "section,name=" << s.name
+      << ",count=" << s.count
+      << ",mean=" << s.mean
+      << ",max=" << s.max
+      << ",total=" << s.total << "\n";
+  }
+  out.flush();
+  return static_cast<bool>(out);
+}
+
+Profiler::Scope::Scope(const char* name)
+  : name_(name), start_(std::chrono::steady_clock::now()) {
+}
+
+Profiler::Scope::~Scope() {
+  using namespace std::chrono;
+  const double ms =
+    duration_cast<duration<double, std::milli>>(steady_clock::now() - start_)
+      .count();
+  recordSection(name_, ms);
 }

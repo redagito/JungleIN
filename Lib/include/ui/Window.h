@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include "helpers/Utils.h"
+#include "helpers/Profiler.h"
 #include "helpers/SceneBuilder.h"
 #include "objects/Scene.h"
 #include "render/Renderer.h"
@@ -62,10 +63,16 @@ public:
 	// Shows live toggle states plus the measurement readout (camera
 	// position, view-ray ground distance, --- when no hit); movement
 	// keys are deliberately excluded.
-	static std::vector<std::string> overlayStatusLines(bool fxaa,
-		bool flares, bool autoExp, float bias, bool vsync, bool godrays,
-		bool bloom, bool distord, bool shadows, bool wireframe, float camX,
-		float camY, float camZ, float lookDist, bool lookValid);
+  static std::vector<std::string> overlayStatusLines(bool fxaa,
+    bool flares, bool autoExp, float bias, bool vsync, bool godrays,
+    bool bloom, bool distord, bool shadows, bool wireframe, float camX,
+    float camY, float camZ, float lookDist, bool lookValid);
+
+  // Profile line builder for the overlay (unit-tested): the topN
+  // hottest sections with their mean ms, hottest first, five entries
+  // per line. Empty stats produce no lines. Pure formatting.
+  static std::vector<std::string> overlayProfileLines(
+    const std::vector<Profiler::SectionStats>& stats, std::size_t topN);
 
 	// Pure input policy, unit-tested: releasing the left button ends
 	// hold-to-look, but must not kill F1-captured look (cursor disabled).

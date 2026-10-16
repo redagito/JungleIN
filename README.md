@@ -65,6 +65,13 @@ Debug - F3 (FPS overlay), F4 (uncapped FPS), R (regenerate vegetation),
 
 Quit - Escape
 
+## Profiling
+
+No per-frame logging: the F3 overlay shows mean ms of the hottest
+passes (`render.*`, `post.*`, `frame.swap`), and on exit the app writes
+`profiling.csv` (frame totals) plus `profiling_sections.csv`
+(per-pass mean/max/total, hottest first).
+
 ## Renderer
 
 Linear HDR pipeline: lit shaders work in linear (sRGB inputs decoded

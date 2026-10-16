@@ -1,6 +1,7 @@
 #include "render/DebugOverlay.h"
 
 #include <cstdio>
+#include <array>
 #include <fstream>
 #include <mutex>
 #include <stdexcept>
@@ -186,6 +187,54 @@ const GlyphRaster& GetRaster() {
   return raster;
 }
 
+// O(1) charset index: buildVertices resolves every visible character
+// every frame, and the old linear scan made that quadratic in disguise.
+// Results match DebugOverlay::glyphIndex exactly (same table order).
+const std::array<int, 128>& GlyphLut() {
+  static const std::array<int, 128> lut = [] {
+    std::array<int, 128> table;
+    table.fill(-1);
+    for (int i = 0; DebugOverlay::kCharset[i] != '\0'; ++i)
+      table[static_cast<unsigned char>(DebugOverlay::kCharset[i])] = i;
+    return table;
+  }();
+  return lut;
+}
+
+int GlyphLutIndex(char c) {
+  const unsigned char u = static_cast<unsigned char>(c);
+  return u < 128 ? GlyphLut()[u] : -1;
+}
+
+// Per-glyph ink presence, computed once from the cached raster: lets
+// buildVertices skip the full-cell blank scan per character per frame.
+const std::vector<char>& GlyphHasInk() {
+  static const std::vector<char> hasInk = [] {
+    const GlyphRaster& raster = GetRaster();
+    const int count = DebugOverlay::glyphCount();
+    const int atlasW = count * DebugOverlay::kGlyphW;
+    std::vector<char> flags(static_cast<size_t>(count), 0);
+    for (int g = 0; g < count; ++g) {
+      bool ink = false;
+      for (int y = 0; y < DebugOverlay::kGlyphH && !ink; ++y) {
+        const unsigned char* row =
+          &raster.atlas[static_cast<size_t>(y) *
+            static_cast<size_t>(atlasW) +
+            static_cast<size_t>(g * DebugOverlay::kGlyphW)];
+        for (int x = 0; x < DebugOverlay::kGlyphW; ++x) {
+          if (row[x] != 0) {
+            ink = true;
+            break;
+          }
+        }
+      }
+      flags[static_cast<size_t>(g)] = ink ? 1 : 0;
+    }
+    return flags;
+  }();
+  return hasInk;
+}
+
 } // namespace
 
 void DebugOverlay::setFontPath(const std::string& path) {
@@ -200,17 +249,13 @@ std::string DebugOverlay::fontPath() {
 }
 
 int DebugOverlay::glyphIndex(char c) {
-  for (int i = 0; kCharset[i] != '\0'; ++i) {
-    if (kCharset[i] == c)
-      return i;
-  }
-  return -1;
+  return GlyphLutIndex(c);
 }
 
 bool DebugOverlay::glyphPixel(char c, int x, int y) {
   if (x < 0 || x >= kGlyphW || y < 0 || y >= kGlyphH)
     return false;
-  const int idx = glyphIndex(c);
+  const int idx = GlyphLutIndex(c);
   if (idx < 0)
     return false;
   const GlyphRaster& raster = GetRaster();
@@ -318,6 +363,8 @@ void DebugOverlay::buildVertices(int fbWidth, int fbHeight,
 
   const float invW = 1.0f / static_cast<float>(fbWidth);
   const float invH = 1.0f / static_cast<float>(fbHeight);
+  const GlyphRaster& raster = GetRaster();
+  const int atlasW = glyphCount() * kGlyphW;
   const float atlasInvW = 1.0f / static_cast<float>(atlasW_);
   const float atlasInvH = 1.0f / static_cast<float>(atlasH_);
   const int lineH = (kGlyphH + 1) * kPixelScale + kLineGapPx;
@@ -353,24 +400,24 @@ void DebugOverlay::buildVertices(int fbWidth, int fbHeight,
     const std::string& line = lines[li];
     const int baseY = kMarginPx + static_cast<int>(li) * lineH;
     int penX = kMarginPx;
-    for (size_t ci = 0; ci < line.size(); ++ci) {
-      const int idx = glyphIndex(line[ci]);
+    for (char ch : line) {
+      const int idx = GlyphLutIndex(ch);
       if (idx < 0) {
         // unsupported chars render blank (advance only)
         penX += (kGlyphW + 1) * kPixelScale;
         continue;
       }
-      bool blank = true;
-      for (int y = 0; y < kGlyphH && blank; ++y) {
-        for (int x = 0; x < kGlyphW && blank; ++x) {
-          if (glyphPixel(line[ci], x, y))
-            blank = false;
-        }
-      }
-      if (!blank) {
+      // Ink walk over the cached atlas row directly: same pixels the
+      // old per-pixel glyphPixel loop found, without re-resolving the
+      // character and re-scanning the cell for every pixel.
+      if (GlyphHasInk()[static_cast<size_t>(idx)]) {
         for (int y = 0; y < kGlyphH; ++y) {
+          const unsigned char* row =
+            &raster.atlas[static_cast<size_t>(y) *
+              static_cast<size_t>(atlasW) +
+              static_cast<size_t>(idx * kGlyphW)];
           for (int x = 0; x < kGlyphW; ++x) {
-            if (!glyphPixel(line[ci], x, y))
+            if (row[x] == 0)
               continue;
             const float u0 =
               static_cast<float>(idx * kGlyphW + x) * atlasInvW;
@@ -385,7 +432,7 @@ void DebugOverlay::buildVertices(int fbWidth, int fbHeight,
       }
       // Proportional pen: per-glyph xadvance from the raster cache.
       // Space (and any blank cell) advances with no quad.
-      penX += GetRaster().advancePx[static_cast<size_t>(idx)] *
+      penX += raster.advancePx[static_cast<size_t>(idx)] *
         kPixelScale;
     }
   }
@@ -393,17 +440,22 @@ void DebugOverlay::buildVertices(int fbWidth, int fbHeight,
   // Screen-center crosshair: the aiming mark for the Look ruler. Two 1px
   // bars sampling one guaranteed-ink atlas texel (inset, so NEAREST can
   // never bleed a blank neighbor). Drawn with the overlay, always.
-  const int fIdx = glyphIndex('F');
-  int inkX = -1;
-  int inkY = -1;
-  for (int y = 0; y < kGlyphH && inkX < 0; ++y) {
-    for (int x = 0; x < kGlyphW && inkX < 0; ++x) {
-      if (glyphPixel('F', x, y)) {
-        inkX = x;
-        inkY = y;
-      }
-    }
-  }
+  // The first ink texel never moves (cached raster), so find it once.
+  static const int fIdx = GlyphLutIndex('F');
+  static const int inkX = [] {
+    for (int y = 0; y < DebugOverlay::kGlyphH; ++y)
+      for (int x = 0; x < DebugOverlay::kGlyphW; ++x)
+        if (DebugOverlay::glyphPixel('F', x, y))
+          return x;
+    return -1;
+  }();
+  static const int inkY = [] {
+    for (int y = 0; y < DebugOverlay::kGlyphH; ++y)
+      for (int x = 0; x < DebugOverlay::kGlyphW; ++x)
+        if (DebugOverlay::glyphPixel('F', x, y))
+          return y;
+    return -1;
+  }();
   if (inkX >= 0) {
     const float texelW = atlasInvW;
     const float texelH = atlasInvH;

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "render/DebugOverlay.h"
+#include "helpers/Profiler.h"
 #include "ui/Window.h"
 
 namespace {
@@ -133,6 +134,48 @@ TEST_CASE("DebugOverlay defaults hidden with toggle API", "[ui][overlay]") {
   overlay.update(1.0 / 60.0);
   CHECK(overlay.fps() > 0.0);
   CHECK(overlay.avgMs() > 0.0);
+}
+
+// Profile lines list the hottest sections first (mean ms each), so the
+// overlay shows where frame time goes. Pure formatting: no GL, no window.
+TEST_CASE("Overlay profile lines spell hottest sections", "[ui][overlay]") {
+  const std::vector<Profiler::SectionStats> stats = {
+      {"meshes", 2, 5.0, 6.0, 10.0},
+      {"shadow", 2, 4.0, 4.5, 8.0},
+  };
+  const std::vector<std::string> lines =
+      Window::overlayProfileLines(stats, 2);
+  REQUIRE(lines.size() == 1);
+  CHECK(lines[0].find("meshes 5.0ms") != std::string::npos);
+  CHECK(lines[0].find("shadow 4.0ms") != std::string::npos);
+  CHECK(lines[0].find("meshes") < lines[0].find("shadow"));
+
+  // Empty stats produce no lines (overlay keeps its 7 status lines).
+  CHECK(Window::overlayProfileLines({}, 2).empty());
+  // topN caps the entry count, hottest first.
+  CHECK(Window::overlayProfileLines(stats, 1).size() == 1);
+}
+
+TEST_CASE("Overlay profile lines chunk entries", "[ui][overlay]") {
+  const std::vector<Profiler::SectionStats> stats = {
+      {"a", 1, 9.0, 9.0, 9.0},
+      {"b", 1, 8.0, 8.0, 8.0},
+      {"c", 1, 7.0, 7.0, 7.0},
+      {"d", 1, 6.0, 6.0, 6.0},
+      {"e", 1, 5.0, 5.0, 5.0},
+      {"f", 1, 4.0, 4.0, 4.0},
+      {"g", 1, 3.0, 3.0, 3.0},
+  };
+  // Ten requested, seven present: five on the first line, two on the
+  // second, hottest first across both lines.
+  const std::vector<std::string> lines =
+      Window::overlayProfileLines(stats, 10);
+  REQUIRE(lines.size() == 2);
+  CHECK(lines[0].find("a 9.0ms") != std::string::npos);
+  CHECK(lines[0].find("e 5.0ms") != std::string::npos);
+  CHECK(lines[0].find("f 4.0ms") == std::string::npos);
+  CHECK(lines[1].find("f 4.0ms") != std::string::npos);
+  CHECK(lines[1].find("g 3.0ms") != std::string::npos);
 }
 
 // Overlay cheat-sheet spells live toggle states (movement keys stay

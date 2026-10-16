@@ -222,6 +222,7 @@ void Window::run() {
 		last = now;
 		Profiler::recordFrame(dtSeconds * 1000.0);
 		if (overlay != nullptr) {
+			Profiler::Scope overlayScope("frame.overlay");
 			overlay->update(dtSeconds);
 			// Measurement readout, overlay-visible only (the ray march is
 			// cheap but pointless when nobody reads it).
@@ -244,7 +245,7 @@ void Window::run() {
 					lookValid = true;
 				}
 			}
-			overlay->setLines(overlayStatusLines(
+			std::vector<std::string> lines = overlayStatusLines(
 				renderer->getPostComposer()->isFXAA(),
 				renderer->getPostComposer()->isLenseFlares(),
 				renderer->getPostComposer()->isAutoExposure(),
@@ -253,14 +254,27 @@ void Window::run() {
 				renderer->getPostComposer()->isBloom(),
 				renderer->getPostComposer()->isDistord(),
 				renderer->isShadows(), renderer->isWireframe(), camX, camY,
-				camZ, lookDist, lookValid));
+				camZ, lookDist, lookValid);
+			if (overlay->isVisible()) {
+				// Section means only: computed on demand for the visible
+				// overlay, never logged per frame.
+				const std::vector<std::string> profile =
+					overlayProfileLines(Profiler::sectionStats(), 10);
+				lines.insert(lines.end(), profile.begin(), profile.end());
+			}
+			overlay->setLines(lines);
 			int fbWidth = 0;
 			int fbHeight = 0;
 			glfwGetFramebufferSize(Utils::window.load(), &fbWidth, &fbHeight);
 			overlay->draw(fbWidth, fbHeight);
 		}
 
-		glfwSwapBuffers(Utils::window.load());
+		{
+			// Swap blocks on vsync: a fat swap section means
+			// GPU/vsync-bound, not CPU-bound.
+			Profiler::Scope scope("frame.swap");
+			glfwSwapBuffers(Utils::window.load());
+		}
 
 		static bool firstFrame = true;
 		if (firstFrame) {
@@ -271,6 +285,8 @@ void Window::run() {
 	// Dump-on-close: one CSV next to the working dir (same place as log.txt).
 	if (!Profiler::dumpFrameStats("profiling.csv"))
 		loge("Failed to write profiling.csv");
+	if (!Profiler::dumpSectionStats("profiling_sections.csv"))
+		loge("Failed to write profiling_sections.csv");
 }
 
 void Window::initializeGL() {
@@ -568,6 +584,38 @@ std::vector<std::string> Window::overlayStatusLines(bool fxaa, bool flares,
 }
 
 void Window::playBtn(bool /*active*/) {
+}
+
+std::vector<std::string> Window::overlayProfileLines(
+  const std::vector<Profiler::SectionStats>& stats, std::size_t topN) {
+  if (stats.empty() || topN == 0)
+    return {};
+  // Up to kPerLine entries per line: ten sections on one line would run
+  // off the screen, and one line per section would flood the overlay.
+  constexpr std::size_t kPerLine = 5;
+  std::vector<std::string> lines;
+  std::string line;
+  std::size_t shown = 0;
+  std::size_t onLine = 0;
+  for (const Profiler::SectionStats& s : stats) {
+    if (shown >= topN)
+      break;
+    char cell[64];
+    std::snprintf(cell, sizeof(cell), "%s %.1fms", s.name.c_str(), s.mean);
+    if (onLine > 0)
+      line += "  ";
+    line += cell;
+    ++shown;
+    ++onLine;
+    if (onLine == kPerLine) {
+      lines.push_back(line);
+      line.clear();
+      onLine = 0;
+    }
+  }
+  if (!line.empty())
+    lines.push_back(line);
+  return lines;
 }
 
 void Window::exRegenerate() {

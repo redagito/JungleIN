@@ -6,6 +6,7 @@
 #include <glad/gl.h>
 
 #include "helpers/Logger.h"
+#include "helpers/Profiler.h"
 
 // Single shadow-map size: quality levels historically selected between
 // two defines that held the same value, so the branch was dead.
@@ -178,7 +179,10 @@ void Renderer::render() {
 	// every movement speed.
 	delta = static_cast<float>(Utils::movementDelta(timer.restart()));
 
-	scene->update(delta);
+	{
+		Profiler::Scope scope("scene.update");
+		scene->update(delta);
+	}
 
 	m_lightDir = m_sun->getLight()->getDirection();
 	m_lightIntensity = m_sun->getLight()->getIntensity();
@@ -186,7 +190,10 @@ void Renderer::render() {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
 
-	renderShadow();
+	{
+		Profiler::Scope scope("render.shadow");
+		renderShadow();
+	}
 
 	mainFBO->bind();
 	mainFBO->resizeViewport();
@@ -195,12 +202,18 @@ void Renderer::render() {
 	matrixProj = m_camera->getProjection();
 	matrixView = m_camera->getMatrix();
 
-	drawSky();
+	{
+		Profiler::Scope scope("render.sky");
+		drawSky();
+	}
 
 	// Sun before opaque: the billboard sits 6 m out, so painter order is
 	// what makes it behave as infinitely distant (everything opaque covers
 	// it, the sky never does). It writes no depth (see MaterialSun).
-	drawSun();
+	{
+		Profiler::Scope scope("render.sun");
+		drawSun();
+	}
 
 	pushMatrix(scene->getMatrix());
 
@@ -214,8 +227,14 @@ void Renderer::render() {
 		materialOverride = wireMat;
 	}
 
-	drawGround();
-	drawMeshes();
+	{
+		Profiler::Scope scope("render.ground");
+		drawGround();
+	}
+	{
+		Profiler::Scope scope("render.meshes");
+		drawMeshes();
+	}
 
 	if (useWireframe) {
 		materialOverride = nullptr;
@@ -229,8 +248,11 @@ void Renderer::render() {
 	// Renderer::delta is seconds / TARGET_FPS (co-tuned with movement
 	// speeds), so scale back to real frame seconds for the exposure
 	// adaptation time constants. PostComposer clamps spikes itself.
-	postComposer->render(delta * static_cast<float>(Utils::TARGET_FPS.load()),
-		!useWireframe);
+	{
+		Profiler::Scope scope("post.total");
+		postComposer->render(delta * static_cast<float>(Utils::TARGET_FPS.load()),
+			!useWireframe);
+	}
 
 	Texture::needsUpdate.store(false);
 	Utils::calculFPS();
