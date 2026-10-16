@@ -600,8 +600,19 @@ std::vector<std::string> Window::overlayProfileLines(
   for (const Profiler::SectionStats& s : stats) {
     if (shown >= topN)
       break;
+    // Trend arrow: recent-60 mean vs ring mean. Dead band avoids
+    // flicker on noise (relative for big sections, absolute floor
+    // for sub-ms ones). Flat shows no arrow, so steady sections read
+    // exactly like before.
+    const double eps = std::max(0.1 * s.mean, 0.02);
+    const char* arrow = "";
+    if (s.recentMean - s.mean > eps)
+      arrow = " ^";
+    else if (s.mean - s.recentMean > eps)
+      arrow = " v";
     char cell[64];
-    std::snprintf(cell, sizeof(cell), "%s %.1fms", s.name.c_str(), s.mean);
+    std::snprintf(cell, sizeof(cell), "%s %.1fms%s", s.name.c_str(),
+      s.mean, arrow);
     if (onLine > 0)
       line += "  ";
     line += cell;

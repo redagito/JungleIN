@@ -178,6 +178,34 @@ TEST_CASE("Overlay profile lines chunk entries", "[ui][overlay]") {
   CHECK(lines[1].find("g 3.0ms") != std::string::npos);
 }
 
+// Trend arrows flag climbing (^) and settling (v) sections against
+// their ring mean; steady sections show no arrow. Pure formatting.
+TEST_CASE("Overlay profile lines flag trends", "[ui][overlay]") {
+  const std::vector<Profiler::SectionStats> up = {
+      {"shadow", 600, 4.0, 5.0, 2400.0, 5.0},
+  };
+  const std::vector<std::string> upLines = Window::overlayProfileLines(up, 10);
+  REQUIRE(upLines.size() == 1);
+  CHECK(upLines[0].find("shadow 4.0ms ^") != std::string::npos);
+
+  const std::vector<Profiler::SectionStats> down = {
+      {"shadow", 600, 4.0, 5.0, 2400.0, 3.0},
+  };
+  const std::vector<std::string> downLines =
+      Window::overlayProfileLines(down, 10);
+  REQUIRE(downLines.size() == 1);
+  CHECK(downLines[0].find("shadow 4.0ms v") != std::string::npos);
+
+  const std::vector<Profiler::SectionStats> flat = {
+      {"shadow", 600, 4.0, 5.0, 2400.0, 4.0},
+  };
+  const std::vector<std::string> flatLines =
+      Window::overlayProfileLines(flat, 10);
+  REQUIRE(flatLines.size() == 1);
+  CHECK(flatLines[0].find(" ^") == std::string::npos);
+  CHECK(flatLines[0].find(" v") == std::string::npos);
+}
+
 // Overlay cheat-sheet spells live toggle states (movement keys stay
 // out). Pure formatting: no GL, no window.
 TEST_CASE("Overlay status lines spell toggle states", "[ui][overlay]") {

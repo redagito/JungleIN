@@ -186,8 +186,28 @@ TEST_CASE("Profiler section dump file format", "[util][profiler]") {
   CHECK(body.find("name=shadow") != std::string::npos);
   CHECK(body.find("name=meshes") < body.find("name=shadow"));
   CHECK(body.find("total=") != std::string::npos);
+  CHECK(body.find("recentMean=") != std::string::npos);
   Profiler::clearSections();
   std::filesystem::remove(path);
+}
+
+// Trend window: recentMean covers the newest kRecentSamples, so a
+// climbing section reads above its ring mean and a settling one below.
+TEST_CASE("Profiler section recentMean tracks the tail", "[util][profiler]") {
+  Profiler::clearSections();
+  for (int i = 0; i < 100; ++i)
+    Profiler::recordSection("shadow", 1.0);
+  for (int i = 0; i < 10; ++i)
+    Profiler::recordSection("shadow", 5.0);
+  const auto stats = Profiler::sectionStats();
+  REQUIRE(stats.size() == 1);
+  CHECK(stats[0].count == 110);
+  CHECK(stats[0].mean == Catch::Approx(150.0 / 110.0).margin(1e-9));
+  // Tail window holds the last 60: fifty 1.0 plus ten 5.0.
+  CHECK(stats[0].recentMean == Catch::Approx(100.0 / 60.0).margin(1e-9));
+  CHECK(stats[0].recentMean > stats[0].mean);
+  Profiler::clearSections();
+  CHECK(Profiler::sectionStats().empty());
 }
 
 // Dump format: one summary line carrying every required aggregate

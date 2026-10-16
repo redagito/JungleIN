@@ -32,6 +32,11 @@ struct SectionRing {
   std::deque<double> samples;
   double total = 0.0;
   double max = 0.0;
+  // Bounded tail window with its own running sum: feeds recentMean so
+  // sectionStats can report a trend without scanning any ring.
+  // Finite samples only (mirrors total/max semantics).
+  std::deque<double> recent;
+  double recentSum = 0.0;
 };
 
 std::unordered_map<std::string, SectionRing>& SectionRings() {
@@ -156,7 +161,17 @@ void Profiler::recordSection(const char* name, double ms) {
     ring.total += ms;
     if (ms > ring.max)
       ring.max = ms;
+    ring.recent.push_back(ms);
+    ring.recentSum += ms;
+    // Recent holds finite samples only, so the evicted value always
+    // counts and needs no finiteness check.
+    if (ring.recent.size() > kRecentSamples) {
+      ring.recentSum -= ring.recent.front();
+      ring.recent.pop_front();
+    }
   }
+  // Non-finite samples still occupy ring slots (count semantics
+  // unchanged) but never enter totals, maxima or the trend window.
   ring.samples.push_back(ms);
   while (ring.samples.size() > kMaxSectionSamples) {
     const double evicted = ring.samples.front();
@@ -189,6 +204,9 @@ std::vector<Profiler::SectionStats> Profiler::sectionStats() {
     s.total = ring.total;
     s.max = ring.max;
     s.mean = s.total / static_cast<double>(s.count);
+    s.recentMean = ring.recent.empty()
+      ? 0.0
+      : ring.recentSum / static_cast<double>(ring.recent.size());
     stats.push_back(std::move(s));
   }
   std::sort(stats.begin(), stats.end(),
@@ -214,7 +232,8 @@ bool Profiler::dumpSectionStats(const std::string& path) {
       << ",count=" << s.count
       << ",mean=" << s.mean
       << ",max=" << s.max
-      << ",total=" << s.total << "\n";
+      << ",total=" << s.total
+      << ",recentMean=" << s.recentMean << "\n";
   }
   out.flush();
   return static_cast<bool>(out);

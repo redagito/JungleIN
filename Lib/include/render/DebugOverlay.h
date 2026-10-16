@@ -98,6 +98,9 @@ private:
   double avgMs_ = 0.0;
   bool hasAvg_ = false;
   std::vector<std::string> extraLines_;
+  // Reused vertex staging: buildVertices resizes (never shrinks
+  // capacity), so frames stop paying vector growth churn.
+  std::vector<float> vertsCache_;
   unsigned int texture_ = 0;
   unsigned int vao_ = 0;
   unsigned int vbo_ = 0;

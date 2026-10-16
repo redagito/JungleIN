@@ -456,7 +456,10 @@ void Renderer::drawMeshes() {
 			transmitMVP();
 			if (materialOverride == nullptr) {
 				transmitNormalMatrix();
-				transmitViewMatrix();
+				// No transmitViewMatrix here: matrixView is constant for
+				// the whole drawMeshes call and was already transmitted
+				// to this same shader above. Only per-model state
+				// (mv, shadow matrices) is refreshed per instance.
 				if (m_shader->hasUniform("mv"))
 					m_shader->transmitUniform("mv", m_mv);
 				transmitShadowMatrix();

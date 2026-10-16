@@ -369,11 +369,21 @@ void DebugOverlay::buildVertices(int fbWidth, int fbHeight,
   const float atlasInvH = 1.0f / static_cast<float>(atlasH_);
   const int lineH = (kGlyphH + 1) * kPixelScale + kLineGapPx;
 
-  auto emitQuad = [&](int px, int py, int pw, int ph, float u0, float v0,
-      float u1, float v1) {
-    // Pixel rect (top-left origin) to NDC triangles.
-    const float x0 = static_cast<float>(px) * invW * 2.0f - 1.0f;
-    const float x1 = static_cast<float>(px + pw) * invW * 2.0f - 1.0f;
+  // Two-pass fill through one walk: the sizing pass (dst == nullptr)
+  // only counts, the fill pass writes raw into exactly-sized storage.
+  // push_back per vertex showed up hot in Debug (checked iterators on
+  // ~600k floats/frame); the shared walk keeps both passes agreeing.
+  auto walk = [&](float* dst) -> size_t {
+    size_t n = 0;
+    auto emitQuad = [&](int px, int py, int pw, int ph, float u0, float v0,
+        float u1, float v1) {
+      if (dst == nullptr) {
+        n += 24;
+        return;
+      }
+      // Pixel rect (top-left origin) to NDC triangles.
+      const float x0 = static_cast<float>(px) * invW * 2.0f - 1.0f;
+      const float x1 = static_cast<float>(px + pw) * invW * 2.0f - 1.0f;
     const float y0 = 1.0f - static_cast<float>(py + ph) * invH * 2.0f;
     const float y1 = 1.0f - static_cast<float>(py) * invH * 2.0f;
     // No v-flip: glTexImage2D places buffer row 0 at texture bottom
@@ -389,10 +399,11 @@ void DebugOverlay::buildVertices(int fbWidth, int fbHeight,
       {x0, y0, u0, va}, {x1, y1, u1, vb}, {x0, y1, u0, vb},
     };
     for (const auto& v : quad) {
-      out.push_back(v[0]);
-      out.push_back(v[1]);
-      out.push_back(v[2]);
-      out.push_back(v[3]);
+      dst[n] = v[0];
+      dst[n + 1] = v[1];
+      dst[n + 2] = v[2];
+      dst[n + 3] = v[3];
+      n += 4;
     }
   };
 
@@ -470,6 +481,16 @@ void DebugOverlay::buildVertices(int fbWidth, int fbHeight,
     emitQuad(cx - 5, cy, 11, 1, cu0, cv0, cu1, cv1);
     emitQuad(cx, cy - 5, 1, 11, cu0, cv0, cu1, cv1);
   }
+    return n;
+  };
+
+  // Exact-size storage: the count pass and the fill pass share the walk
+  // above, so the fill can never overrun. The reused out vector keeps
+  // its capacity across frames (no per-frame allocation churn).
+  const size_t total = walk(nullptr);
+  out.resize(total);
+  if (total > 0)
+    walk(out.data());
 }
 
 void DebugOverlay::draw(int fbWidth, int fbHeight) {
@@ -484,7 +505,7 @@ void DebugOverlay::draw(int fbWidth, int fbHeight) {
   // ShaderLibrary::getShader throw instead of swallowing it.
   Shader* shader = ShaderLibrary::getShader("ss_debugtext");
 
-  std::vector<float> verts;
+  std::vector<float>& verts = vertsCache_;
   buildVertices(fbWidth, fbHeight, verts);
   if (verts.empty())
     return;

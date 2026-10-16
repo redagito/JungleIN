@@ -427,9 +427,10 @@ void PostComposer::updateAutoExposure(float dtSeconds) {
 	readBuffer->bindAndTransmitTextures(shaderCompose);
 	quad->draw(shaderCompose->attribute("position"));
 
-	std::vector<float> pixels(
+	std::vector<float>& pixels = luminancePixels_;
+	pixels.assign(
 		static_cast<size_t>(kLuminanceSize) *
-		static_cast<size_t>(kLuminanceSize) * 4u);
+		static_cast<size_t>(kLuminanceSize) * 4u, 0.0f);
 	glReadPixels(0, 0, kLuminanceSize, kLuminanceSize, GL_RGBA, GL_FLOAT,
 		pixels.data());
 	// Fail fast: a failing downsample/readback used to leave the

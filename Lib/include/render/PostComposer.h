@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <glm/glm.hpp>
 
 #include "render/FrameBuffer.h"
@@ -131,4 +133,9 @@ private:
 	Texture* flareDirt = nullptr;
 
 	glm::vec3 lightPosScreen;
+
+	// Reused luminance readback staging: updateAutoExposure runs every
+	// frame, so this keeps its capacity instead of allocating 64KB
+	// per frame.
+	std::vector<float> luminancePixels_;
 };

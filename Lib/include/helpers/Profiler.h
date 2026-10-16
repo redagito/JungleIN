@@ -34,9 +34,15 @@ public:
     double mean = 0.0;
     double max = 0.0;
     double total = 0.0;
+    // Mean over the newest kRecentSamples (or fewer while filling):
+    // above mean means climbing, below means settling.
+    double recentMean = 0.0;
   };
   static constexpr std::size_t kMaxSectionSamples = 600;
   static constexpr std::size_t kMaxSections = 32;
+  // Newest-samples window for the trend in SectionStats. Small on
+  // purpose: the overlay reads it every frame, so it must stay O(1).
+  static constexpr std::size_t kRecentSamples = 60;
   static void recordSection(const char* name, double ms);
   // Aggregates over the recorded rings, hottest total first.
   static std::vector<SectionStats> sectionStats();
