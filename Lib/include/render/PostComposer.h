@@ -120,7 +120,6 @@ private:
 	int flareSamples = 0;
 	float flareDispersal = 0.f;
 	float flareHaloWidth = 0.f;
-	glm::vec3 flareChromaDispertion;
 	float flareIntensity = 0.f;
 	Texture* flareDirt = nullptr;
 

@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <glad/gl.h>
@@ -104,7 +106,6 @@ PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	flareSamples = 12;
 	flareDispersal = 0.10f;
 	flareHaloWidth = 0.22f;
-	flareChromaDispertion = glm::vec3(1.02f, 1.0f, 0.98f);
 	flareIntensity = 1.0;
 	flareDirt = new Texture("data/resources/maps/post/lensdirt_highc.png", 2);
 	flareDirt->init();
@@ -187,7 +188,6 @@ void PostComposer::passDistortion() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	shaderDistortion->bind();
-	shaderDistortion->transmitUniform("resolution", 1 / widthf, 1 / heightf);
 
 	readBuffer->bindAndTransmitTextures(shaderDistortion);
 
@@ -237,8 +237,6 @@ void PostComposer::passLenseFlare() {
 	shaderLenseFlare2->transmitUniform("flareSamples", flareSamples);
 	shaderLenseFlare2->transmitUniform("flareDispersal", flareDispersal);
 	shaderLenseFlare2->transmitUniform("flareHaloWidth", flareHaloWidth);
-	shaderLenseFlare2->transmitUniform("flareChromaDispertion",
-		flareChromaDispertion);
 
 	readHalfBuffer->bindAndTransmitTextures(shaderLenseFlare2);
 
@@ -405,13 +403,17 @@ void PostComposer::updateAutoExposure(float dtSeconds) {
 		static_cast<size_t>(kLuminanceSize) * 4u);
 	glReadPixels(0, 0, kLuminanceSize, kLuminanceSize, GL_RGBA, GL_FLOAT,
 		pixels.data());
-	// Readback diagnostics: a failing downsample/readback leaves the
-	// zero-filled buffer behind, which pins adaptation at its floor and
-	// freezes exposure. Throttled so the log stays readable.
+	// Fail fast: a failing downsample/readback used to leave the
+	// zero-filled buffer behind, pinning adaptation at its floor and
+	// freezing exposure. Throttled so the log stays readable.
 	const GLenum readErr = glGetError();
+	if (readErr != GL_NO_ERROR) {
+		luminanceBuffer->unbind();
+		throw std::runtime_error("PostComposer::updateAutoExposure "
+			"glReadPixels failed: " + std::to_string(readErr));
+	}
 	static int exposureLogTick = 0;
-	const bool logThis =
-		(readErr != GL_NO_ERROR) || (++exposureLogTick % 120 == 0);
+	const bool logThis = (++exposureLogTick % 120 == 0);
 
 	luminanceBuffer->unbind();
 
@@ -431,9 +433,11 @@ void PostComposer::updateAutoExposure(float dtSeconds) {
 			dt, static_cast<unsigned int>(readErr), measured,
 			std::clamp(measured, kLuminanceMin, kLuminanceMax),
 			adaptedLuminance, exposure);
-	// NaN guard: keep the previous adaptation on a bad readback.
+	// Non-finite readback is a broken measurement, not a floor to keep:
+	// fail fast instead of freezing exposure at the old adaptation.
 	if (!std::isfinite(measured))
-		return;
+		throw std::runtime_error("PostComposer::updateAutoExposure "
+			"non-finite measured luminance");
 	const float target =
 		std::clamp(measured, kLuminanceMin, kLuminanceMax);
 	const float tau = target < adaptedLuminance ? kTauDarken : kTauBrighten;

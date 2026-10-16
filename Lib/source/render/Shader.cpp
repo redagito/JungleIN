@@ -174,13 +174,26 @@ unsigned int Shader::attribute(std::string key) { return attributes.at(key); }
 
 unsigned int Shader::uniform(std::string key) { return uniforms.at(key); }
 
+std::vector<std::string> Shader::uniformNames() const {
+  std::vector<std::string> names;
+  for (const auto& entry : uniforms)
+    names.push_back(entry.first);
+  return names;
+}
+
 bool Shader::hasAttribute(std::string key) {
 	// A registered name optimized out by the linker (location -1) is not
 	// usable: treating it as present would feed 4294967295 to GL calls.
 	return attributes.count(key) != 0 && attributes.at(key) != -1;
 }
 
-bool Shader::hasUniform(std::string key) { return uniforms.count(key) != 0; }
+bool Shader::hasUniform(std::string key) {
+	// A registered name optimized out by the linker (location -1) is not
+	// usable: treating it as present would feed -1 to GL calls that
+	// silently no-op. Callers guard optional uniforms with this, so
+	// false simply skips the transmit.
+	return uniforms.count(key) != 0 && uniforms.at(key) != -1;
+}
 
 void Shader::transmitUniform(std::string key, const Texture* tex) {
 	validateIsActive();
@@ -243,6 +256,8 @@ int Shader::requireUniform(const std::string& key)
 {
 	auto found = uniforms.find(key);
 	if (found == uniforms.end())
+		throw std::runtime_error("Shader '" + name + "' has no uniform '" + key + "'");
+	if (found->second == -1)
 		throw std::runtime_error("Shader '" + name + "' has no uniform '" + key + "'");
 	return found->second;
 }

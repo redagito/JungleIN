@@ -21,12 +21,9 @@ uniform vec3 diffuseColor;
 uniform sampler2DShadow texShadow;
 uniform int cascadeShadow;
 uniform sampler2DShadow texShadowCascade;
-// Legacy resolution uniforms: actual texel size is derived per lookup
-// via textureSize() so inner and cascade maps stay correct even when
-// the two FBOs differ in size. Kept registered so Renderer transmit
-// never throws on missing uniforms.
-uniform float shadowResolution;
-uniform float shadowResolutionCascade;
+// Texel size is derived per lookup via textureSize(), so no resolution
+// uniforms are needed (a declared-but-unused uniform would be optimized
+// out and fail the fail-fast uniform transmit).
 uniform int shadowQuality;
 uniform vec3 lightIntensity;
 

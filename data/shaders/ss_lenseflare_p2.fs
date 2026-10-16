@@ -7,22 +7,18 @@ uniform sampler2D texScene;
 uniform int flareSamples;
 uniform float flareDispersal;
 uniform float flareHaloWidth;
-uniform vec3 flareChromaDispertion;
+// NOTE: a flareChromaDispertion uniform + chromatic sampling used to live
+// here, but the sampling was commented out, so the uniform optimized away
+// and its transmit could never succeed. Deleted outright; restoring the
+// chromatic lookup is a visual task, not a reopen of this declaration.
 
 layout (location = 0) out vec4 FragColor;
 
 vec3 textureDistorted(
 	in sampler2D tex,
 	in vec2 sampleCenter,
-	in vec2 sampleVector,
-	in vec3 distortion // per-channel distortion coeffs
+	in vec2 sampleVector
 ) {
-        /*return vec3(
-		texture(texScene, sampleCenter + sampleVector * distortion.r).r,
-		texture(texScene, sampleCenter + sampleVector * distortion.g).g,
-		texture(texScene, sampleCenter + sampleVector * distortion.b).b
-        );*/
-
         return texture(texScene, sampleCenter + sampleVector).rgb;
 }
 
@@ -32,11 +28,11 @@ void main()
 	vec2 sampleVector = (imageCenter - uv) * flareDispersal;
 	vec2 haloVector = normalize(sampleVector) * flareHaloWidth;
 
-        vec3 result = textureDistorted(texScene, uv + haloVector, haloVector, flareChromaDispertion).rgb;
+        vec3 result = textureDistorted(texScene, uv + haloVector, haloVector).rgb;
 
 	for (int i = 0; i < flareSamples; ++i) {
                 vec2 offset = sampleVector * float(i);
-		result += textureDistorted(texScene, uv + offset, offset, flareChromaDispertion).rgb;
+		result += textureDistorted(texScene, uv + offset, offset).rgb;
 	}
 
   	FragColor = vec4(result, 1.0f);

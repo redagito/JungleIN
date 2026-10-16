@@ -6,7 +6,11 @@
  */
 
 uniform sampler2D texScene;
-uniform vec2 resolution;
+// NOTE: a resolution uniform used to be declared, registered and
+// transmitted here, but the body uses fixed 0.004 offsets and never
+// reads it, so it optimized away and its transmit could never succeed.
+// Deleted outright; making the blur truly resolution-dependent is a
+// separate visual task.
 
 in vec2 uv;
 

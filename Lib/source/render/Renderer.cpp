@@ -1,13 +1,15 @@
 #include "render/Renderer.h"
 
 #include <cassert>
+#include <stdexcept>
 
 #include <glad/gl.h>
 
 #include "helpers/Logger.h"
 
-#define MAX_SHADOW_WIDTH_1 2048
-#define MAX_SHADOW_WIDTH_0 2048
+// Single shadow-map size: quality levels historically selected between
+// two defines that held the same value, so the branch was dead.
+#define MAX_SHADOW_WIDTH 2048
 
 namespace {
 // Debug-only: after binding a target, the GL viewport must match that
@@ -88,12 +90,12 @@ void Renderer::init(Scene* _scene, unsigned int w, unsigned int h) {
 	mainFBO->init(0, true);
 
 	shadowFBO =
-		new ShadowBuffer("texShadow", MAX_SHADOW_WIDTH_1, MAX_SHADOW_WIDTH_1);
+		new ShadowBuffer("texShadow", MAX_SHADOW_WIDTH, MAX_SHADOW_WIDTH);
 
 	shadowFBO->init(7);
 
-	shadowFBOCascade = new ShadowBuffer("texShadowCascade", MAX_SHADOW_WIDTH_1,
-		MAX_SHADOW_WIDTH_1);
+	shadowFBOCascade = new ShadowBuffer("texShadowCascade", MAX_SHADOW_WIDTH,
+		MAX_SHADOW_WIDTH);
 
 	shadowFBOCascade->init(8);
 
@@ -121,15 +123,13 @@ void Renderer::stop() { active = false; }
 
 void Renderer::render() {
 
-	// t.start();
-
 	if (!active || !scene->getRenderAble())
 		return;
 
-	// TODO Why?
-	// NOTE: delta is seconds / TARGET_FPS, co-tuned with moveSpeed (200):
-	// do not "fix" the scale without retuning every movement speed.
-	delta = static_cast<float>(timer.restart() / Utils::TARGET_FPS);
+	// Single source of truth for the movement time scale (see
+	// Utils::movementDelta): do not "fix" the scale without retuning
+	// every movement speed.
+	delta = static_cast<float>(Utils::movementDelta(timer.restart()));
 
 	scene->update(delta);
 
@@ -174,8 +174,6 @@ void Renderer::render() {
 
 	Texture::needsUpdate = false;
 	Utils::calculFPS();
-
-	//postComposer->debugQuad(shadowFBOCascade->getTexture("texShadowCascade"));
 }
 
 void Renderer::renderShadow() {
@@ -316,10 +314,6 @@ void Renderer::drawGround() {
 	__shader->transmitUniform("lightDir", __lightDir);
 	if (__shader->hasUniform("lightIntensity"))
 		__shader->transmitUniform("lightIntensity", __lightIntensity);
-	__shader->transmitUniform("shadowResolution", (float)shadowFBO->getWidth());
-	if (__shader->hasUniform("shadowResolutionCascade"))
-		__shader->transmitUniform("shadowResolutionCascade",
-			(float)shadowFBOCascade->getWidth());
 	__shader->transmitUniform("shadowQuality", Utils::QUALITY);
 
 	__ground->drawWithVBO();
@@ -328,15 +322,18 @@ void Renderer::drawGround() {
 }
 
 bool Renderer::cull(Instance* m, float offset) {
-	// NOTE: the threshold is in SQUARED distance units (500 ~= 22 m radius),
-	// deliberately tight for 1400+ instances. Comparing against plain
-	// meters here would disable culling almost entirely.
+	// Squared-distance threshold in m^2 (~22 m radius for 500), tight on
+	// purpose for 1400+ instances. Compares against squared distance:
+	// passing plain meters here would disable culling almost entirely.
+	// The forward-plane margin is in plain meters.
+	constexpr float kCullDistSq = 500.0f;
+	constexpr float kCullForwardMargin = 20.0f;
 	glm::vec3 meshPos = m->getPosition();
 	glm::vec3 camPos = __camera->getPosition();
 	glm::vec3 camZ = scene->getCameraZ();
 	glm::vec3 toMesh = meshPos - camPos;
-	return (glm::dot(toMesh, toMesh) > 500 + offset &&
-		glm::dot(meshPos - (camPos - camZ * 20.0f), camZ) < 0);
+	return (glm::dot(toMesh, toMesh) > kCullDistSq + offset &&
+		glm::dot(meshPos - (camPos - camZ * kCullForwardMargin), camZ) < 0);
 }
 
 void Renderer::drawMeshes() {
@@ -361,10 +358,6 @@ void Renderer::drawMeshes() {
 		__shader->transmitUniform("lightDir", __lightDir);
 		if (__shader->hasUniform("lightIntensity"))
 			__shader->transmitUniform("lightIntensity", __lightIntensity);
-		__shader->transmitUniform("shadowResolution", (float)shadowFBO->getWidth());
-		if (__shader->hasUniform("shadowResolutionCascade"))
-			__shader->transmitUniform("shadowResolutionCascade",
-				(float)shadowFBOCascade->getWidth());
 		__shader->transmitUniform("shadowQuality", Utils::QUALITY);
 
 		pushMatrix(m->getMatrix());
@@ -419,6 +412,11 @@ void Renderer::drawMeshesShadow() {
 			__shader->transmitUniform("texAlpha", alpha);
 
 			__shader->transmitUniform("useAlpha", 1);
+
+			// Same per-material cutoff as the lit pass (MaterialBasic):
+			// a hardcoded shadow cutoff would disagree with shaded cutout.
+			__shader->transmitUniform("alphaCutoff",
+				m->getMaterial()->getAlphaCutoff());
 
 		}
 		else {
@@ -475,16 +473,14 @@ void Renderer::resize(unsigned int w, unsigned int h) {
 		mainFBO->resize(w, h);
 	if (shadowFBO != 0) {
 		int ws = w * 2;
-		int max = Utils::QUALITY == 1 ? MAX_SHADOW_WIDTH_1 : MAX_SHADOW_WIDTH_0;
-		if (ws > max)
-			ws = max;
+		if (ws > MAX_SHADOW_WIDTH)
+			ws = MAX_SHADOW_WIDTH;
 		shadowFBO->resize(ws, ws);
 	}
 	if (shadowFBOCascade != 0) {
 		int ws = w * 2;
-		int max = Utils::QUALITY == 1 ? MAX_SHADOW_WIDTH_1 : MAX_SHADOW_WIDTH_0;
-		if (ws > max)
-			ws = max;
+		if (ws > MAX_SHADOW_WIDTH)
+			ws = MAX_SHADOW_WIDTH;
 		shadowFBOCascade->resize(ws, ws);
 	}
 	if (__sun != 0)
@@ -506,6 +502,8 @@ void Renderer::pushMatrix(const glm::mat4& mat) {
 }
 
 void Renderer::popMatrix() {
+	if (xform.empty())
+		throw std::runtime_error("Renderer::popMatrix: matrix stack underflow");
 	matrixModel = xform.top();
 	xform.pop();
 }
@@ -581,10 +579,8 @@ void Renderer::loadShaders() {
 		<< "shadowQuality"
 		<< "texShadow"
 		<< "shadowMatrix"
-		<< "shadowResolution"
 		<< "texShadowCascade"
 		<< "shadowMatrixCascade"
-		<< "shadowResolutionCascade"
 		<< "cascadeShadow");
 
 	ShaderLibrary::addShader("rt_sun", "data/shaders/rt_sun",
@@ -616,15 +612,14 @@ void Renderer::loadShaders() {
 		<< "texNormalShatter"
 		<< "shadowQuality"
 		<< "texShadow"
-		<< "texShadowCascade"
-		<< "shadowResolution"
-		<< "shadowResolutionCascade");
+		<< "texShadowCascade");
 
 	ShaderLibrary::addShader("rt_shadow", "data/shaders/rt_shadow",
 		std::vector<std::string>() << "position"
 		<< "texcoord",
 		std::vector<std::string>() << "mvp"
 		<< "texAlpha"
+		<< "alphaCutoff"
 		<< "useAlpha");
 
 	ShaderLibrary::addShader("rt_skybox", "data/shaders/rt_skybox",
@@ -659,8 +654,7 @@ void Renderer::loadShaders() {
 		<< "texScene"
 		<< "flareSamples"
 		<< "flareDispersal"
-		<< "flareHaloWidth"
-		<< "flareChromaDispertion");
+		<< "flareHaloWidth");
 
 	ShaderLibrary::addShader("ss_lenseflare_p3", "data/shaders/ss_lenseflare_p3",
 		std::vector<std::string>() << "position",
@@ -681,8 +675,7 @@ void Renderer::loadShaders() {
 
 	ShaderLibrary::addShader("ss_distortion", "data/shaders/ss_distortion",
 		std::vector<std::string>() << "position",
-		std::vector<std::string>() << "texScene"
-		<< "resolution");
+		std::vector<std::string>() << "texScene");
 
 	ShaderLibrary::addShader("ss_godrays_p1", "data/shaders/ss_godrays_p1",
 		std::vector<std::string>() << "position",
@@ -707,4 +700,8 @@ void Renderer::loadShaders() {
 		std::vector<std::string>() << "position"
 		<< "texcoord",
 		std::vector<std::string>() << "texAtlas");
+
+	// Fail here, not at first draw: registration is compiled in, sources
+	// load from data/ at runtime, and any skew between them is fatal.
+	ShaderLibrary::validateRegistrations();
 }

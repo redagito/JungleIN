@@ -36,6 +36,10 @@ public:
 	unsigned int attribute(std::string name);
 	unsigned int uniform(std::string name);
 
+	// Registered uniform names, for diagnostics and tests (e.g. asserting
+	// every registration resolves to a real location).
+	std::vector<std::string> uniformNames() const;
+
 	bool hasAttribute(std::string name);
 	bool hasUniform(std::string name);
 

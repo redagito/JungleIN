@@ -44,3 +44,14 @@ void ShaderLibrary::clear() {
 	}
 	shaders.clear();
 }
+
+void ShaderLibrary::validateRegistrations() {
+	for (const auto& entry : shaders) {
+		for (const std::string& uniform : entry.second->uniformNames()) {
+			if (!entry.second->hasUniform(uniform))
+				throw std::runtime_error("Shader '" + entry.first +
+					"' registration has no location for uniform '" + uniform +
+					"' (shader/registration skew?)");
+		}
+	}
+}
