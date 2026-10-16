@@ -1,7 +1,9 @@
 #pragma once
 
 #include <math.h>
+#include <memory>
 #include <optional>
+#include <vector>
 
 #include <glm/glm.hpp>
 
@@ -15,21 +17,25 @@ class Ground : public Mesh {
 private:
 	int numberVerticesX;
 	int numberVerticesZ;
-	glm::vec3* faceNormals;
-	Path* path;
+	// Owned face-normal field (replaces manual new[]/delete[]).
+	std::vector<glm::vec3> faceNormals;
+	std::unique_ptr<Path> path;
 	std::vector<glm::vec3> rockPos;
 	float mapMin = -120.0f;
 	float mapMax = 120.0f;
 
 public:
-	Ground(std::string filePath, MaterialGround* mat);
+	Ground(std::string filePath, std::unique_ptr<MaterialGround> mat);
 	~Ground();
 
-	void setVectorToFloat(glm::vec3 normal, float* normalsF, int i);
-	void firstLineNormals(float* normalsF);
-	void middleGridNormals(float* normalsF);
-	void firstVertexNormal(float* normalsF, int lineNumber);
-	void lastLineNormals(float* normalsF);
+	// Index-driven vertex-normal accumulation behind the constructor,
+	// exposed static so headless tests pin it without GL (a full Ground
+	// needs registered shaders and GL textures). indices holds
+	// indexCount entries (3 per triangle, Ground winding); faceNormals
+	// holds indexCount/3 entries in triangle order; out receives 3
+	// floats per vertex over vertexCount vertices.
+	static void accumulateVertexNormals(const int* indices, int indexCount,
+		const glm::vec3* faceNormals, int vertexCount, float* out);
 	float getY(float x, float z);
 	float getYApprox(float x, float z, float prevY);
 	// Plane-height solver behind getY, exposed for headless testing: a

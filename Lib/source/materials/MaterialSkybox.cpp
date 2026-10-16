@@ -1,14 +1,12 @@
 #include "materials/MaterialSkybox.h"
 #include "helpers/Logger.h"
 
-MaterialSkyBox::MaterialSkyBox(TextureCube *textureCube)
-    : Material("rt_skybox") {
-  cubemap = textureCube;
+MaterialSkyBox::MaterialSkyBox(std::unique_ptr<TextureCube> textureCube)
+    : Material("rt_skybox"), cubemap(std::move(textureCube)) {
   cubemap->init();
 }
 
 MaterialSkyBox::~MaterialSkyBox() {
-  delete cubemap;
 }
 
 Shader *MaterialSkyBox::bind() {
@@ -22,7 +20,7 @@ Shader *MaterialSkyBox::bind() {
 
   shader->bind();
   cubemap->bind();
-  shader->transmitUniform("texCube", cubemap);
+  shader->transmitUniform("texCube", cubemap.get());
 
   return shader;
 }

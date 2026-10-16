@@ -1,14 +1,12 @@
 #include "materials/MaterialSun.h"
 
-MaterialSun::MaterialSun(Texture *diffuse, Texture *alpha)
-    : Material("rt_sun") {
-  this->diffuse = diffuse;
-  this->alpha = alpha;
+MaterialSun::MaterialSun(std::unique_ptr<Texture> diffuse,
+                         std::unique_ptr<Texture> alpha)
+    : Material("rt_sun"), diffuse(std::move(diffuse)),
+      alpha(std::move(alpha)) {
 }
 
 MaterialSun::~MaterialSun() {
-  delete diffuse;
-  delete alpha;
 }
 
 Shader *MaterialSun::bind() {
@@ -23,10 +21,10 @@ Shader *MaterialSun::bind() {
 	shader->bind();
 
 	diffuse->bind();
-	shader->transmitUniform("texDiffuse", diffuse);
+	shader->transmitUniform("texDiffuse", diffuse.get());
 
 	alpha->bind();
-	shader->transmitUniform("texAlpha", alpha);
+	shader->transmitUniform("texAlpha", alpha.get());
 
 	return shader;
 }

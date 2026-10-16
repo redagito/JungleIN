@@ -29,6 +29,11 @@ struct HiddenGL {
     }
     glfwMakeContextCurrent(window);
     ok = gladLoadGL((GLADloadfunc)glfwGetProcAddress) != 0;
+    // Fresh library per context: static Shader objects outlive their
+    // per-test GL context, so a later case would reuse programs compiled
+    // for a dead context (silent empty draws). See resetActiveShader.
+    if (ok)
+      ShaderLibrary::clear();
   }
 
   ~HiddenGL() {
@@ -69,7 +74,8 @@ TEST_CASE("All registered uniforms resolve to locations",
   renderer.loadShaders();
 
   static const char *const kShaders[] = {
-    "rt_basic", "rt_ground_n", "rt_shadow", "rt_skybox", "rt_sun"};
+    "rt_basic", "rt_ground_n", "rt_shadow", "rt_skybox", "rt_sun",
+    "ss_debugtext", "ss_wire"};
   for (const char *name : kShaders) {
     Shader *shader = ShaderLibrary::getShader(name);
     for (const std::string &uniform : shader->uniformNames())

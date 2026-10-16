@@ -3,7 +3,9 @@
 #include "objects/Ground.h"
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <stdexcept>
+#include <vector>
 
 namespace {
 // Radial pooling of the heightmap rim (bowl falloff scale) and the
@@ -24,7 +26,7 @@ glm::vec3 safeNormalize(const glm::vec3 &v) {
 const float Ground::MAP_SIZE = 900.0;
 const float Ground::MAX_HEIGHT = 10.0;
 
-Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
+Ground::Ground(std::string filePath, std::unique_ptr<MaterialGround> mat) : Mesh() {
 	// temporary array initialized here, and then given to a Geometry
 	float* verticesTab;
 	int* indicesTab;
@@ -37,7 +39,7 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 	// load throws, there is no half-built Path left behind to leak (the
 	// destructor never runs on a failed construction).
 	Image img(filePath, false);
-	this->path = new Path("data/resources/path/path.png");
+	this->path = std::make_unique<Path>("data/resources/path/path.png");
 	// init the size of the loaded picture
 	this->numberVerticesX = img.getWidth();
 	this->numberVerticesZ = img.getHeight();
@@ -48,8 +50,8 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 	indicesTab =
 		new int[(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6];
 	// 2 normals for each quad (made with 2 triangles)
-	faceNormals = new glm::vec3[(this->numberVerticesX - 1) *
-		(this->numberVerticesZ - 1) * 2];
+	faceNormals.resize(static_cast<size_t>(this->numberVerticesX - 1) *
+		static_cast<size_t>(this->numberVerticesZ - 1) * 2);
 	// there is 3 coordinates for each normal
 	normalsF =
 		new float[(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6];
@@ -141,23 +143,26 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 		}
 	}
 
-	// compute the normals of the first line of vertices
-	firstLineNormals(normalsF);
-	// compute the normals of all the lines of vertices except for the first and
-	// the last lines
-	middleGridNormals(normalsF);
-	// compute the normals of the last line of vertices
-	lastLineNormals(normalsF);
+	// Vertex normals: one indexed pass over the triangle list. Each
+	// vertex accumulates the face normals of its adjacent triangles
+	// and normalizes the sum. This replaces the firstLine /
+	// middleGrid / lastLine / firstVertex bookkeeping, which averaged
+	// the same adjacent faces without normalizing (and read faces from
+	// the wrong row for the first vertex of the last line).
+	accumulateVertexNormals(indicesTab,
+		(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6,
+		faceNormals.data(), this->numberVerticesX * this->numberVerticesZ,
+		normalsF);
 
 	// set the arrays in the Geometry
-	this->geometry = new Geometry(
+	this->geometry = std::make_unique<Geometry>(
 		verticesTab, indicesTab,
 		this->numberVerticesX * this->numberVerticesZ * 3,
 		(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6);
 
 	this->geometry->setNormals(normalsF);
 	mat->setHeightRange(MAX_HEIGHT);
-	this->material = mat;
+	this->material = std::move(mat);
 
 	// release the memory master please!
 	delete[] normalsF;
@@ -165,89 +170,27 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 	delete[] indicesTab;
 }
 
-// put the values of the normal vector into the i, i+1, i+2 th positions of the
-// floats array
-void Ground::setVectorToFloat(glm::vec3 normal, float* normalsF, int i) {
-	normalsF[i] = normal.x;
-	normalsF[i + 1] = normal.y;
-	normalsF[i + 2] = normal.z;
-}
-
-// compute the normals of the first line of vertices
-void Ground::firstLineNormals(float* normalsF) {
-	int i, j;
-	glm::vec3 tmp = faceNormals[0];
-	// normal of the first vertex
-	setVectorToFloat(tmp, normalsF, 0);
-
-	// normal of the first line exept the last vertice
-	for (i = 3, j = 0; i < (this->numberVerticesX - 1) * 3; i += 3, j += 2) {
-		tmp = (faceNormals[j] + faceNormals[j + 1] + faceNormals[j + 2]) / 3.0f;
-		setVectorToFloat(tmp, normalsF, i);
+// Add every triangle's face normal to its three vertices, then store
+// the normalized sums. Every adjacent face counts exactly once, so the
+// direction matches the old per-line averaging; only the magnitude
+// changes (unit instead of the raw average).
+void Ground::accumulateVertexNormals(const int* indices, int indexCount,
+	const glm::vec3* faceNormals, int vertexCount, float* out) {
+	std::vector<glm::vec3> acc(static_cast<size_t>(vertexCount),
+		glm::vec3(0.0f));
+	const int triCount = indexCount / 3;
+	for (int t = 0; t < triCount; ++t) {
+		const glm::vec3& f = faceNormals[t];
+		acc[static_cast<size_t>(indices[t * 3])] += f;
+		acc[static_cast<size_t>(indices[t * 3 + 1])] += f;
+		acc[static_cast<size_t>(indices[t * 3 + 2])] += f;
 	}
-
-	// normal of the last vertice of the first line
-	tmp = (faceNormals[j] + faceNormals[j + 1]) / 2.0f;
-	setVectorToFloat(tmp, normalsF, i);
-}
-
-// compute the normals of all the lines of vertices except for the first and the
-// last
-void Ground::middleGridNormals(float* normalsF) {
-	int k = (this->numberVerticesX - 1) * 2;
-	glm::vec3 tmp;
-	for (int l = 1; l < this->numberVerticesZ - 1; ++l) {
-		// first vertex of the line
-		firstVertexNormal(normalsF, l);
-		// all verices except the last
-		for (int j = 1; j < k - 1; j += 2) {
-			int normalIndex = l * k + j;
-			tmp = (faceNormals[normalIndex - k] + faceNormals[normalIndex - k + 1] +
-				faceNormals[normalIndex - k + 2] + faceNormals[normalIndex - 1] +
-				faceNormals[normalIndex] + faceNormals[normalIndex + 1]) / 6.0f;
-			setVectorToFloat(tmp, normalsF,
-				(this->numberVerticesX * l + ((j + 1) / 2)) * 3);
-		}
-		// last vertex of the line
-		int t = l * k - 1;
-		tmp = (faceNormals[t] + faceNormals[t + k - 1] + faceNormals[t + k]) / 3.0f;
-		setVectorToFloat(tmp, normalsF, (this->numberVerticesX * (l + 1) - 1) * 3);
+	for (int v = 0; v < vertexCount; ++v) {
+		const glm::vec3 n = safeNormalize(acc[static_cast<size_t>(v)]);
+		out[v * 3] = n.x;
+		out[v * 3 + 1] = n.y;
+		out[v * 3 + 2] = n.z;
 	}
-}
-
-// compute the normals of the last line of vertices
-void Ground::lastLineNormals(float* normalsF) {
-	// indice of the first vertex of the last line
-	int indice = this->numberVerticesX * (this->numberVerticesZ - 1);
-	int l = this->numberVerticesZ - 2;
-	int k = (this->numberVerticesX - 1) * 2;
-	glm::vec3 tmp;
-
-	// first vertex normal
-	tmp = (faceNormals[indice + 1] + faceNormals[indice + 2]) / 2.0f;
-	setVectorToFloat(tmp, normalsF, indice * 3);
-	// all vertices except the last
-	for (int i = 1, j = 0; i < this->numberVerticesX - 1; ++i, j += 2) {
-		int indTmp = l * k + j;
-		tmp = (faceNormals[indTmp + 1] + faceNormals[indTmp + 2] + faceNormals[indTmp + 3]) / 3.0f;
-		setVectorToFloat(tmp, normalsF, (indice + i) * 3);
-	}
-	// last vertex of the last line. So, it's the last vertex of ALL the ground.
-	// Yeah! It belongs to the second triangle of the last quad, whose face
-	// normal is the last entry of the face array.
-	setVectorToFloat(
-		faceNormals[2 * (this->numberVerticesX - 1) * (this->numberVerticesZ - 1) - 1],
-		normalsF, (this->numberVerticesX * this->numberVerticesZ - 1) * 3);
-}
-
-// compute the normal of the first vertex of the line (doesn't work for the
-// first ans the last line)
-void Ground::firstVertexNormal(float* normalsF, int lineNumber) {
-	glm::vec3 tmp;
-	int k = (this->numberVerticesX - 1) * 2;
-	tmp = (faceNormals[lineNumber * k - k] + faceNormals[lineNumber * k - k + 1] +
-		faceNormals[lineNumber * k]) / 3.0f;
-	setVectorToFloat(tmp, normalsF, this->numberVerticesX * lineNumber * 3);
 }
 
 // Height of the plane (p, n) above (x, z). Fails fast instead of
@@ -360,6 +303,4 @@ float Ground::getMapMax() const { return mapMax; }
 
 Ground::~Ground()
 {
-	delete[] this->faceNormals;
-	delete this->path;
 }

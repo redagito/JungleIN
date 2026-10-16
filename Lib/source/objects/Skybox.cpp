@@ -1,7 +1,7 @@
 #include "objects/Skybox.h"
 #include "helpers/Geometries.h"
 #include "helpers/Logger.h"
-SkyBox::SkyBox(MaterialSkyBox* mat) : Mesh() {
-	geometry = Geometries::cube();
-	material = mat;
+SkyBox::SkyBox(std::unique_ptr<MaterialSkyBox> mat) : Mesh() {
+	geometry.reset(Geometries::cube());
+	material = std::move(mat);
 }

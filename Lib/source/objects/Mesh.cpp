@@ -15,9 +15,6 @@ const unsigned int Mesh::INSTANCE_BUSH = 5;
 const unsigned int Mesh::INSTANCE_ROCK = 6;
 
 Mesh::Mesh() : Object3D() {
-	this->geometry = 0;
-	this->material = 0;
-
 	hasNormals = false;
 	hasTexCoords = false;
 
@@ -25,9 +22,8 @@ Mesh::Mesh() : Object3D() {
 	this->instanceType = INSTANCE_NONE;
 }
 
-Mesh::Mesh(Geometry* geometry, Material* material) : Object3D() {
-	this->geometry = geometry;
-	this->material = material;
+Mesh::Mesh(std::unique_ptr<Geometry> geometry, std::unique_ptr<Material> material) : Object3D(),
+  geometry(std::move(geometry)), material(std::move(material)) {
 
 	castShadows = true;
 
@@ -169,39 +165,52 @@ void Mesh::debugDrawWithVBO() {
 	glBindVertexArray(0);
 }
 
-Geometry* Mesh::getGeometry() { return geometry; }
+Geometry* Mesh::getGeometry() { return geometry.get(); }
 
-const Geometry* Mesh::getGeometry() const { return geometry; }
+const Geometry* Mesh::getGeometry() const { return geometry.get(); }
 
-Material* Mesh::getMaterial() { return material; }
+Material* Mesh::getMaterial() { return material.get(); }
 
-const Material* Mesh::getMaterial() const { return material; }
+const Material* Mesh::getMaterial() const { return material.get(); }
 
 void Mesh::castsShadows(bool active) { castShadows = active; }
 
 bool Mesh::castsShadows() const { return castShadows; }
 
 Instance* Mesh::newInstance() {
-	Instance* instance = new Instance(this, static_cast<int>(instances.size()));
-	instances.push_back(instance);
+	instances.push_back(std::make_unique<Instance>(this,
+		static_cast<int>(instances.size())));
 
-	return instance;
+	return instances.back().get();
 }
 
 void Mesh::clearInstances() {
-	for (Instance* i : instances) {
-		delete i;
-	}
 	instances.clear();
 }
 
-Instance* Mesh::getInstance(int id) { return instances.at(id); }
+void Mesh::discardLastInstance() {
+	if (instances.empty())
+		throw std::runtime_error("Mesh::discardLastInstance on empty set");
+	instances.pop_back();
+}
 
-const Instance* Mesh::getInstance(int id) const { return instances.at(id); }
+Instance* Mesh::getInstance(int id) { return instances.at(id).get(); }
 
-std::vector<Instance*>& Mesh::getInstances() { return instances; }
+const Instance* Mesh::getInstance(int id) const { return instances.at(id).get(); }
 
-const std::vector<Instance*>& Mesh::getInstances() const { return instances; }
+std::vector<Instance*> Mesh::getInstances() {
+	std::vector<Instance*> view;
+	for (const auto& instance : instances)
+		view.push_back(instance.get());
+	return view;
+}
+
+std::vector<const Instance*> Mesh::getInstances() const {
+	std::vector<const Instance*> view;
+	for (const auto& instance : instances)
+		view.push_back(instance.get());
+	return view;
+}
 
 float Mesh::getScaleRdn() const { return scaleRdn; }
 
@@ -210,12 +219,6 @@ void Mesh::setScaleRdn(float sRdn) { this->scaleRdn = sRdn; }
 float Mesh::getHeightRdn() const { return this->heightRdn; }
 
 Mesh::~Mesh() {
-	for (Instance* i : instances) {
-		delete i;
-	}
-
-	instances.clear();
-
 	if (VAO != 0)
 		glDeleteVertexArrays(1, &VAO);
 	if (vertices != 0)
@@ -226,9 +229,6 @@ Mesh::~Mesh() {
 		glDeleteBuffers(1, &normals);
 	if (texcoords != 0)
 		glDeleteBuffers(1, &texcoords);
-
-	delete geometry;
-	delete material;
 }
 
 void Mesh::setPourcentage(float pct) { this->pourcentage = pct; }

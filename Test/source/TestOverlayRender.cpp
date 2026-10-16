@@ -29,6 +29,11 @@ struct HiddenGL {
     }
     glfwMakeContextCurrent(window);
     ok = gladLoadGL((GLADloadfunc)glfwGetProcAddress) != 0;
+    // Fresh library per context: static Shader objects outlive their
+    // per-test GL context, so a later case would reuse programs compiled
+    // for a dead context (silent empty draws). See resetActiveShader.
+    if (ok)
+      ShaderLibrary::clear();
   }
 
   ~HiddenGL() {
@@ -96,4 +101,47 @@ TEST_CASE("DebugOverlay renders full glyph rows", "[ui][overlay][gl]") {
   }
   CHECK(upper > 20);
   CHECK(lower > 20);
+}
+
+// Screen-center crosshair: the aiming mark for the Look ruler. Two 1px
+// bars (11 px each, sharing the center pixel): 21 white pixels expected
+// in a 24x24 center crop; thresholded loosely for raster variance.
+TEST_CASE("DebugOverlay draws a center crosshair", "[ui][overlay][gl]") {
+  HiddenGL gl;
+  if (!gl.ok)
+    SKIP("No GL context available for overlay crosshair test");
+
+  DebugOverlay::setFontPath(
+    (std::filesystem::path(JUNGLEIN_DATA_DIR) / "fonts" /
+      "DejaVuSansMono.ttf")
+      .string());
+
+  ShaderLibrary::addShader("ss_debugtext",
+    (std::filesystem::path(JUNGLEIN_DATA_DIR) / "shaders" / "ss_debugtext")
+      .string(),
+    {"position", "texcoord"}, {"texAtlas"});
+
+  DebugOverlay overlay;
+  overlay.setVisible(true);
+  overlay.update(1.0 / 60.0);
+
+  glViewport(0, 0, 800, 600);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+  overlay.draw(800, 600);
+  REQUIRE(glGetError() == GL_NO_ERROR);
+
+  const int W = 24;
+  const int H = 24;
+  std::vector<unsigned char> px(
+    static_cast<size_t>(W) * static_cast<size_t>(H) * 4u, 0);
+  glReadPixels(400 - W / 2, 300 - H / 2, W, H, GL_RGBA, GL_UNSIGNED_BYTE,
+    px.data());
+
+  int white = 0;
+  for (size_t i = 0; i < px.size(); i += 4) {
+    if (px[i] > 128)
+      ++white;
+  }
+  CHECK(white > 10);
 }

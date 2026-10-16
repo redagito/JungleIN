@@ -37,19 +37,29 @@ public:
 
 	void setFilters(GLint min, GLint mag);
 
-	// Texture-unit allocation invariant: resetUnit/fromNextUnit hand out
-	// indices from one shared counter that each owner resets and reuses,
-	// so the same index may label textures that are never sampled
-	// together (every material bind() rebinds before drawing, which
-	// makes cross-material reuse safe). What must never happen is two
-	// DIFFERENT textures sharing one index within a single draw: the
-	// second bind would silently redirect the first sampler.
-	// Shader::transmitUniform enforces this per draw and throws on
-	// aliasing, so keep every co-live set distinct instead of reworking
-	// allocation here.
-	static void resetUnit(int textureUnitOffset = 0);
-	static Texture fromNextUnit();
-	static Texture* newFromNextUnit();
+	// Wrap mode for image textures (default REPEAT). Non-seamless assets
+	// tiled on world-derived UVs (e.g. the six ground maps) show
+	// filtering seams at every tile edge under REPEAT; MIRRORED_REPEAT
+	// blends each edge with itself and kills the seam with no new assets.
+	void setWrap(GLint wrapS, GLint wrapT);
+	GLint wrapS() const;
+	GLint wrapT() const;
+
+	// Texture-unit map: every texture names its unit explicitly at
+	// construction (or via setUnit), so co-live samplers never share
+	// one. Units may repeat across passes because each bind() rebinds
+	// before drawing; only one draw's set must be distinct.
+	//   0  full-res post chain (texScene) / material diffuse slot
+	//   1  half-res post chain (texScene), mainFBO texThreshold /
+	//      material alpha slot
+	//   2  luminance target + lens dirt
+	//   3-5  ground extra maps (ground spans 0-5)
+	//   7-8  shadow maps
+	// (Cube maps such as the skybox sit on a separate GL binding point
+	// per unit, so sharing an index with a 2D texture samples fine.)
+	void setUnit(unsigned int unitIndex);
+	unsigned int unit() const;
+
 	static unsigned int unitFromIndex(unsigned int index);
 
 	int getHeight();
@@ -63,7 +73,6 @@ public:
 	static bool needsUpdate;
 
 private:
-	static unsigned int unitCount;
 	static float borderColor[];
 	static float borderColorB[];
 
@@ -73,6 +82,8 @@ private:
 	unsigned int width = 0;
 	GLint minFilter = GL_LINEAR;
 	GLint magFilter = GL_LINEAR;
+	GLint wrapModeS = GL_REPEAT;
+	GLint wrapModeT = GL_REPEAT;
 	unsigned int format = 0;
 	unsigned int globalFormat = 0;
 	unsigned int pixelType = GL_UNSIGNED_BYTE;

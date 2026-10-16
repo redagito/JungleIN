@@ -1,18 +1,21 @@
 #ifndef MATERIAL_SUN_H
 #define MATERIAL_SUN_H
 
+#include <memory>
+
 #include "materials/Material.h"
 #include "core/Texture.h"
 
 class MaterialSun : public Material {
 public:
-  MaterialSun(Texture *diffuse, Texture *alpha);
+  // Takes ownership of both textures.
+  MaterialSun(std::unique_ptr<Texture> diffuse, std::unique_ptr<Texture> alpha);
   ~MaterialSun() override;
   Shader *bind();
 
 protected:
-  Texture *diffuse = nullptr;
-  Texture *alpha = nullptr;
+  std::unique_ptr<Texture> diffuse;
+  std::unique_ptr<Texture> alpha;
 };
 
 #endif // MATERIAL_SUN_H

@@ -35,6 +35,13 @@ constexpr float kExposureMax = 4.0f;
 constexpr int kLuminanceSize = 64;
 } // namespace
 
+// Batch A: pure mapping for the blur resolution factor. Extracted so
+// the ratio logic is unit-testable without a GL context (declared
+// extern in Test/source/TestBatchA.cpp; PostComposer.h untouched).
+float PostComposerBlurFactor(bool useHalf, int halfBuffersRatio) {
+	return useHalf ? static_cast<float>(halfBuffersRatio) : 1.0f;
+}
+
 PostComposer::PostComposer(FrameBuffer* inputFBO) {
 	width = inputFBO->getWidth();
 	height = inputFBO->getHeight();
@@ -134,20 +141,22 @@ void PostComposer::swapHalfBuffers() {
 	writeHalfBuffer = tmp;
 }
 
-void PostComposer::render(float dtSeconds) {
+void PostComposer::render(float dtSeconds, bool effectsEnabled) {
 	compose();
 	updateAutoExposure(dtSeconds);
 
-	if (doFXAA)
-		passFXAA();
-	if (doBloom)
-		passBloom();
-	if (doLenseFlares)
-		passLenseFlare();
-	if (doGodrays)
-		passGodrays();
-	if (doDistord)
-		passDistortion();
+	if (effectsEnabled) {
+		if (doFXAA)
+			passFXAA();
+		if (doBloom)
+			passBloom();
+		if (doLenseFlares)
+			passLenseFlare();
+		if (doGodrays)
+			passGodrays();
+		if (doDistord)
+			passDistortion();
+	}
 
 	display();
 }
@@ -461,7 +470,7 @@ void PostComposer::applyExposure() {
  * http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
  */
 void PostComposer::passBlurLinear(bool useHalf) {
-	float res = useHalf ? 2.0f : 1.0f;
+	float res = PostComposerBlurFactor(useHalf, halfBuffersRatio);
 
 	FrameBuffer* inBuffer = useHalf ? readHalfBuffer : readBuffer;
 	FrameBuffer* outBuffer = useHalf ? writeHalfBuffer : writeBuffer;
@@ -588,6 +597,12 @@ void PostComposer::toggleAutoExposure(bool active) {
 }
 
 bool PostComposer::isAutoExposure() const { return autoExposure; }
+
+bool PostComposer::isGodrays() const { return doGodrays; }
+
+bool PostComposer::isBloom() const { return doBloom; }
+
+bool PostComposer::isDistord() const { return doDistord; }
 
 void PostComposer::setExposureBias(float value) {
 	exposureBias = value;

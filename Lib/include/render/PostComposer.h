@@ -11,7 +11,11 @@ public:
 	~PostComposer();
 	// dtSeconds is real frame seconds for auto-exposure adaptation.
 	// Non-positive falls back to 1/60 so headless/tests stay defined.
-	void render(float dtSeconds = 0.0f);
+	// effectsEnabled=false skips every effect pass (FXAA/bloom/flare/
+	// godrays/distortion) and goes straight to display: the wireframe
+	// diagnostic needs an unpolluted image, since bright debug colors
+	// would otherwise feed bloom/flare thresholds.
+	void render(float dtSeconds = 0.0f, bool effectsEnabled = true);
 	void resize(unsigned int _width, unsigned int _height);
 	void resizeHalfBuffers();
 
@@ -26,6 +30,9 @@ public:
 	bool isFXAA() const;
 	bool isLenseFlares() const;
 	bool isAutoExposure() const;
+	bool isGodrays() const;
+	bool isBloom() const;
+	bool isDistord() const;
 
 	void setFlareDispersal(float);
 	void setFlareIntensity(float);

@@ -381,6 +381,35 @@ void DebugOverlay::buildVertices(int fbWidth, int fbHeight,
         kPixelScale;
     }
   }
+
+  // Screen-center crosshair: the aiming mark for the Look ruler. Two 1px
+  // bars sampling one guaranteed-ink atlas texel (inset, so NEAREST can
+  // never bleed a blank neighbor). Drawn with the overlay, always.
+  const int fIdx = glyphIndex('F');
+  int inkX = -1;
+  int inkY = -1;
+  for (int y = 0; y < kGlyphH && inkX < 0; ++y) {
+    for (int x = 0; x < kGlyphW && inkX < 0; ++x) {
+      if (glyphPixel('F', x, y)) {
+        inkX = x;
+        inkY = y;
+      }
+    }
+  }
+  if (inkX >= 0) {
+    const float texelW = atlasInvW;
+    const float texelH = atlasInvH;
+    const float cu0 =
+      (static_cast<float>(fIdx * kGlyphW + inkX) + 0.2f) * atlasInvW;
+    const float cv0 =
+      (static_cast<float>(inkY) + 0.2f) * atlasInvH;
+    const float cu1 = cu0 + 0.6f * texelW;
+    const float cv1 = cv0 + 0.6f * texelH;
+    const int cx = fbWidth / 2;
+    const int cy = fbHeight / 2;
+    emitQuad(cx - 5, cy, 11, 1, cu0, cv0, cu1, cv1);
+    emitQuad(cx, cy - 5, 1, 11, cu0, cv0, cu1, cv1);
+  }
 }
 
 void DebugOverlay::draw(int fbWidth, int fbHeight) {

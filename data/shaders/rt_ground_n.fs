@@ -19,6 +19,7 @@ uniform sampler2D texNormalMoss;
 uniform sampler2DShadow texShadow;
 uniform int cascadeShadow;
 uniform sampler2DShadow texShadowCascade;
+uniform int shadowsOn;
 // Texel size is derived per lookup via textureSize(), so no resolution
 // uniforms are needed (a declared-but-unused uniform would be optimized
 // out and fail the fail-fast uniform transmit).
@@ -74,6 +75,9 @@ bool insideFrustum(in vec3 proj)
 
 float computeShadow(in float nDotL)
 {
+    // Diagnostic master switch (key 9): bypass all lookups, all lit.
+    if (shadowsOn == 0)
+        return 1.0f;
     float bias = max(0.005 * (1.0 - max(nDotL, 0.0)), 0.0005);
 
     if (fShadowcoord.w <= 0.0)
@@ -211,6 +215,14 @@ void main()
     // Linear workflow: decode the sRGB albedo to linear (normal map
     // stays raw data); the display pass applies gamma once at the end.
     texel = srgbToLinear(texel);
+    // Distance fade for detail normals: the tangent frame is built
+    // per-vertex, so it jumps discontinuously across triangle edges and
+    // magnified bump detail draws a shimmering world-pinned grid at
+    // distance (subpixel facets) while resolving cleanly up close.
+    // Fading to flat removes the far grid; near detail is untouched.
+    // Rate is eye-tuned: full detail under ~10 m, mostly flat past ~60 m.
+    texelNormal = mix(vec3(0.5, 0.5, 1.0), texelNormal,
+        exp(-vViewDepth * 0.03));
     FragColor = vec4(
                     computeFog(
                         illumination(

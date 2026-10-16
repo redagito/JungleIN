@@ -43,6 +43,10 @@ void ShaderLibrary::clear() {
 		delete entry.second;
 	}
 	shaders.clear();
+	// Program names die with their GL context, but this map (and the
+	// active-program cache) outlive it: without the reset, a recycled
+	// uid would make the next bind() skip glUseProgram entirely.
+	Shader::resetActiveShader();
 }
 
 void ShaderLibrary::validateRegistrations() {

@@ -1,18 +1,21 @@
 #ifndef MATERIALSKYBOX_H
 #define MATERIALSKYBOX_H
 
+#include <memory>
+
 #include "materials/Material.h"
 #include "core/TextureCube.h"
 
 class MaterialSkyBox : public Material {
 public:
-  MaterialSkyBox(TextureCube *textureCube);
+  // Takes ownership of the cubemap.
+  MaterialSkyBox(std::unique_ptr<TextureCube> textureCube);
   ~MaterialSkyBox() override;
 
   Shader *bind();
 
 private:
-  TextureCube *cubemap = nullptr;
+  std::unique_ptr<TextureCube> cubemap;
 };
 
 #endif // MATERIALSKYBOX_H

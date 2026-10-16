@@ -3,21 +3,100 @@
 #include "helpers/Profiler.h"
 
 #include <cmath>
+#include <memory>
 
 Scene* SceneBuilder::scene2 = NULL;
 Ground* SceneBuilder::ground2 = NULL;
 int SceneBuilder::NB_INSTANCE = 1400;
 
-Scene* SceneBuilder::build() {
+namespace {
+// One vegetation stanza as data: asset paths, alpha GL filters,
+// spawn transform and instance distribution. build() runs
+// configureVegetation + createInstances for every entry, in the same
+// order as the stanzas below used to run.
+struct VegetationSpec {
+	const char* objPath;
+	const char* diffusePath;
+	const char* alphaPath;
+	int alphaMinFilter;
+	int alphaMagFilter;
+	glm::vec3 position;
+	float scaleRdn;
+	float heightRdn;
+	float pourcentage;
+	unsigned int instanceType;
+	float rangeScale;
+};
 
-	Camera* camera = new Camera();
+// Shared stanza body: same texture-unit handling, asset loading,
+// material wiring and parameter assignment as the code it replaces.
+// The old stanzas called setScale twice (a base scale, then (0,0,0));
+// setScale is a plain assignment, so only the final (0,0,0) is kept.
+std::unique_ptr<Mesh> configureVegetation(const VegetationSpec& spec) {
+	auto diffuse = std::make_unique<Texture>(0u);
+	auto alpha = std::make_unique<Texture>(1u);
+	std::unique_ptr<Mesh> mesh(ObjLoader::loadObj(spec.objPath));
+	diffuse->load(spec.diffusePath);
+	diffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	diffuse->init();
+	alpha->load(spec.alphaPath);
+	alpha->setFilters(spec.alphaMinFilter, spec.alphaMagFilter);
+	alpha->init();
+	((MaterialBasic*)(mesh->getMaterial()))->setDiffuse(std::move(diffuse));
+	((MaterialBasic*)(mesh->getMaterial()))->setAlpha(std::move(alpha));
+	mesh->setPosition(spec.position);
+	mesh->setScale(glm::vec3(0.0f, 0.0f, 0.0f));
+	mesh->setScaleRdn(spec.scaleRdn);
+	mesh->setHeightRdn(spec.heightRdn);
+	mesh->setPourcentage(spec.pourcentage);
+	mesh->setInstanceType(spec.instanceType);
+	mesh->setRangeScale(spec.rangeScale);
+	return mesh;
+}
 
-	// camera->setMouse(QCursor::pos().x(), QCursor::pos().y());
+const VegetationSpec kVegetation[] = {
+	{"data/resources/meshes/rock1/rock1.obj",
+		"data/resources/maps/rock1/rock1_1k.png",
+		"data/resources/maps/noalpha.png", GL_NEAREST, GL_NEAREST,
+		glm::vec3(-3, 0.5, 0), 0.2f, 0.5f, 0.2f, Mesh::INSTANCE_ROCK, 0.4f},
+	{"data/resources/meshes/palmtree/palmtree.obj",
+		"data/resources/maps/palmtree/palmtree_1k.png",
+		"data/resources/maps/palmtree/palmtree_1k_alpha.png",
+		GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+		glm::vec3(0, 0, -10), 0.8f, -2.5f, 0.07f, Mesh::INSTANCE_PALM, 0.8f},
+	{"data/resources/meshes/hightree/hightree.obj",
+		"data/resources/maps/hightree/hightree_1k.png",
+		"data/resources/maps/hightree/hightree_1k_alpha.png",
+		GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+		glm::vec3(-6, 2, -16), 0.3f, -2.0f, 0.3f, Mesh::INSTANCE_HTREE, 0.4f},
+	{"data/resources/meshes/bamboopalm/bamboopalm.obj",
+		"data/resources/maps/bamboopalm/bamboopalm_1k.png",
+		"data/resources/maps/bamboopalm/bamboopalm_1k_alpha.png",
+		GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+		glm::vec3(-4, -2, 4), 0.3f, -2.0f, 0.15f, Mesh::INSTANCE_BTREE, 1.0f},
+	{"data/resources/meshes/groundpalm/groundpalm.obj",
+		"data/resources/maps/groundpalm/groundpalm_1k.png",
+		"data/resources/maps/groundpalm/groundpalm_1k_alpha.png",
+		GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+		glm::vec3(-3, -1, 0), 0.9f, -1.0f, 0.14f, Mesh::INSTANCE_GPALM, 0.4f},
+	{"data/resources/meshes/bush1/bush1.obj",
+		"data/resources/maps/bush1/bush1_1k.png",
+		"data/resources/maps/bush1/bush1_1k_alpha.png",
+		GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+		glm::vec3(-3, 0, 0), 0.3f, 0.0f, 0.14f, Mesh::INSTANCE_BUSH, 0.4f},
+};
+} // namespace
+
+std::unique_ptr<Scene> SceneBuilder::build() {
+
+	auto camera = std::make_unique<Camera>();
+
 	camera->setMouse(0, 0);
 	camera->reset();
 
-	SkyBox* skyBox = new SkyBox(
-		new MaterialSkyBox(new TextureCube("data/resources/cubemaps/miramar/", ".jpg")));
+	auto skyBox = std::make_unique<SkyBox>(
+		std::make_unique<MaterialSkyBox>(
+			std::make_unique<TextureCube>("data/resources/cubemaps/miramar/", ".jpg")));
 
 	skyBox->setPosition(camera->getPosition());
 	// Phase 4: spawn position only; Scene::update recenters the sky on
@@ -25,10 +104,8 @@ Scene* SceneBuilder::build() {
 	// 1 m cube never drifts out of view.
 
 	// SUN
-	Texture::resetUnit();
-
-	Texture* sunDiffuse = Texture::newFromNextUnit();
-	Texture* sunAlpha = Texture::newFromNextUnit();
+	auto sunDiffuse = std::make_unique<Texture>(0u);
+	auto sunAlpha = std::make_unique<Texture>(1u);
 
 	sunDiffuse->load("data/resources/maps/sun/sun_1k.png");
 	sunDiffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
@@ -38,171 +115,71 @@ Scene* SceneBuilder::build() {
 	sunAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	sunAlpha->init();
 
-	MaterialSun* sunMat = new MaterialSun(sunDiffuse, sunAlpha);
+	auto sunMat = std::make_unique<MaterialSun>(std::move(sunDiffuse),
+		std::move(sunAlpha));
 
-	Sun* sun = new Sun(sunMat);
+	auto sun = std::make_unique<Sun>(std::move(sunMat));
 
 	// GROUND
-	Texture::resetUnit();
+	// The six ground maps are not seamless-tileable (measured opposite
+	// edges differ strongly), and ground UVs tile them on a world grid,
+	// so GL_REPEAT blends unrelated edges into hairline seams every
+	// tile. MIRRORED_REPEAT blends each edge with itself instead.
 	// diffuses
-	Texture* groundMoss = Texture::newFromNextUnit();
-	Texture* groundEarth = Texture::newFromNextUnit();
-	Texture* groundShatter = Texture::newFromNextUnit();
+	auto groundMoss = std::make_unique<Texture>(0u);
+	auto groundEarth = std::make_unique<Texture>(1u);
+	auto groundShatter = std::make_unique<Texture>(2u);
 	groundMoss->load("data/resources/maps/ground/moss.png");
 	groundMoss->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	groundMoss->setWrap(GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	groundMoss->init();
 	groundEarth->load("data/resources/maps/ground/earth.png");
 	groundEarth->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	groundEarth->setWrap(GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	groundEarth->init();
 	groundShatter->load("data/resources/maps/ground/shatter.png");
 	groundShatter->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	groundShatter->setWrap(GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	groundShatter->init();
 
 	// normals
-	Texture* groundNormalMoss = Texture::newFromNextUnit();
-	Texture* groundNormalEarth = Texture::newFromNextUnit();
-	Texture* groundNormalShatter = Texture::newFromNextUnit();
+	auto groundNormalMoss = std::make_unique<Texture>(3u);
+	auto groundNormalEarth = std::make_unique<Texture>(4u);
+	auto groundNormalShatter = std::make_unique<Texture>(5u);
 	groundNormalMoss->load("data/resources/maps/ground/moss_normal.png");
 	groundNormalMoss->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	groundNormalMoss->setWrap(GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	groundNormalMoss->init();
 	groundNormalEarth->load("data/resources/maps/ground/earth_normal.png");
 	groundNormalEarth->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	groundNormalEarth->setWrap(GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	groundNormalEarth->init();
 	groundNormalShatter->load("data/resources/maps/ground/shatter_normal.png");
 	groundNormalShatter->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+	groundNormalShatter->setWrap(GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 	groundNormalShatter->init();
 
 	// init
-	MaterialGround* groundMat = new MaterialGround(
-		groundMoss, groundEarth, groundShatter, groundNormalMoss,
-		groundNormalEarth, groundNormalShatter);
-	Ground* ground =
-		new Ground("data/resources/heightmaps/heightmap.png", groundMat);
+	auto groundMat = std::make_unique<MaterialGround>(
+		std::move(groundMoss), std::move(groundEarth),
+		std::move(groundShatter), std::move(groundNormalMoss),
+		std::move(groundNormalEarth), std::move(groundNormalShatter));
+	auto ground = std::make_unique<Ground>(
+		"data/resources/heightmaps/heightmap.png", std::move(groundMat));
 	Profiler::mark("ground built");
 
-	// ROCK 1
-	Texture::resetUnit();
-
-	Texture* rock1Diffuse = Texture::newFromNextUnit();
-	Texture* rock1Alpha = Texture::newFromNextUnit();
-	Mesh* rock1 = ObjLoader::loadObj("data/resources/meshes/rock1/rock1.obj");
-	rock1Diffuse->load("data/resources/maps/rock1/rock1_1k.png");
-	rock1Diffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	rock1Diffuse->init();
-	rock1Alpha->load("data/resources/maps/noalpha.png");
-	rock1Alpha->setFilters(GL_NEAREST, GL_NEAREST);
-	rock1Alpha->init();
-	((MaterialBasic*)(rock1->getMaterial()))->setDiffuse(rock1Diffuse);
-	((MaterialBasic*)(rock1->getMaterial()))->setAlpha(rock1Alpha);
-	rock1->setPosition(glm::vec3(-3, 0.5, 0));
-	rock1->setScale(glm::vec3(0.6f, 0.6f, 0.6f));
-	rock1->setScale(glm::vec3(0.0, 0.0, 0.0));
-	rock1->setScaleRdn(0.2f);
-	rock1->setHeightRdn(0.5f);
-	rock1->setPourcentage(0.2f);
-	rock1->setInstanceType(Mesh::INSTANCE_ROCK);
-	rock1->setRangeScale(0.4f);
-	createInstances(rock1, ground, static_cast<int>(std::lround(NB_INSTANCE * rock1->getPourcentage())));
-
-	// PALM TREE
-	Texture::resetUnit();
-	Texture* palmDiffuse = Texture::newFromNextUnit();
-	Texture* palmAlpha = Texture::newFromNextUnit();
-	Mesh* palm =
-		ObjLoader::loadObj("data/resources/meshes/palmtree/palmtree.obj");
-	palmDiffuse->load("data/resources/maps/palmtree/palmtree_1k.png");
-	palmDiffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	palmDiffuse->init();
-	palmAlpha->load("data/resources/maps/palmtree/palmtree_1k_alpha.png");
-	palmAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	palmAlpha->init();
-	((MaterialBasic*)(palm->getMaterial()))->setDiffuse(palmDiffuse);
-	((MaterialBasic*)(palm->getMaterial()))->setAlpha(palmAlpha);
-	palm->setPosition(glm::vec3(0, 0, -10));
-	palm->setScale(glm::vec3(2, 2, 2));
-	palm->setScale(glm::vec3(0, 0, 0));
-	palm->setScaleRdn(0.8f);
-	palm->setHeightRdn(-2.5f);
-	palm->setPourcentage(0.07f);
-	palm->setInstanceType(Mesh::INSTANCE_PALM);
-	palm->setRangeScale(0.8f);
-	createInstances(palm, ground, static_cast<int>(std::lround(NB_INSTANCE * palm->getPourcentage())));
-
-	// HIGH TREE
-	Texture::resetUnit();
-	Texture* htreeDiffuse = Texture::newFromNextUnit();
-	Texture* htreeAlpha = Texture::newFromNextUnit();
-	Mesh* htree =
-		ObjLoader::loadObj("data/resources/meshes/hightree/hightree.obj");
-	htreeDiffuse->load("data/resources/maps/hightree/hightree_1k.png");
-	htreeDiffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	htreeDiffuse->init();
-	htreeAlpha->load("data/resources/maps/hightree/hightree_1k_alpha.png");
-	htreeAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	htreeAlpha->init();
-	((MaterialBasic*)(htree->getMaterial()))->setDiffuse(htreeDiffuse);
-	((MaterialBasic*)(htree->getMaterial()))->setAlpha(htreeAlpha);
-	htree->setPosition(glm::vec3(-6, 2, -16));
-	htree->setScale(glm::vec3(0.6f, 0.6f, 0.6f));
-	htree->setScale(glm::vec3(0, 0, 0));
-	htree->setScaleRdn(0.3f);
-	htree->setHeightRdn(-2.0f);
-	htree->setPourcentage(0.3f);
-	htree->setInstanceType(Mesh::INSTANCE_HTREE);
-	htree->setRangeScale(0.4f);
-	createInstances(htree, ground, static_cast<int>(std::lround(NB_INSTANCE * htree->getPourcentage())));
-
-	// BAMBOO PALM
-	Texture::resetUnit();
-	Texture* btreeDiffuse = Texture::newFromNextUnit();
-	Texture* btreeAlpha = Texture::newFromNextUnit();
-	Mesh* btree =
-		ObjLoader::loadObj("data/resources/meshes/bamboopalm/bamboopalm.obj");
-	btreeDiffuse->load("data/resources/maps/bamboopalm/bamboopalm_1k.png");
-	btreeDiffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	btreeDiffuse->init();
-	btreeAlpha->load("data/resources/maps/bamboopalm/bamboopalm_1k_alpha.png");
-	btreeAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	btreeAlpha->init();
-	((MaterialBasic*)(btree->getMaterial()))->setDiffuse(btreeDiffuse);
-	((MaterialBasic*)(btree->getMaterial()))->setAlpha(btreeAlpha);
-	btree->setPosition(glm::vec3(-4, -2, 4));
-	btree->setScale(glm::vec3(0.6f, 0.6f, 0.6f));
-	btree->setScale(glm::vec3(0, 0, 0));
-	btree->setScaleRdn(0.3f);
-	btree->setHeightRdn(-2.0f);
-	btree->setPourcentage(0.15f);
-	btree->setInstanceType(Mesh::INSTANCE_BTREE);
-	btree->setRangeScale(1.0f);
-	createInstances(btree, ground, static_cast<int>(std::lround(NB_INSTANCE * btree->getPourcentage())));
-
-	// GROUND PALM
-	Texture::resetUnit();
-	Texture* gpalmDiffuse = Texture::newFromNextUnit();
-	Texture* gpalmAlpha = Texture::newFromNextUnit();
-	Mesh* gpalm =
-		ObjLoader::loadObj("data/resources/meshes/groundpalm/groundpalm.obj");
-	gpalmDiffuse->load("data/resources/maps/groundpalm/groundpalm_1k.png");
-	gpalmDiffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	gpalmDiffuse->init();
-	gpalmAlpha->load("data/resources/maps/groundpalm/groundpalm_1k_alpha.png");
-	gpalmAlpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	gpalmAlpha->init();
-	((MaterialBasic*)(gpalm->getMaterial()))->setDiffuse(gpalmDiffuse);
-	((MaterialBasic*)(gpalm->getMaterial()))->setAlpha(gpalmAlpha);
-	gpalm->setPosition(glm::vec3(-3, -1, 0));
-	gpalm->setScaleRdn(0.9f);
-	gpalm->setScale(glm::vec3(0, 0, 0));
-	gpalm->setHeightRdn(-1.0);
-	gpalm->setPourcentage(0.14f);
-	gpalm->setInstanceType(Mesh::INSTANCE_GPALM);
-	gpalm->setRangeScale(0.4f);
-	createInstances(gpalm, ground, static_cast<int>(std::lround(NB_INSTANCE * gpalm->getPourcentage())));
+	// Vegetation: one table-driven stanza per mesh (rock, palm, htree,
+	// btree, gpalm, bush), run in the original order so texture units
+	// and the instance random stream are unchanged.
+	std::unique_ptr<Mesh> veg[6];
+	for (int i = 0; i < 6; ++i) {
+		veg[i] = configureVegetation(kVegetation[i]);
+		createInstances(veg[i].get(), ground.get(), static_cast<int>(std::lround(NB_INSTANCE * veg[i]->getPourcentage())));
+	}
 
 	// SMALL PLANT 1
-	/*Texture::resetUnit();
-	Texture* splant1Diffuse = Texture::newFromNextUnit();
-	Texture* splant1Alpha = Texture::newFromNextUnit();
+	/*Texture* splant1Diffuse = new Texture(0u);
+	Texture* splant1Alpha = new Texture(1u);
 	Mesh* splant1 =
 	ObjLoader::loadObj("data/resources/meshes/smallplant1/smallplant1.obj");
 	splant1Diffuse->load("data/resources/maps/smallplant1/smallplant1.png");
@@ -217,46 +194,28 @@ Scene* SceneBuilder::build() {
 	splant1->setScale(glm::vec3(0.6,0.6,0.6));
 	splant1->castsShadows(true);*/
 
-	// BUSH 1
-	Texture::resetUnit();
-	Texture* bush1Diffuse = Texture::newFromNextUnit();
-	Texture* bush1Alpha = Texture::newFromNextUnit();
-	Mesh* bush1 = ObjLoader::loadObj("data/resources/meshes/bush1/bush1.obj");
-	bush1Diffuse->load("data/resources/maps/bush1/bush1_1k.png");
-	bush1Diffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	bush1Diffuse->init();
-	bush1Alpha->load("data/resources/maps/bush1/bush1_1k_alpha.png");
-	bush1Alpha->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-	bush1Alpha->init();
-	((MaterialBasic*)(bush1->getMaterial()))->setDiffuse(bush1Diffuse);
-	((MaterialBasic*)(bush1->getMaterial()))->setAlpha(bush1Alpha);
-	bush1->setPosition(glm::vec3(-3, 0, 0));
-	bush1->setScale(glm::vec3(0.6f, 0.6f, 0.6f));
-	bush1->setScale(glm::vec3(0, 0, 0));
-	bush1->setScaleRdn(0.3f);
-	bush1->setHeightRdn(0.0);
-	bush1->setPourcentage(0.14f);
-	bush1->setInstanceType(Mesh::INSTANCE_BUSH);
-	bush1->setRangeScale(0.4f);
-	createInstances(bush1, ground, static_cast<int>(std::lround(NB_INSTANCE * bush1->getPourcentage())));
+	// (bush1 is veg[5] from the vegetation loop above)
 
-	Scene* scene = new Scene();
-	scene->addCamera(camera);
-	scene->setCurrentCamera(camera);
-	scene->setSky(skyBox);
-	scene->setSun(sun);
-	scene->setGround(ground);
+	auto scene = std::make_unique<Scene>();
+	scene->setCurrentCamera(camera.get());
+	scene->addCamera(std::move(camera));
+	scene->setSky(std::move(skyBox));
+	scene->setSun(std::move(sun));
+	scene->setGround(std::move(ground));
 
-	scene->addMesh(rock1);
-	scene->addMesh(palm);
-	scene->addMesh(gpalm);
+	// addMesh order is load-bearing for the scene snapshot (rock, palm,
+	// gpalm, htree, btree, bush): keep it exactly.
+	scene->addMesh(std::move(veg[0]));
+	scene->addMesh(std::move(veg[1]));
+	scene->addMesh(std::move(veg[4]));
 	// scene->addMesh(splant1);
-	scene->addMesh(htree);
-	scene->addMesh(btree);
-	scene->addMesh(bush1);
+	scene->addMesh(std::move(veg[2]));
+	scene->addMesh(std::move(veg[3]));
+	scene->addMesh(std::move(veg[5]));
 
-	scene2 = scene;
-	ground2 = ground;
+	// Borrowed aliases for the legacy statics; Scene owns everything.
+	scene2 = scene.get();
+	ground2 = scene->getGround();
 
 	return scene;
 }
@@ -271,8 +230,7 @@ void SceneBuilder::createInstances(Mesh* mesh, Ground* ground, int nbInstance) {
 				? ground->randomMapPos(mesh->getHeightRdn(), true)
 				: ground->randomMapPos(mesh->getHeightRdn(), false);
 		if (!spot) {
-			mesh->getInstances().pop_back();
-			delete instance;
+			mesh->discardLastInstance();
 			continue;
 		}
 		instance->setPosition(*spot);

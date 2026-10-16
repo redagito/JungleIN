@@ -22,8 +22,7 @@ void ShadowBuffer::init(unsigned int textureUnitOffset)
 
 	drawBuffers = new unsigned int[size];
 
-	Texture::resetUnit(textureUnitOffset);
-	Texture* tex = Texture::newFromNextUnit();
+	Texture* tex = new Texture(textureUnitOffset);
 	tex->setupForDepthShadow(width, height);
 	tex->setFilters(GL_LINEAR, GL_LINEAR);
 	tex->init();

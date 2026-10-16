@@ -21,6 +21,7 @@ uniform vec3 diffuseColor;
 uniform sampler2DShadow texShadow;
 uniform int cascadeShadow;
 uniform sampler2DShadow texShadowCascade;
+uniform int shadowsOn;
 // Texel size is derived per lookup via textureSize(), so no resolution
 // uniforms are needed (a declared-but-unused uniform would be optimized
 // out and fail the fail-fast uniform transmit).
@@ -60,6 +61,9 @@ bool insideFrustum(in vec3 proj)
 
 float compShadow(in float nDotL)
 {
+    // Diagnostic master switch (key 9): bypass all lookups, all lit.
+    if (shadowsOn == 0)
+        return 1.0f;
     float bias = max(0.005 * (1.0 - max(nDotL, 0.0)), 0.0005);
 
     if (fShadowcoord.w <= 0.0)

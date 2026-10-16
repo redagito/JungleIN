@@ -14,6 +14,7 @@
 
 #include "render/ShaderLibrary.h"
 #include "render/FrameBuffer.h"
+#include "materials/MaterialWire.h"
 #include "render/ShadowBuffer.h"
 #include "render/PostComposer.h"
 
@@ -49,6 +50,13 @@ public:
 	PostComposer* getPostComposer();
 
 	void toggleShadowCascade(bool active);
+	// Diagnostic master switch for all shadow lookups (key 9): lighting
+	// treats everything as lit. Shadow maps still render; only the
+	// lookup is bypassed, so toggling is free of pass restructuring.
+	void toggleShadows(bool enabled);
+	bool isShadows() const;
+	void toggleWireframe(bool enabled);
+	bool isWireframe() const;
 	void setRatio(float r);
 
 private:
@@ -76,9 +84,16 @@ private:
 	ShadowBuffer* shadowFBO = nullptr;
 	ShadowBuffer* shadowFBOCascade = nullptr;
 	MaterialShadow* shadowMat = nullptr;
+	// Flat unlit material for the wireframe overlay pass (key 0). When
+	// materialOverride is set, drawGround/drawMeshes bind it instead of
+	// the object materials and transmit MVP only.
+	MaterialWire* wireMat = nullptr;
+	Material* materialOverride = nullptr;
 	PostComposer* postComposer = nullptr;
 
 	bool useShadowCascade = false;
+	bool useShadows = true;
+	bool useWireframe = false;
 
 	std::stack<glm::mat4> xform;
 	glm::mat4 matrixProj, matrixView, matrixModel;

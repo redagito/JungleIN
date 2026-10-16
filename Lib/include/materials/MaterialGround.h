@@ -1,20 +1,24 @@
 #ifndef MATERIALGROUND_H
 #define MATERIALGROUND_H
 
+#include <memory>
+
 #include "materials/Material.h"
 
 class MaterialGround : public Material {
 public:
-  MaterialGround(Texture *moss, Texture *earth, Texture *shatter,
-                 Texture *mossNormal, Texture *earthNormal,
-                 Texture *shatterNormal);
+  // Takes ownership of all six textures.
+  MaterialGround(std::unique_ptr<Texture> moss, std::unique_ptr<Texture> earth,
+                 std::unique_ptr<Texture> shatter,
+                 std::unique_ptr<Texture> mossNormal,
+                 std::unique_ptr<Texture> earthNormal,
+                 std::unique_ptr<Texture> shatterNormal);
   ~MaterialGround() override;
 
   Shader *bind();
 
   void setHeightRange(float f);
   void setAlphaCutoff(float f);
-  // Inline: MaterialGround.cpp is owned by another worker.
   float getAlphaCutoff() const override { return alphaCutoff; }
 
 protected:
@@ -22,12 +26,12 @@ protected:
   float heightRange = 0.f;
   float alphaCutoff = 0.8f;
 
-  Texture *moss = nullptr;
-  Texture *earth = nullptr;
-  Texture *shatter = nullptr;
-  Texture *mossNormal = nullptr;
-  Texture *earthNormal = nullptr;
-  Texture *shatterNormal = nullptr;
+  std::unique_ptr<Texture> moss;
+  std::unique_ptr<Texture> earth;
+  std::unique_ptr<Texture> shatter;
+  std::unique_ptr<Texture> mossNormal;
+  std::unique_ptr<Texture> earthNormal;
+  std::unique_ptr<Texture> shatterNormal;
 };
 
 #endif // MATERIALGROUND_H

@@ -139,18 +139,32 @@ TEST_CASE("DebugOverlay defaults hidden with toggle API", "[ui][overlay]") {
 // out). Pure formatting: no GL, no window.
 TEST_CASE("Overlay status lines spell toggle states", "[ui][overlay]") {
   const std::vector<std::string> on =
-    Window::overlayStatusLines(true, true, true, 1.0f, true);
-  REQUIRE(on.size() == 4);
+    Window::overlayStatusLines(true, true, true, 1.0f, true, true, true,
+      true, true, true, 12.3f, 4.5f, -100.2f, 9.3f, true);
+  REQUIRE(on.size() == 7);
   CHECK(on[0].find("1 FXAA on") != std::string::npos);
   CHECK(on[0].find("2 Flares on") != std::string::npos);
   CHECK(on[1].find("3 AutoExp on") != std::string::npos);
   CHECK(on[1].find("7/8 Bias 1.00") != std::string::npos);
-  CHECK(on[2].find("F4 VSync on") != std::string::npos);
-  CHECK(on[3] == "R Regen");
+  CHECK(on[2].find("4 Rays on") != std::string::npos);
+  CHECK(on[2].find("5 Bloom on") != std::string::npos);
+  CHECK(on[2].find("6 Dist on") != std::string::npos);
+  CHECK(on[3].find("F4 VSync on") != std::string::npos);
+  CHECK(on[4].find("R Regen") != std::string::npos);
+  CHECK(on[4].find("9 Shad on") != std::string::npos);
+  CHECK(on[4].find("0 Wire on") != std::string::npos);
+  CHECK(on[5] == "Cam 12.3 4.5 -100.2");
+  CHECK(on[6] == "Look 9.3m");
 
   const std::vector<std::string> off =
-    Window::overlayStatusLines(false, false, false, 0.5f, false);
+    Window::overlayStatusLines(false, false, false, 0.5f, false, false,
+      false, false, false, false, 0.0f, 0.0f, 0.0f, 0.0f, false);
   CHECK(off[0].find("1 FXAA off") != std::string::npos);
   CHECK(off[1].find("7/8 Bias 0.50") != std::string::npos);
-  CHECK(off[2].find("F4 VSync off") != std::string::npos);
+  CHECK(off[2].find("6 Dist off") != std::string::npos);
+  CHECK(off[3].find("F4 VSync off") != std::string::npos);
+  CHECK(off[4].find("9 Shad off") != std::string::npos);
+  CHECK(off[4].find("0 Wire off") != std::string::npos);
+  CHECK(off[5] == "Cam 0.0 0.0 0.0");
+  CHECK(off[6] == "Look ---");
 }

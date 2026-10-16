@@ -29,10 +29,10 @@ glm::vec3 safeNormalize(const glm::vec3 &v) {
 }
 } // namespace
 
-Sun::Sun(MaterialSun *mat) : Mesh() {
-  geometry = Geometries::quad(2.0);
-  material = mat;
-  light = new Light();
+Sun::Sun(std::unique_ptr<MaterialSun> mat) : Mesh() {
+  geometry.reset(Geometries::quad(2.0));
+  material = std::move(mat);
+  light = std::make_unique<Light>();
   // Tuned below unity: at 1.0 the direct sun outranges ambient/fog by
   // ~200x in shade views, forcing the auto-exposure to its ceiling and
   // clipping sky and sunlit leaves. kSunIntensity keeps sunlit
@@ -77,7 +77,6 @@ void Sun::update(const glm::vec3 &positionCamera, const glm::vec3 &zCamera) {
 void Sun::setSpeed(float s) { speed = s; }
 
 Sun::~Sun() {
-  delete light;
 }
 
-Light *Sun::getLight() { return light; }
+Light *Sun::getLight() { return light.get(); }

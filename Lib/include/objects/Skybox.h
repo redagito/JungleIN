@@ -5,5 +5,6 @@
 
 class SkyBox : public Mesh {
 public:
-  SkyBox(MaterialSkyBox *mat);
+  // Takes ownership of the material.
+  SkyBox(std::unique_ptr<MaterialSkyBox> mat);
 };

@@ -4,12 +4,15 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 
 #include "helpers/Logger.h"
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
+#include <glm/gtc/matrix_inverse.hpp>
 
 #include <algorithm>
 
@@ -19,6 +22,57 @@
 namespace {
 constexpr int kDefaultWidth = 1600;
 constexpr int kDefaultHeight = 900;
+
+// Overlay ruler: distance from the camera to the ground along the view
+// ray (exponential march for a bracket, then bisection on the exact
+// plane math). Overlay-only cost. nullopt looking level/up, off-map, or
+// on any ground query failure. Forward comes straight from the view
+// matrix so no yaw/pitch sign convention can sneak in.
+std::optional<float> measureGroundDistance(Camera *camera, Ground *ground) {
+  if (camera == nullptr || ground == nullptr)
+    return std::nullopt;
+  const glm::vec3 pos = camera->getPosition();
+  const glm::vec3 fwd = glm::normalize(glm::vec3(
+    glm::inverse(camera->getMatrix()) * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
+  if (!std::isfinite(fwd.x + fwd.y + fwd.z) || fwd.y >= -0.001f)
+    return std::nullopt;
+  auto heightAbove = [&](float t) -> std::optional<float> {
+    try {
+      return (pos.y + fwd.y * t) -
+        ground->getY(pos.x + fwd.x * t, pos.z + fwd.z * t);
+    }
+    catch (...) {
+      return std::nullopt;
+    }
+  };
+  const std::optional<float> h0 = heightAbove(0.0f);
+  if (!h0 || *h0 <= 0.0f)
+    return std::nullopt;
+  float lo = 0.0f;
+  float hi = 0.5f;
+  while (hi <= 600.0f) {
+    const std::optional<float> h = heightAbove(hi);
+    if (!h)
+      return std::nullopt;
+    if (*h <= 0.0f)
+      break;
+    lo = hi;
+    hi *= 2.0f;
+  }
+  if (hi > 600.0f)
+    return std::nullopt;
+  for (int i = 0; i < 24; ++i) {
+    const float mid = (lo + hi) * 0.5f;
+    const std::optional<float> h = heightAbove(mid);
+    if (!h)
+      return std::nullopt;
+    if (*h <= 0.0f)
+      hi = mid;
+    else
+      lo = mid;
+  }
+  return (lo + hi) * 0.5f;
+}
 } // namespace
 
 static void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei /*length*/,
@@ -124,17 +178,13 @@ Window::Window() {
 
 Window::~Window() {
 	// GL teardown must run while the context is still current: free every
-	// owner in dependency order first, then the shared shaders, then GLFW.
-	delete audio;
-	audio = nullptr;
-	delete loading;
-	loading = nullptr;
-	delete overlay;
-	overlay = nullptr;
-	delete renderer;
-	renderer = nullptr;
-	delete scene;
-	scene = nullptr;
+	// owner in dependency order first (renderer borrows scene, so scene
+	// dies last), then the shared shaders, then GLFW.
+	audio.reset();
+	loading.reset();
+	overlay.reset();
+	renderer.reset();
+	scene.reset();
 	ShaderLibrary::clear();
 	if (window != nullptr) {
 		glfwDestroyWindow(window);
@@ -172,11 +222,37 @@ void Window::run() {
 		Profiler::recordFrame(dtSeconds * 1000.0);
 		if (overlay != nullptr) {
 			overlay->update(dtSeconds);
+			// Measurement readout, overlay-visible only (the ray march is
+			// cheap but pointless when nobody reads it).
+			float camX = 0.0f;
+			float camY = 0.0f;
+			float camZ = 0.0f;
+			float lookDist = 0.0f;
+			bool lookValid = false;
+			if (overlay->isVisible() && scene != nullptr &&
+				scene->getCurrentCamera() != nullptr) {
+				const glm::vec3 pos =
+					scene->getCurrentCamera()->getPosition();
+				camX = pos.x;
+				camY = pos.y;
+				camZ = pos.z;
+				const std::optional<float> hit = measureGroundDistance(
+					scene->getCurrentCamera(), scene->getGround());
+				if (hit) {
+					lookDist = *hit;
+					lookValid = true;
+				}
+			}
 			overlay->setLines(overlayStatusLines(
 				renderer->getPostComposer()->isFXAA(),
 				renderer->getPostComposer()->isLenseFlares(),
 				renderer->getPostComposer()->isAutoExposure(),
-				exposureBias, vsyncOn));
+				exposureBias, vsyncOn,
+				renderer->getPostComposer()->isGodrays(),
+				renderer->getPostComposer()->isBloom(),
+				renderer->getPostComposer()->isDistord(),
+				renderer->isShadows(), renderer->isWireframe(), camX, camY,
+				camZ, lookDist, lookValid));
 			int fbWidth = 0;
 			int fbHeight = 0;
 			glfwGetFramebufferSize(Utils::window, &fbWidth, &fbHeight);
@@ -230,7 +306,7 @@ void Window::initializeGL() {
 	Profiler::mark("GL functions loaded");
 
 	// Black splash until the first jungle frame is ready.
-	loading = new LoadingScreen(window);
+	loading = std::make_unique<LoadingScreen>(window);
 	loading->show("data/splash.png");
 
 	// Debug context
@@ -329,7 +405,7 @@ void Window::initializeGL() {
 
 void Window::initializeObjects() {
 	Profiler::mark("initializeObjects start");
-	renderer = new Renderer();
+	renderer = std::make_unique<Renderer>();
 
 	renderer->loadShaders();
 	Profiler::mark("shaders loaded");
@@ -337,7 +413,7 @@ void Window::initializeObjects() {
 	// Debug overlay stays hidden until F3; its atlas texture uploads
 	// lazily on the first visible draw. Status lines refresh every
 	// frame in run() so toggle states are always live.
-	overlay = new DebugOverlay();
+	overlay = std::make_unique<DebugOverlay>();
 
 	scene = SceneBuilder::build();
 	Profiler::mark("scene built");
@@ -348,12 +424,12 @@ void Window::initializeObjects() {
 	scene->setRenderAble(true);
 
 
-	renderer->init(scene, kDefaultWidth, kDefaultHeight);
+	renderer->init(scene.get(), kDefaultWidth, kDefaultHeight);
 
 	renderer->start();
 	Profiler::mark("renderer started");
 
-	audio = new AudioEngine();
+	audio = std::make_unique<AudioEngine>();
 	audio->init();
 	// Decode off the main thread: a full MP3 would freeze startup.
 	pendingClip = std::async(std::launch::async, AudioClip::decodeMP3,
@@ -448,18 +524,42 @@ void Window::exVSync(bool active) {
 	glfwSwapInterval(active ? 1 : 0);
 }
 
+void Window::exShadows(bool active) {
+	renderer->toggleShadows(active);
+}
+
+void Window::exWireframe(bool active) {
+	renderer->toggleWireframe(active);
+}
+
 std::vector<std::string> Window::overlayStatusLines(bool fxaa, bool flares,
-	bool autoExp, float bias, bool vsync) {
+	bool autoExp, float bias, bool vsync, bool godrays, bool bloom,
+	bool distord, bool shadows, bool wireframe, float camX, float camY,
+	float camZ, float lookDist, bool lookValid) {
 	auto onOff = [](bool v) { return v ? "on" : "off"; };
 	char biasText[32];
 	std::snprintf(biasText, sizeof(biasText), "%.2f", bias);
+	char camText[64];
+	std::snprintf(camText, sizeof(camText), "Cam %.1f %.1f %.1f", camX,
+		camY, camZ);
+	char lookText[32];
+	if (lookValid)
+		std::snprintf(lookText, sizeof(lookText), "Look %.1fm", lookDist);
+	else
+		std::snprintf(lookText, sizeof(lookText), "Look ---");
 	return {
 		std::string("1 FXAA ") + onOff(fxaa) +
 			"  2 Flares " + onOff(flares),
 		std::string("3 AutoExp ") + onOff(autoExp) +
 			"  7/8 Bias " + biasText,
+		std::string("4 Rays ") + onOff(godrays) +
+			"  5 Bloom " + onOff(bloom) +
+			"  6 Dist " + onOff(distord),
 		std::string("F1 Mouse  F3 Overlay  F4 VSync ") + onOff(vsync),
-		"R Regen",
+		std::string("R Regen  9 Shad ") + onOff(shadows) +
+			"  0 Wire " + onOff(wireframe),
+		camText,
+		lookText,
 	};
 }
 
@@ -562,11 +662,32 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 			exPostAutoExposure(!composer->isAutoExposure());
 			break;
 		}
+		case GLFW_KEY_4: {
+			PostComposer* composer = renderer->getPostComposer();
+			exPostGodrays(!composer->isGodrays());
+			break;
+		}
+		case GLFW_KEY_5: {
+			PostComposer* composer = renderer->getPostComposer();
+			exPostBloom(!composer->isBloom());
+			break;
+		}
+		case GLFW_KEY_6: {
+			PostComposer* composer = renderer->getPostComposer();
+			exPostDistord(!composer->isDistord());
+			break;
+		}
 		case GLFW_KEY_7:
 			exExposureBias(exposureBias * 0.8f);
 			break;
 		case GLFW_KEY_8:
 			exExposureBias(exposureBias * 1.25f);
+			break;
+		case GLFW_KEY_9:
+			exShadows(!renderer->isShadows());
+			break;
+		case GLFW_KEY_0:
+			exWireframe(!renderer->isWireframe());
 			break;
 		case GLFW_KEY_R:
 			exRegenerate();

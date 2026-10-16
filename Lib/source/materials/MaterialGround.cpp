@@ -1,25 +1,19 @@
 #include "materials/MaterialGround.h"
 
-MaterialGround::MaterialGround(Texture* moss, Texture* earth, Texture* shatter,
-	Texture* mossNormal, Texture* earthNormal,
-	Texture* shatterNormal)
-	: Material("rt_ground_n") {
-	this->moss = moss;
-	this->earth = earth;
-	this->shatter = shatter;
-	this->mossNormal = mossNormal;
-	this->earthNormal = earthNormal;
-	this->shatterNormal = shatterNormal;
-	size = (float)shatter->getWidth();
+MaterialGround::MaterialGround(std::unique_ptr<Texture> moss,
+	                         std::unique_ptr<Texture> earth,
+	                         std::unique_ptr<Texture> shatter,
+	                         std::unique_ptr<Texture> mossNormal,
+	                         std::unique_ptr<Texture> earthNormal,
+	                         std::unique_ptr<Texture> shatterNormal)
+	: Material("rt_ground_n"), moss(std::move(moss)), earth(std::move(earth)),
+	  shatter(std::move(shatter)), mossNormal(std::move(mossNormal)),
+	  earthNormal(std::move(earthNormal)),
+	  shatterNormal(std::move(shatterNormal)) {
+	size = static_cast<float>(this->shatter->getWidth());
 }
 
 MaterialGround::~MaterialGround() {
-	delete moss;
-	delete earth;
-	delete shatter;
-	delete mossNormal;
-	delete earthNormal;
-	delete shatterNormal;
 }
 
 Shader* MaterialGround::bind() {
@@ -40,12 +34,12 @@ Shader* MaterialGround::bind() {
 	mossNormal->bind();
 	earthNormal->bind();
 	shatterNormal->bind();
-	shader->transmitUniform("texMoss", moss);
-	shader->transmitUniform("texEarth", earth);
-	shader->transmitUniform("texShatter", shatter);
-	shader->transmitUniform("texNormalMoss", mossNormal);
-	shader->transmitUniform("texNormalEarth", earthNormal);
-	shader->transmitUniform("texNormalShatter", shatterNormal);
+	shader->transmitUniform("texMoss", moss.get());
+	shader->transmitUniform("texEarth", earth.get());
+	shader->transmitUniform("texShatter", shatter.get());
+	shader->transmitUniform("texNormalMoss", mossNormal.get());
+	shader->transmitUniform("texNormalEarth", earthNormal.get());
+	shader->transmitUniform("texNormalShatter", shatterNormal.get());
 
 	return shader;
 }

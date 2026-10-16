@@ -125,6 +125,15 @@ void Texture::setFilters(GLint min, GLint mag) {
 	magFilter = mag;
 }
 
+void Texture::setWrap(GLint wrapS, GLint wrapT) {
+	wrapModeS = wrapS;
+	wrapModeT = wrapT;
+}
+
+GLint Texture::wrapS() const { return wrapModeS; }
+
+GLint Texture::wrapT() const { return wrapModeT; }
+
 void Texture::setupForDepthShadow(unsigned int _width, unsigned int _height) {
 	width = _width;
 	height = _height;
@@ -165,9 +174,9 @@ void Texture::init() {
 			
 		}
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapModeS);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapModeT);
 		
 
 		if (Utils::USE_ANISO) {
@@ -250,18 +259,15 @@ int Texture::getWidth() { return width; }
 
 bool Texture::needsUpdate = false;
 
-unsigned int Texture::unitCount = 0;
-
 float Texture::borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 float Texture::borderColorB[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-void Texture::resetUnit(int textureUnitOffset) {
-	unitCount = textureUnitOffset;
+void Texture::setUnit(unsigned int unitIndex) {
+	index = unitIndex;
+	glunit = unitFromIndex(unitIndex);
 }
 
-Texture Texture::fromNextUnit() { return Texture(unitCount++); }
-
-Texture* Texture::newFromNextUnit() { return new Texture(unitCount++); }
+unsigned int Texture::unit() const { return index; }
 
 unsigned int Texture::unitFromIndex(unsigned int index) {
 	return GL_TEXTURE0 + index;

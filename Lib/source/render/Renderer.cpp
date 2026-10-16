@@ -25,6 +25,49 @@ void AssertViewport(unsigned int width, unsigned int height) {
 	(void)height;
 #endif
 }
+
+// Shared shadow-transmit prologue for drawGround/drawMeshes/
+// drawMeshesShadow. Lit call sites pass litMaterial == nullptr and get
+// the shadow-map bind + cascade select + shadowQuality; the shadow
+// call site passes the lit material and gets the alpha cutout state
+// (the cascade/quality guards no-op on the shadow shader, which
+// declares neither, and the shadow-map bind no-ops there too).
+// Values match the legacy inline code exactly: every lit shader
+// declares shadowQuality, and the shadow shader declares useAlpha,
+// texAlpha and alphaCutoff.
+void TransmitShadowState(Shader* shader, ShadowBuffer* shadowFBO,
+	ShadowBuffer* cascadeFBO, bool useCascade, Material* litMaterial) {
+	shadowFBO->bindAndTransmitTextures(shader);
+	// Cascade shadows are an optional shader capability: only drive
+	// the cascade uniforms when declared. Anything transmitted below
+	// without a declaration throws instead.
+	if (shader->hasUniform("cascadeShadow")) {
+		if (useCascade) {
+			cascadeFBO->bindAndTransmitTextures(shader);
+			shader->transmitUniform("cascadeShadow", 1);
+		}
+		else {
+			shader->transmitUniform("cascadeShadow", 0);
+		}
+	}
+	if (shader->hasUniform("shadowQuality"))
+		shader->transmitUniform("shadowQuality", Utils::QUALITY);
+	if (litMaterial != nullptr && shader->hasUniform("useAlpha")) {
+		if (litMaterial->hasAlpha()) {
+			Texture* alpha = litMaterial->getAlpha();
+			alpha->bind();
+			shader->transmitUniform("texAlpha", alpha);
+			shader->transmitUniform("useAlpha", 1);
+			// Same per-material cutoff as the lit pass: a hardcoded
+			// shadow cutoff would disagree with shaded cutout.
+			shader->transmitUniform("alphaCutoff",
+				litMaterial->getAlphaCutoff());
+		}
+		else {
+			shader->transmitUniform("useAlpha", 0);
+		}
+	}
+}
 } // namespace
 
 Renderer::Renderer() {
@@ -66,6 +109,8 @@ Renderer::~Renderer() {
 	shadowFBOCascade = nullptr;
 	delete shadowMat;
 	shadowMat = nullptr;
+	delete wireMat;
+	wireMat = nullptr;
 	// scene and __ observers belong to Window/Scene; do not delete.
 	scene = nullptr;
 	__camera = nullptr;
@@ -79,6 +124,7 @@ Renderer::~Renderer() {
 void Renderer::init(Scene* _scene, unsigned int w, unsigned int h) {
 	assert(w > 0 && h > 0);
 	shadowMat = new MaterialShadow();
+	wireMat = new MaterialWire();
 
 	width = w;
 	height = h;
@@ -155,13 +201,25 @@ void Renderer::render() {
 	// it, the sky never does). It writes no depth (see MaterialSun).
 	drawSun();
 
-	// matrixProj = __sun->getLight()->getProjMatrix();
-	// matrixView = __sun->getLight()->getViewMatrix();
-
 	pushMatrix(scene->getMatrix());
+
+	// Diagnostic wireframe (key 0): ground + meshes draw as flat red
+	// line triangles instead of the shaded fill, via the unlit override
+	// material (rebinding the lit materials would shade the lines
+	// identically to the surface and hide them). Sky, sun and shadow
+	// maps always stay filled.
+	if (useWireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		materialOverride = wireMat;
+	}
 
 	drawGround();
 	drawMeshes();
+
+	if (useWireframe) {
+		materialOverride = nullptr;
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	popMatrix();
 
@@ -170,7 +228,8 @@ void Renderer::render() {
 	// Renderer::delta is seconds / TARGET_FPS (co-tuned with movement
 	// speeds), so scale back to real frame seconds for the exposure
 	// adaptation time constants. PostComposer clamps spikes itself.
-	postComposer->render(delta * static_cast<float>(Utils::TARGET_FPS));
+	postComposer->render(delta * static_cast<float>(Utils::TARGET_FPS),
+		!useWireframe);
 
 	Texture::needsUpdate = false;
 	Utils::calculFPS();
@@ -285,36 +344,31 @@ void Renderer::drawSun() {
 void Renderer::drawGround() {
 	pushMatrix(__ground->getMatrix());
 
-	__material = __ground->getMaterial();
+	// Wireframe overlay pass (key 0) binds the flat unlit material and
+	// transmits MVP only; everything below is the lit-material path.
+	__material = (materialOverride != nullptr) ? materialOverride
+		: __ground->getMaterial();
 	__shader = __material->bind();
 
-	shadowFBO->bindAndTransmitTextures(__shader);
-	// Cascade shadows are an optional shader capability (rt_ground_n
-	// predates them): only drive the cascade uniforms when declared.
-	// Anything transmitted below without a declaration throws instead.
-	if (__shader->hasUniform("cascadeShadow")) {
-		if (useShadowCascade) {
-			shadowFBOCascade->bindAndTransmitTextures(__shader);
-			__shader->transmitUniform("cascadeShadow", 1);
-		}
-		else {
-			__shader->transmitUniform("cascadeShadow", 0);
-		}
-	}
-
 	calcMVP();
-	if (__shader->hasUniform("normalMatrix"))
-		transmitNormalMatrix();
-	if (__shader->hasUniform("viewMatrix"))
-		transmitViewMatrix();
 	transmitMVP();
-	if (__shader->hasUniform("mv"))
-		__shader->transmitUniform("mv", __mv);
-	transmitShadowMatrix(__shader->hasUniform("shadowMatrixCascade"));
-	__shader->transmitUniform("lightDir", __lightDir);
-	if (__shader->hasUniform("lightIntensity"))
-		__shader->transmitUniform("lightIntensity", __lightIntensity);
-	__shader->transmitUniform("shadowQuality", Utils::QUALITY);
+	if (materialOverride == nullptr) {
+		TransmitShadowState(__shader, shadowFBO, shadowFBOCascade,
+			useShadowCascade, nullptr);
+
+		if (__shader->hasUniform("normalMatrix"))
+			transmitNormalMatrix();
+		if (__shader->hasUniform("viewMatrix"))
+			transmitViewMatrix();
+		if (__shader->hasUniform("mv"))
+			__shader->transmitUniform("mv", __mv);
+		transmitShadowMatrix(__shader->hasUniform("shadowMatrixCascade"));
+		__shader->transmitUniform("lightDir", __lightDir);
+		if (__shader->hasUniform("lightIntensity"))
+			__shader->transmitUniform("lightIntensity", __lightIntensity);
+		__shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
+		__shader->transmitUniform("shadowQuality", Utils::QUALITY);
+	}
 
 	__ground->drawWithVBO();
 
@@ -338,36 +392,32 @@ bool Renderer::cull(Instance* m, float offset) {
 
 void Renderer::drawMeshes() {
 	for (Mesh* m : scene->getMeshes()) {
-		__material = m->getMaterial();
+		__material = (materialOverride != nullptr) ? materialOverride
+			: m->getMaterial();
 		__shader = __material->bind();
 
-		shadowFBO->bindAndTransmitTextures(__shader);
-		// Cascade on/off only switches the shader branch; the inner
-		// frustum size stays fixed (outside-frustum is lit, so no
-		// size hack is needed to hide a dark ring).
-		if (__shader->hasUniform("cascadeShadow")) {
-			if (useShadowCascade) {
-				shadowFBOCascade->bindAndTransmitTextures(__shader);
-				__shader->transmitUniform("cascadeShadow", 1);
-			}
-			else {
-				__shader->transmitUniform("cascadeShadow", 0);
-			}
-		}
+		calcMVP();
+		transmitMVP();
+		if (materialOverride == nullptr) {
+			TransmitShadowState(__shader, shadowFBO, shadowFBOCascade,
+				useShadowCascade, nullptr);
 
-		__shader->transmitUniform("lightDir", __lightDir);
-		if (__shader->hasUniform("lightIntensity"))
-			__shader->transmitUniform("lightIntensity", __lightIntensity);
-		__shader->transmitUniform("shadowQuality", Utils::QUALITY);
+			__shader->transmitUniform("lightDir", __lightDir);
+			if (__shader->hasUniform("lightIntensity"))
+				__shader->transmitUniform("lightIntensity", __lightIntensity);
+			__shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
+		}
 
 		pushMatrix(m->getMatrix());
 		calcMVP();
-		transmitNormalMatrix();
-		transmitViewMatrix();
 		transmitMVP();
-		if (__shader->hasUniform("mv"))
-			__shader->transmitUniform("mv", __mv);
-		transmitShadowMatrix();
+		if (materialOverride == nullptr) {
+			transmitNormalMatrix();
+			transmitViewMatrix();
+			if (__shader->hasUniform("mv"))
+				__shader->transmitUniform("mv", __mv);
+			transmitShadowMatrix();
+		}
 
 		m->drawWithVBO();
 
@@ -380,12 +430,14 @@ void Renderer::drawMeshes() {
 
 			pushMatrix(i->getMatrix());
 			calcMVP();
-			transmitNormalMatrix();
-			transmitViewMatrix();
 			transmitMVP();
-			if (__shader->hasUniform("mv"))
-				__shader->transmitUniform("mv", __mv);
-			transmitShadowMatrix();
+			if (materialOverride == nullptr) {
+				transmitNormalMatrix();
+				transmitViewMatrix();
+				if (__shader->hasUniform("mv"))
+					__shader->transmitUniform("mv", __mv);
+				transmitShadowMatrix();
+			}
 
 			m->drawWithVBO();
 
@@ -403,26 +455,8 @@ void Renderer::drawMeshesShadow() {
 		__material = shadowMat;
 		__shader = __material->bind();
 
-		if (m->getMaterial()->hasAlpha()) {
-
-			Texture* alpha = m->getMaterial()->getAlpha();
-
-			alpha->bind();
-
-			__shader->transmitUniform("texAlpha", alpha);
-
-			__shader->transmitUniform("useAlpha", 1);
-
-			// Same per-material cutoff as the lit pass (MaterialBasic):
-			// a hardcoded shadow cutoff would disagree with shaded cutout.
-			__shader->transmitUniform("alphaCutoff",
-				m->getMaterial()->getAlphaCutoff());
-
-		}
-		else {
-			__shader->transmitUniform("useAlpha", 0);
-
-		}
+		TransmitShadowState(__shader, shadowFBO, shadowFBOCascade,
+			useShadowCascade, m->getMaterial());
 
 		pushMatrix(m->getMatrix());
 
@@ -554,6 +588,14 @@ void Renderer::toggleShadowCascade(bool enabled) {
 	useShadowCascade = enabled;
 }
 
+void Renderer::toggleShadows(bool enabled) { useShadows = enabled; }
+
+bool Renderer::isShadows() const { return useShadows; }
+
+void Renderer::toggleWireframe(bool enabled) { useWireframe = enabled; }
+
+bool Renderer::isWireframe() const { return useWireframe; }
+
 void Renderer::setRatio(float r) {
 	ratio = r > 0.0f && r < 1.0f ? r : 1.0f;
 	resize(finalWidth, finalHeight);
@@ -581,7 +623,8 @@ void Renderer::loadShaders() {
 		<< "shadowMatrix"
 		<< "texShadowCascade"
 		<< "shadowMatrixCascade"
-		<< "cascadeShadow");
+		<< "cascadeShadow"
+		<< "shadowsOn");
 
 	ShaderLibrary::addShader("rt_sun", "data/shaders/rt_sun",
 		std::vector<std::string>() << "position"
@@ -600,6 +643,7 @@ void Renderer::loadShaders() {
 		<< "shadowMatrix"
 		<< "shadowMatrixCascade"
 		<< "cascadeShadow"
+		<< "shadowsOn"
 		<< "lightDir"
 		<< "lightIntensity"
 		<< "heightRange"
@@ -700,6 +744,11 @@ void Renderer::loadShaders() {
 		std::vector<std::string>() << "position"
 		<< "texcoord",
 		std::vector<std::string>() << "texAtlas");
+
+	ShaderLibrary::addShader("ss_wire", "data/shaders/ss_wire",
+		std::vector<std::string>() << "position",
+		std::vector<std::string>() << "mvp"
+		<< "wireColor");
 
 	// Fail here, not at first draw: registration is compiled in, sources
 	// load from data/ at runtime, and any skew between them is fatal.

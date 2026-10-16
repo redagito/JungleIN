@@ -36,6 +36,11 @@ struct HiddenGL {
     }
     glfwMakeContextCurrent(window);
     ok = gladLoadGL((GLADloadfunc)glfwGetProcAddress) != 0;
+    // Fresh library per context: static Shader objects outlive their
+    // per-test GL context, so a later case would reuse programs compiled
+    // for a dead context (silent empty draws). See resetActiveShader.
+    if (ok)
+      ShaderLibrary::clear();
   }
 
   ~HiddenGL() {
@@ -75,7 +80,8 @@ std::string WriteUnusedUniformShaders() {
 // is pure CPU (Shader with no load carries uid -1, so its dtor is a
 // no-op; Mesh with VAO 0 must throw before touching GL).
 struct MeshProbe : public Mesh {
-  MeshProbe(Geometry *g, Material *m) : Mesh(g, m) {}
+  MeshProbe(std::unique_ptr<Geometry> g, std::unique_ptr<Material> m)
+    : Mesh(std::move(g), std::move(m)) {}
   int locPosition() const { return locVertices; }
   int locNormal() const { return locNormals; }
   int locTex() const { return locTexCoords; }
@@ -100,10 +106,10 @@ TEST_CASE("FrameBuffer init with empty targets throws",
 // before initVBO runs. The -1 sentinel must be observable pre-init.
 TEST_CASE("Mesh attribute locations start unset", "[objects][mesh]")
 {
-  Geometry *g = Geometries::quad(1.0);
+  auto g = std::unique_ptr<Geometry>(Geometries::quad(1.0));
   Shader shader("probe");
-  Material *m = new Material(&shader);
-  MeshProbe mesh(g, m);
+  auto m = std::make_unique<Material>(&shader);
+  MeshProbe mesh(std::move(g), std::move(m));
   CHECK(mesh.locPosition() == -1);
   CHECK(mesh.locNormal() == -1);
   CHECK(mesh.locTex() == -1);

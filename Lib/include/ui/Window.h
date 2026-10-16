@@ -13,6 +13,7 @@
 #include "audio/AudioEngine.h"
 
 #include <future>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -53,12 +54,18 @@ public:
 	void exRenderRatio(int value);
 	void exDebugOverlay(bool active);
 	void exVSync(bool active);
+	void exShadows(bool active);
+	void exWireframe(bool active);
 	void exRegenerate();
 
 	// Pure status-line builder for the overlay cheat-sheet (unit-tested).
-	// Shows live toggle states; movement keys are deliberately excluded.
+	// Shows live toggle states plus the measurement readout (camera
+	// position, view-ray ground distance, --- when no hit); movement
+	// keys are deliberately excluded.
 	static std::vector<std::string> overlayStatusLines(bool fxaa,
-		bool flares, bool autoExp, float bias, bool vsync);
+		bool flares, bool autoExp, float bias, bool vsync, bool godrays,
+		bool bloom, bool distord, bool shadows, bool wireframe, float camX,
+		float camY, float camZ, float lookDist, bool lookValid);
 
 	// Pure input policy, unit-tested: releasing the left button ends
 	// hold-to-look, but must not kill F1-captured look (cursor disabled).
@@ -74,11 +81,13 @@ private:
 	static Window* s_window;
 	GLFWwindow* window = nullptr;
 
-	Scene* scene = nullptr;
-	Renderer* renderer = nullptr;
-	LoadingScreen* loading = nullptr;
-	DebugOverlay* overlay = nullptr;
-	AudioEngine* audio = nullptr;
+	// Owned subsystems (unique_ptr), freed explicitly in dependency order
+	// in ~Window (renderer borrows scene, so scene dies last).
+	std::unique_ptr<Scene> scene;
+	std::unique_ptr<Renderer> renderer;
+	std::unique_ptr<LoadingScreen> loading;
+	std::unique_ptr<DebugOverlay> overlay;
+	std::unique_ptr<AudioEngine> audio;
 	// HDR Phase 3: last exposure bias sent to the composer (keys 7/8
 	// step it multiplicatively from here; composer default is 1.0).
 	float exposureBias = 1.0f;

@@ -8,8 +8,6 @@ MaterialBasic::MaterialBasic(const glm::vec3& _color) : Material("rt_basic") {
 }
 
 MaterialBasic::~MaterialBasic() {
-	delete diffuse;
-	delete alpha;
 }
 
 Shader* MaterialBasic::bind() {
@@ -28,12 +26,12 @@ Shader* MaterialBasic::bind() {
 
 	if (hDiffuse) {
 		diffuse->bind();
-		shader->transmitUniform("texDiffuse", diffuse);
+		shader->transmitUniform("texDiffuse", diffuse.get());
 	}
 
 	if (hAlpha) {
 		alpha->bind();
-		shader->transmitUniform("texAlpha", alpha);
+		shader->transmitUniform("texAlpha", alpha.get());
 	}
 
 	// Stale-unit guard: rt_basic is shared by every mesh, so a sampler
@@ -53,13 +51,13 @@ void MaterialBasic::setColor(const glm::vec3& _color) { color = _color; }
 
 glm::vec3& MaterialBasic::getColor() { return color; }
 
-void MaterialBasic::setDiffuse(Texture* tex) {
-	diffuse = tex;
+void MaterialBasic::setDiffuse(std::unique_ptr<Texture> tex) {
+	diffuse = std::move(tex);
 	hDiffuse = true;
 }
 
-void MaterialBasic::setAlpha(Texture* tex) {
-	alpha = tex;
+void MaterialBasic::setAlpha(std::unique_ptr<Texture> tex) {
+	alpha = std::move(tex);
 	hAlpha = true;
 }
 
@@ -69,4 +67,4 @@ float MaterialBasic::getAlphaCutoff() const { return alphaCutoff; }
 
 bool MaterialBasic::hasAlpha() const { return hAlpha; }
 
-Texture* MaterialBasic::getAlpha() { return alpha; }
+Texture* MaterialBasic::getAlpha() { return alpha.get(); }

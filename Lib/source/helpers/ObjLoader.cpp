@@ -2,6 +2,7 @@
 
 #include <tiny_obj_loader.h>
 #include "helpers/Logger.h"
+#include <memory>
 #include <stdexcept>
 
 #include "materials/MaterialBasic.h"
@@ -32,11 +33,12 @@ Mesh* ObjLoader::loadObj(std::string fileName)
 		throw std::runtime_error(
 			"OBJ file contains no geometry: " + fileName);
 
-	Geometry* geometry = new Geometry(flat.vertices, flat.indices);
+	auto geometry = std::make_unique<Geometry>(flat.vertices, flat.indices);
 	geometry->setNormals(flat.normals);
 	geometry->setTexCoords(flat.uvs);
 
-	Mesh* mesh = new Mesh(geometry, new MaterialBasic(glm::vec3(0.4f, 0.6f, 0.2f)));
+	Mesh* mesh = new Mesh(std::move(geometry),
+		std::make_unique<MaterialBasic>(glm::vec3(0.4f, 0.6f, 0.2f)));
 
 	return mesh;
 }

@@ -33,6 +33,8 @@ std::string fetchInfoLog(unsigned int object, bool isProgram) {
 
 GLuint Shader::s_activeShaderUid = 0;
 
+void Shader::resetActiveShader() { s_activeShaderUid = 0; }
+
 Shader::Shader(std::string name) {
 	this->name = name;
 	this->uid = static_cast<GLuint>(-1);
@@ -157,10 +159,6 @@ Shader& Shader::setupLocations(std::vector<std::string> _attributes,
 }
 
 Shader& Shader::bind() {
-	// A new draw starts here even when the GL program is already active
-	// (one shader object serves many draws, e.g. rt_basic for every
-	// mesh), so the per-draw unit guard must reset before the fast path.
-	boundTextureUnits.clear();
 	if (s_activeShaderUid == uid) return *this;
 	glUseProgram(uid);
 	s_activeShaderUid = uid;
@@ -197,7 +195,6 @@ bool Shader::hasUniform(std::string key) {
 
 void Shader::transmitUniform(std::string key, const Texture* tex) {
 	validateIsActive();
-	trackTextureUnit(tex);
 	glUniform1i(requireUniform(key), tex->index);
 }
 
@@ -260,15 +257,4 @@ int Shader::requireUniform(const std::string& key)
 	if (found->second == -1)
 		throw std::runtime_error("Shader '" + name + "' has no uniform '" + key + "'");
 	return found->second;
-}
-
-void Shader::trackTextureUnit(const Texture* tex)
-{
-	for (const auto& bound : boundTextureUnits) {
-		if (bound.first != tex && bound.second == tex->index)
-			throw std::runtime_error("Shader '" + name +
-				"' aliases texture unit " + std::to_string(tex->index) +
-				": two textures share one unit in a single draw");
-	}
-	boundTextureUnits.push_back({ tex, tex->index });
 }

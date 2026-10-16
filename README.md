@@ -55,11 +55,13 @@ Fly up / down - E / Q
 
 Look around - hold left mouse button, or F1 (mouse capture toggle)
 
-Effects - 1 (FXAA), 2 (lens flares), 3 (auto-exposure)
+Effects - 1 (FXAA), 2 (lens flares), 3 (auto-exposure),
+4 (god rays), 5 (bloom), 6 (distortion)
 
 Exposure - 7 / 8 (bias down / up)
 
-Debug - F3 (FPS overlay), F4 (uncapped FPS), R (regenerate vegetation)
+Debug - F3 (FPS overlay), F4 (uncapped FPS), R (regenerate vegetation),
+9 (shadows on/off, diagnostic), 0 (wireframe, diagnostic)
 
 Quit - Escape
 

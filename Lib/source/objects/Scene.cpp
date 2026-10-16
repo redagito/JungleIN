@@ -7,28 +7,15 @@
 Scene::Scene() : Object3D() {}
 
 Scene::~Scene() {
-  for (Mesh *m : meshes) {
-    delete m;
-  }
-  meshes.clear();
-  for (Camera *c : cameras) {
-    delete c;
-  }
-  cameras.clear();
-  // currentCamera aliases an entry of cameras; do not delete it twice.
+  // Members own themselves (unique_ptr); currentCamera is a non-owning
+  // alias into cameras and must not be deleted here.
   currentCamera = nullptr;
-  delete sun;
-  sun = nullptr;
-  delete sky;
-  sky = nullptr;
-  delete ground;
-  ground = nullptr;
 }
 
 void Scene::init() {
   if (sky == nullptr || sun == nullptr || ground == nullptr)
     throw std::runtime_error("Scene::init without sky, sun or ground");
-  for (Mesh *m : meshes) {
+  for (const auto& m : meshes) {
     m->initVBO();
   }
   sky->initVBO();
@@ -63,33 +50,43 @@ void Scene::update(float delta) {
   sun->update(cameraPostion, cameraZ);
 }
 
-std::vector<Mesh *> Scene::getMeshes() { return meshes; }
+std::vector<Mesh *> Scene::getMeshes() {
+  std::vector<Mesh *> view;
+  for (const auto& mesh : meshes)
+    view.push_back(mesh.get());
+  return view;
+}
 
-Sun *Scene::getSun() { return sun; }
+Sun *Scene::getSun() { return sun.get(); }
 
-std::vector<Camera *> Scene::getCameras() { return cameras; }
+std::vector<Camera *> Scene::getCameras() {
+  std::vector<Camera *> view;
+  for (const auto& camera : cameras)
+    view.push_back(camera.get());
+  return view;
+}
 
-SkyBox *Scene::getSky() { return sky; }
+SkyBox *Scene::getSky() { return sky.get(); }
 
-Ground *Scene::getGround() { return ground; }
+Ground *Scene::getGround() { return ground.get(); }
 
-Mesh *Scene::getMeshAt(int index) { return meshes.at(index); }
+Mesh *Scene::getMeshAt(int index) { return meshes.at(index).get(); }
 
-Camera *Scene::getCameraAt(int index) { return cameras.at(index); }
+Camera *Scene::getCameraAt(int index) { return cameras.at(index).get(); }
 
 Camera *Scene::getCurrentCamera() { return currentCamera; }
 
 void Scene::setCurrentCamera(Camera *camera) { currentCamera = camera; }
 
-void Scene::addMesh(Mesh *mesh) { meshes.push_back(mesh); }
+void Scene::addMesh(std::unique_ptr<Mesh> mesh) { meshes.push_back(std::move(mesh)); }
 
-void Scene::setSun(Sun *v) { this->sun = v; }
+void Scene::setSun(std::unique_ptr<Sun> v) { sun = std::move(v); }
 
-void Scene::addCamera(Camera *camera) { cameras.push_back(camera); }
+void Scene::addCamera(std::unique_ptr<Camera> camera) { cameras.push_back(std::move(camera)); }
 
-void Scene::setSky(SkyBox *v) { this->sky = v; }
+void Scene::setSky(std::unique_ptr<SkyBox> v) { sky = std::move(v); }
 
-void Scene::setGround(Ground *v) { this->ground = v; }
+void Scene::setGround(std::unique_ptr<Ground> v) { ground = std::move(v); }
 
 bool Scene::getRenderAble() { return this->renderAble; }
 
