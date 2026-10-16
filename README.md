@@ -53,11 +53,13 @@ Movement - Arrow Keys / WASD
 
 Fly up / down - E / Q
 
-Look around - hold left mouse button, or F1 (capture) / F2 (release)
+Look around - hold left mouse button, or F1 (mouse capture toggle)
 
-Effects - 1 / 2 (FXAA off / on), 3 / 4 (lens flares off / on)
+Effects - 1 (FXAA), 2 (lens flares), 3 (auto-exposure)
 
-Exposure - 5 / 6 (auto-exposure off / on), 7 / 8 (bias down / up)
+Exposure - 7 / 8 (bias down / up)
+
+Debug - F3 (FPS overlay), F4 (uncapped FPS)
 
 Quit - Escape
 

@@ -21,6 +21,12 @@ public:
 	void toggleGodrays(bool);
 	void toggleBloom(bool);
 
+	// State queries for single-key toggles and the debug overlay: the
+	// composer owns the flags, callers flip via toggle(!is...()).
+	bool isFXAA() const;
+	bool isLenseFlares() const;
+	bool isAutoExposure() const;
+
 	void setFlareDispersal(float);
 	void setFlareIntensity(float);
 	void setGamma(float);

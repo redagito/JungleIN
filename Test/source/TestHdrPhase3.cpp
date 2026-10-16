@@ -52,9 +52,8 @@ TEST_CASE("HDR targets upload as half float", "[render][hdr]") {
   CHECK(textureCpp.find("GL_UNSIGNED_BYTE") != std::string::npos);
 }
 
-// HDR Phase 3: auto-exposure toggle + exposure bias are wired through
-// Window like the other post toggles (keys 5/6 on/off, 7/8 bias
-// down/up), following the 1/2 FXAA and 3/4 flare key pattern.
+// Unified single-key toggles: auto-exposure flips on key 3 (no on/off
+// key pair), bias steps on 7/8, following the 1 FXAA / 2 flare pattern.
 TEST_CASE("Window exposes auto-exposure controls", "[ui][hdr]") {
   const std::filesystem::path root = RepoRoot();
   const std::string windowCpp =
@@ -66,8 +65,7 @@ TEST_CASE("Window exposes auto-exposure controls", "[ui][hdr]") {
   CHECK(windowH.find("exExposureBias") != std::string::npos);
   CHECK(windowCpp.find("toggleAutoExposure") != std::string::npos);
   CHECK(windowCpp.find("setExposureBias") != std::string::npos);
-  CHECK(windowCpp.find("GLFW_KEY_5") != std::string::npos);
-  CHECK(windowCpp.find("GLFW_KEY_6") != std::string::npos);
+  CHECK(windowCpp.find("GLFW_KEY_3") != std::string::npos);
   CHECK(windowCpp.find("GLFW_KEY_7") != std::string::npos);
   CHECK(windowCpp.find("GLFW_KEY_8") != std::string::npos);
 }

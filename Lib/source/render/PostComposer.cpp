@@ -552,9 +552,13 @@ void PostComposer::resizeHalfBuffers() {
 
 void PostComposer::toggleFXAA(bool active) { doFXAA = active; }
 
+bool PostComposer::isFXAA() const { return doFXAA; }
+
 void PostComposer::toggleDistord(bool active) { doDistord = active; }
 
 void PostComposer::toggleLenseFlares(bool active) { doLenseFlares = active; }
+
+bool PostComposer::isLenseFlares() const { return doLenseFlares; }
 
 void PostComposer::toggleGodrays(bool active) { doGodrays = active; }
 
@@ -578,6 +582,8 @@ void PostComposer::toggleAutoExposure(bool active) {
 	autoExposure = active;
 	applyExposure();
 }
+
+bool PostComposer::isAutoExposure() const { return autoExposure; }
 
 void PostComposer::setExposureBias(float value) {
 	exposureBias = value;

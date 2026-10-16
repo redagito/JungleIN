@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
@@ -171,6 +172,11 @@ void Window::run() {
 		Profiler::recordFrame(dtSeconds * 1000.0);
 		if (overlay != nullptr) {
 			overlay->update(dtSeconds);
+			overlay->setLines(overlayStatusLines(
+				renderer->getPostComposer()->isFXAA(),
+				renderer->getPostComposer()->isLenseFlares(),
+				renderer->getPostComposer()->isAutoExposure(),
+				exposureBias, vsyncOn));
 			int fbWidth = 0;
 			int fbHeight = 0;
 			glfwGetFramebufferSize(Utils::window, &fbWidth, &fbHeight);
@@ -326,14 +332,9 @@ void Window::initializeObjects() {
 	Profiler::mark("shaders loaded");
 
 	// Debug overlay stays hidden until F3; its atlas texture uploads
-	// lazily on the first visible draw. The static key cheat-sheet is
-	// set once: only charset characters render, so keep it plain ASCII.
+	// lazily on the first visible draw. Status lines refresh every
+	// frame in run() so toggle states are always live.
 	overlay = new DebugOverlay();
-	overlay->setLines({
-		"1/2 FXAA  3/4 Flares",
-		"5/6 AutoExp  7/8 Bias",
-		"F1/F2 Mouse  F3 Overlay  F4 VSync",
-	});
 
 	scene = SceneBuilder::build();
 	Profiler::mark("scene built");
@@ -444,6 +445,20 @@ void Window::exVSync(bool active) {
 	glfwSwapInterval(active ? 1 : 0);
 }
 
+std::vector<std::string> Window::overlayStatusLines(bool fxaa, bool flares,
+	bool autoExp, float bias, bool vsync) {
+	auto onOff = [](bool v) { return v ? "on" : "off"; };
+	char biasText[32];
+	std::snprintf(biasText, sizeof(biasText), "%.2f", bias);
+	return {
+		std::string("1 FXAA ") + onOff(fxaa) +
+			"  2 Flares " + onOff(flares),
+		std::string("3 AutoExp ") + onOff(autoExp) +
+			"  7/8 Bias " + biasText,
+		std::string("F1 Mouse  F3 Overlay  F4 VSync ") + onOff(vsync),
+	};
+}
+
 void Window::playBtn(bool /*active*/) {
 	//  if (active)
 	//    musique->play();
@@ -468,8 +483,22 @@ void Window::onMouseButton(int button, int action, int /*mods*/)
 {
 	if (scene == nullptr)
 		return;
-	if (button == GLFW_MOUSE_BUTTON_LEFT)
-		scene->getCurrentCamera()->activeLook(action == GLFW_PRESS);
+	if (button != GLFW_MOUSE_BUTTON_LEFT)
+		return;
+	if (action == GLFW_PRESS) {
+		scene->getCurrentCamera()->activeLook(true);
+		return;
+	}
+	// Release: hold-to-look ends, but F1-captured look (cursor disabled)
+	// stays on. Unconditionally clearing here is what stranded the view
+	// after every click-drag under capture until the next press.
+	if (!keepLookOnButtonRelease(
+		glfwGetInputMode(window, GLFW_CURSOR)))
+		scene->getCurrentCamera()->activeLook(false);
+}
+
+bool Window::keepLookOnButtonRelease(int cursorMode) {
+	return cursorMode == GLFW_CURSOR_DISABLED;
 }
 
 void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
@@ -512,25 +541,23 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 			scene->getCurrentCamera()->setQKey(true);
 			break;
 
-			// Features
-		case GLFW_KEY_1:
-			exPostFXAA(true);
+			// Features: single-key toggles (multi-state settings rotate on
+		// one key when they appear; no on/off key pairs).
+		case GLFW_KEY_1: {
+			PostComposer* composer = renderer->getPostComposer();
+			exPostFXAA(!composer->isFXAA());
 			break;
-		case GLFW_KEY_2:
-			exPostFXAA(false);
+		}
+		case GLFW_KEY_2: {
+			PostComposer* composer = renderer->getPostComposer();
+			exPostLenseFlares(!composer->isLenseFlares());
 			break;
-		case GLFW_KEY_3:
-			exPostLenseFlares(true);
+		}
+		case GLFW_KEY_3: {
+			PostComposer* composer = renderer->getPostComposer();
+			exPostAutoExposure(!composer->isAutoExposure());
 			break;
-		case GLFW_KEY_4:
-			exPostLenseFlares(false);
-			break;
-		case GLFW_KEY_5:
-			exPostAutoExposure(true);
-			break;
-		case GLFW_KEY_6:
-			exPostAutoExposure(false);
-			break;
+		}
 		case GLFW_KEY_7:
 			exExposureBias(exposureBias * 0.8f);
 			break;
@@ -538,15 +565,17 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 			exExposureBias(exposureBias * 1.25f);
 			break;
 
-			// Mouse movement
+			// Mouse capture: F1 toggles (no F1/F2 pair).
 		case GLFW_KEY_F1:
-			// Capture and hide cursor
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			scene->getCurrentCamera()->activeLook(true);
-			break;
-		case GLFW_KEY_F2:
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			scene->getCurrentCamera()->activeLook(false);
+			if (glfwGetInputMode(window, GLFW_CURSOR) ==
+				GLFW_CURSOR_DISABLED) {
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				scene->getCurrentCamera()->activeLook(false);
+			}
+			else {
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				scene->getCurrentCamera()->activeLook(true);
+			}
 			break;
 		case GLFW_KEY_F3:
 			exDebugOverlay(overlay == nullptr || !overlay->isVisible());

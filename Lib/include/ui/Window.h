@@ -14,6 +14,8 @@
 #include "ui/ReloadWindow.h"
 
 #include <future>
+#include <string>
+#include <vector>
 
 /*!
  * Window extends QGLWidget
@@ -58,6 +60,15 @@ public:
 	void exRenderRatio(int value);
 	void exDebugOverlay(bool active);
 	void exVSync(bool active);
+
+	// Pure status-line builder for the overlay cheat-sheet (unit-tested).
+	// Shows live toggle states; movement keys are deliberately excluded.
+	static std::vector<std::string> overlayStatusLines(bool fxaa,
+		bool flares, bool autoExp, float bias, bool vsync);
+
+	// Pure input policy, unit-tested: releasing the left button ends
+	// hold-to-look, but must not kill F1-captured look (cursor disabled).
+	static bool keepLookOnButtonRelease(int cursorMode);
 
 	void playBtn(bool active);
 	void reGenerate();
