@@ -20,10 +20,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${LIB_SOURCES} ${LIB_HEADERS
 
 add_library(JungleINLib STATIC ${LIB_SOURCES} ${LIB_HEADERS})
 
-set_target_properties(JungleINLib PROPERTIES
-	CXX_STANDARD 23
-	CXX_STANDARD_REQUIRED ON
-)
+target_compile_features(JungleINLib PUBLIC cxx_std_23)
 
 # Public: consumers (App/Test) include Lib headers as e.g. "ui/Window.h".
 # Only the include/ root is exposed; per-subdir entries were removed

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <mutex>
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -30,7 +31,10 @@ public:
 
 private:
   static void checkAL(const char* what);
+  // stop() without locking; callers must hold mutex_.
+  void stopLocked();
 
+  mutable std::mutex mutex_;
   ALCdevice* device = nullptr;
   ALCcontext* context = nullptr;
   ALuint buffer = 0;

@@ -106,7 +106,7 @@ TEST_CASE("FrameBuffer init with empty targets throws",
 // before initVBO runs. The -1 sentinel must be observable pre-init.
 TEST_CASE("Mesh attribute locations start unset", "[objects][mesh]")
 {
-  auto g = std::unique_ptr<Geometry>(Geometries::quad(1.0));
+  auto g = Geometries::quad(1.0);
   Shader shader("probe");
   auto m = std::make_unique<Material>(&shader);
   MeshProbe mesh(std::move(g), std::move(m));

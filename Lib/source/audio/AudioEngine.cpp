@@ -1,5 +1,6 @@
 #include "audio/AudioEngine.h"
 
+#include <mutex>
 #include <stdexcept>
 #include <string>
 
@@ -36,6 +37,7 @@ void AudioEngine::checkAL(const char* what) {
 }
 
 void AudioEngine::init() {
+  std::lock_guard<std::mutex> lock(mutex_);
   device = alcOpenDevice(nullptr);
   if (device == nullptr)
     throw std::runtime_error("Failed to open OpenAL device");
@@ -52,6 +54,7 @@ void AudioEngine::init() {
 }
 
 void AudioEngine::playLoop(const AudioClip& clip) {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (device == nullptr || context == nullptr)
     throw std::runtime_error("AudioEngine::playLoop before init");
   if (clip.channels != 1 && clip.channels != 2)
@@ -59,7 +62,7 @@ void AudioEngine::playLoop(const AudioClip& clip) {
   if (clip.samples.empty())
     throw std::runtime_error("Cannot play empty audio clip");
 
-  stop();
+  stopLocked();
   if (hasSource) {
     alDeleteSources(1, &source);
     alDeleteBuffers(1, &buffer);
@@ -90,6 +93,7 @@ void AudioEngine::playLoop(const AudioClip& clip) {
 }
 
 void AudioEngine::update() {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (!playing || !hasSource)
     return;
   const std::chrono::duration<double> elapsed =
@@ -99,6 +103,11 @@ void AudioEngine::update() {
 }
 
 void AudioEngine::stop() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  stopLocked();
+}
+
+void AudioEngine::stopLocked() {
   if (!playing || !hasSource)
     return;
   alSourceStop(source);

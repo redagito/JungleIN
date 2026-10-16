@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <string>
 #include <vector>
 
@@ -70,7 +71,7 @@ public:
 	unsigned int glunit = 0;
 	unsigned int index = 0;
 
-	static bool needsUpdate;
+  static std::atomic<bool> needsUpdate;
 
 private:
 	static float borderColor[];

@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <optional>
 #include <sstream>
@@ -189,7 +190,7 @@ Window::~Window() {
 	if (window != nullptr) {
 		glfwDestroyWindow(window);
 		window = nullptr;
-		Utils::window = nullptr;
+		Utils::window.store(nullptr);
 	}
 	if (s_window == this)
 		s_window = nullptr;
@@ -199,7 +200,7 @@ Window::~Window() {
 void Window::run() {
 	using clock = std::chrono::steady_clock;
 	auto last = clock::now();
-	while (glfwWindowShouldClose(Utils::window) == 0) {
+	while (glfwWindowShouldClose(Utils::window.load()) == 0) {
 		glfwPollEvents();
 
 		if (audio != nullptr) {
@@ -255,11 +256,11 @@ void Window::run() {
 				camZ, lookDist, lookValid));
 			int fbWidth = 0;
 			int fbHeight = 0;
-			glfwGetFramebufferSize(Utils::window, &fbWidth, &fbHeight);
+			glfwGetFramebufferSize(Utils::window.load(), &fbWidth, &fbHeight);
 			overlay->draw(fbWidth, fbHeight);
 		}
 
-		glfwSwapBuffers(Utils::window);
+		glfwSwapBuffers(Utils::window.load());
 
 		static bool firstFrame = true;
 		if (firstFrame) {
@@ -280,7 +281,10 @@ void Window::initializeGL() {
 	}
 	Profiler::mark("GLFW initialized");
 
-	glfwSetErrorCallback([](int /*code*/, const char* error) { throw std::runtime_error{error}; });
+	glfwSetErrorCallback([](int code, const char* error) {
+		loge("GLFW error {}: {}", code, error != nullptr ? error : "(null)");
+		std::abort();
+	});
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -289,7 +293,7 @@ void Window::initializeGL() {
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	// Create window from parameters
-	window = glfwCreateWindow(kDefaultWidth, kDefaultHeight, "JungleIN", NULL, NULL);
+	window = glfwCreateWindow(kDefaultWidth, kDefaultHeight, "JungleIN", nullptr, nullptr);
 	if (window == nullptr) {
 		glfwTerminate();
 		throw std::runtime_error{"Failed to create GLFW window."};
@@ -321,7 +325,7 @@ void Window::initializeGL() {
 	}
 
 	// 
-	Utils::window = window;
+	Utils::window.store(window);
 
 	// User input
 	// Key callback
@@ -381,8 +385,8 @@ void Window::initializeGL() {
 	// glGetStringi instead. Only query the driver maximum when the
 	// extension is actually present, so unsupported drivers never raise a
 	// GL error here (the debug callback throws on those).
-	Utils::USE_ANISO = false;
-	Utils::MAX_ANISO = 1.0f;
+	Utils::USE_ANISO.store(false);
+	Utils::MAX_ANISO.store(1.0f);
 	GLint extensionCount = 0;
 	glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
 	for (GLint i = 0; i < extensionCount; ++i) {
@@ -393,8 +397,8 @@ void Window::initializeGL() {
 			GLfloat maxAniso = 1.0f;
 			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
 			if (maxAniso >= 2.0f) {
-				Utils::USE_ANISO = true;
-				Utils::MAX_ANISO = maxAniso;
+				Utils::USE_ANISO.store(true);
+				Utils::MAX_ANISO.store(maxAniso);
 			}
 			break;
 		}
@@ -448,7 +452,7 @@ void Window::resizeGL(int w, int h) {
 }
 
 void Window::exQuality(int value) {
-	Utils::QUALITY = value;
+	Utils::QUALITY.store(value);
 	renderer->getPostComposer()->resizeHalfBuffers();
 
 }
@@ -502,8 +506,8 @@ void Window::exGamma(int value) {
 }
 
 void Window::exAnisotropy(bool active) {
-	Utils::USE_ANISO = active;
-	Texture::needsUpdate = true;
+	Utils::USE_ANISO.store(active);
+	Texture::needsUpdate.store(true);
 }
 
 void Window::exShadowCascade(bool active) {
@@ -570,10 +574,7 @@ void Window::exRegenerate() {
 	// Rescatter vegetation with the build defaults: ReloadWindow (and its
 	// settings dialog) is gone, so regeneration reuses the current map
 	// bounds. Regenerating before the scene exists is a bug: fail fast.
-	if (SceneBuilder::ground2 == nullptr)
-		throw std::runtime_error("Window::exRegenerate without a scene");
-	SceneBuilder::reloadGo(SceneBuilder::NB_INSTANCE,
-		static_cast<int>(SceneBuilder::ground2->getMapMax()));
+	SceneBuilder::regenerateFromCurrentBounds();
 }
 
 void Window::onCursorMove(double x, double y)

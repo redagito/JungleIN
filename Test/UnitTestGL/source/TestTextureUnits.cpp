@@ -4,7 +4,6 @@
 // sampling behavior inside a hidden GL context (same HiddenGL pattern
 // as TestShaderCompile).
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/catch_test_macros.hpp>
 
 #include <memory>
 #include <string>

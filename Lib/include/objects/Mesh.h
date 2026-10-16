@@ -96,4 +96,8 @@ protected:
   unsigned int instanceType = 0;
 
   std::vector<std::unique_ptr<Instance>> instances;
+
+private:
+  void initVBOOrThrow();
+  void cleanupVBO();
 };

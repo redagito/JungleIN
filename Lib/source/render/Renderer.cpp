@@ -51,7 +51,7 @@ void TransmitShadowState(Shader* shader, ShadowBuffer* shadowFBO,
 		}
 	}
 	if (shader->hasUniform("shadowQuality"))
-		shader->transmitUniform("shadowQuality", Utils::QUALITY);
+		shader->transmitUniform("shadowQuality", Utils::QUALITY.load());
 	if (litMaterial != nullptr && shader->hasUniform("useAlpha")) {
 		if (litMaterial->hasAlpha()) {
 			Texture* alpha = litMaterial->getAlpha();
@@ -85,14 +85,14 @@ Renderer::Renderer() {
 	shadowMat = 0;
 	postComposer = 0;
 
-	__camera = 0;
-	__material = 0;
-	__shader = 0;
-	__locPosition = 0;
-	__locColor = 0;
-	__locNormal = 0;
-	__locTexcoord = 0;
-	__locMVP = 0;
+	m_camera = 0;
+	m_material = 0;
+	m_shader = 0;
+	m_locPosition = 0;
+	m_locColor = 0;
+	m_locNormal = 0;
+	m_locTexcoord = 0;
+	m_locMVP = 0;
 
 	useShadowCascade = true;
 }
@@ -111,18 +111,19 @@ Renderer::~Renderer() {
 	shadowMat = nullptr;
 	delete wireMat;
 	wireMat = nullptr;
-	// scene and __ observers belong to Window/Scene; do not delete.
+	// scene and m_ observers belong to Window/Scene; do not delete.
 	scene = nullptr;
-	__camera = nullptr;
-	__material = nullptr;
-	__shader = nullptr;
-	__skybox = nullptr;
-	__sun = nullptr;
-	__ground = nullptr;
+	m_camera = nullptr;
+	m_material = nullptr;
+	m_shader = nullptr;
+	m_skybox = nullptr;
+	m_sun = nullptr;
+	m_ground = nullptr;
 }
 
 void Renderer::init(Scene* _scene, unsigned int w, unsigned int h) {
-	assert(w > 0 && h > 0);
+	if (w == 0 || h == 0)
+		throw std::runtime_error("Renderer::init with zero size");
 	shadowMat = new MaterialShadow();
 	wireMat = new MaterialWire();
 
@@ -148,13 +149,13 @@ void Renderer::init(Scene* _scene, unsigned int w, unsigned int h) {
 	postComposer = new PostComposer(mainFBO);
 
 	scene = _scene;
-	__camera = scene->getCurrentCamera();
-	__skybox = scene->getSky();
-	__sun = scene->getSun();
-	__ground = scene->getGround();
+	m_camera = scene->getCurrentCamera();
+	m_skybox = scene->getSky();
+	m_sun = scene->getSun();
+	m_ground = scene->getGround();
 
-	matrixProj = __camera->getProjection();
-	matrixView = __camera->getMatrix();
+	matrixProj = m_camera->getProjection();
+	matrixView = m_camera->getMatrix();
 	matrixModel = glm::mat4(1.0f);
 	xform.push(matrixModel);
 
@@ -179,8 +180,8 @@ void Renderer::render() {
 
 	scene->update(delta);
 
-	__lightDir = __sun->getLight()->getDirection();
-	__lightIntensity = __sun->getLight()->getIntensity();
+	m_lightDir = m_sun->getLight()->getDirection();
+	m_lightIntensity = m_sun->getLight()->getIntensity();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
@@ -191,8 +192,8 @@ void Renderer::render() {
 	mainFBO->resizeViewport();
 	mainFBO->clear();
 
-	matrixProj = __camera->getProjection();
-	matrixView = __camera->getMatrix();
+	matrixProj = m_camera->getProjection();
+	matrixView = m_camera->getMatrix();
 
 	drawSky();
 
@@ -228,10 +229,10 @@ void Renderer::render() {
 	// Renderer::delta is seconds / TARGET_FPS (co-tuned with movement
 	// speeds), so scale back to real frame seconds for the exposure
 	// adaptation time constants. PostComposer clamps spikes itself.
-	postComposer->render(delta * static_cast<float>(Utils::TARGET_FPS),
+	postComposer->render(delta * static_cast<float>(Utils::TARGET_FPS.load()),
 		!useWireframe);
 
-	Texture::needsUpdate = false;
+	Texture::needsUpdate.store(false);
 	Utils::calculFPS();
 }
 
@@ -256,8 +257,8 @@ void Renderer::renderShadow() {
 	AssertViewport(shadowFBO->getWidth(), shadowFBO->getHeight());
 	shadowFBO->clear();
 
-	matrixProj = __sun->getLight()->getProjMatrix();
-	matrixView = __sun->getLight()->getViewMatrix();
+	matrixProj = m_sun->getLight()->getProjMatrix();
+	matrixView = m_sun->getLight()->getViewMatrix();
 
 	pushMatrix(scene->getMatrix());
 
@@ -273,8 +274,8 @@ void Renderer::renderShadow() {
 			shadowFBOCascade->getHeight());
 		shadowFBOCascade->clear();
 
-		matrixProj = __sun->getLight()->getProjMatrixCascade();
-		matrixView = __sun->getLight()->getViewMatrix();
+		matrixProj = m_sun->getLight()->getProjMatrixCascade();
+		matrixView = m_sun->getLight()->getViewMatrix();
 
 		pushMatrix(scene->getMatrix());
 		drawMeshesShadow();
@@ -298,25 +299,25 @@ void Renderer::drawSky() {
 	// the draw correct even if update order ever changes. Drawn first
 	// with LEQUAL + no depth write (see MaterialSkyBox), so opaque
 	// geometry always covers it and the sky never punches holes.
-	__skybox->setPosition(__camera->getPosition());
-	pushMatrix(__skybox->getMatrix());
+	m_skybox->setPosition(m_camera->getPosition());
+	pushMatrix(m_skybox->getMatrix());
 
-	__material = __skybox->getMaterial();
-	__shader = __material->bind();
+	m_material = m_skybox->getMaterial();
+	m_shader = m_material->bind();
 
 	calcMVP();
 	transmitMVP();
 
-	__skybox->drawWithVBO();
+	m_skybox->drawWithVBO();
 
 	popMatrix();
 }
 
 void Renderer::drawSun() {
-	pushMatrix(__sun->getMatrix());
+	pushMatrix(m_sun->getMatrix());
 
-	__material = __sun->getMaterial();
-	__shader = __material->bind();
+	m_material = m_sun->getMaterial();
+	m_shader = m_material->bind();
 
 	calcMVP();
 	transmitMVP();
@@ -325,52 +326,52 @@ void Renderer::drawSun() {
 	// Perspective-divide by clip w, then map NDC [-1,1] to UV [0,1].
 	// Guard w <= 0 (sun behind camera): park the anchor off-screen so
 	// the god-rays pass discards instead of firing from screen centre.
-	// Column-major: the translation column is __mvp[3].
-	float clipW = __mvp[3][3];
+	// Column-major: the translation column is m_mvp[3].
+	float clipW = m_mvp[3][3];
 	glm::vec3 lightPosScreen(-1.0f);
 	if (clipW > 0.0f) {
 		lightPosScreen = glm::vec3(
-			__mvp[3][0] / clipW * 0.5f + 0.5f,
-			__mvp[3][1] / clipW * 0.5f + 0.5f,
-			__mvp[3][2] / clipW * 0.5f + 0.5f);
+			m_mvp[3][0] / clipW * 0.5f + 0.5f,
+			m_mvp[3][1] / clipW * 0.5f + 0.5f,
+			m_mvp[3][2] / clipW * 0.5f + 0.5f);
 	}
 	postComposer->setLightPosScreen(lightPosScreen);
 
-	__sun->drawWithVBO();
+	m_sun->drawWithVBO();
 
 	popMatrix();
 }
 
 void Renderer::drawGround() {
-	pushMatrix(__ground->getMatrix());
+	pushMatrix(m_ground->getMatrix());
 
 	// Wireframe overlay pass (key 0) binds the flat unlit material and
 	// transmits MVP only; everything below is the lit-material path.
-	__material = (materialOverride != nullptr) ? materialOverride
-		: __ground->getMaterial();
-	__shader = __material->bind();
+	m_material = (materialOverride != nullptr) ? materialOverride
+		: m_ground->getMaterial();
+	m_shader = m_material->bind();
 
 	calcMVP();
 	transmitMVP();
 	if (materialOverride == nullptr) {
-		TransmitShadowState(__shader, shadowFBO, shadowFBOCascade,
+		TransmitShadowState(m_shader, shadowFBO, shadowFBOCascade,
 			useShadowCascade, nullptr);
 
-		if (__shader->hasUniform("normalMatrix"))
+		if (m_shader->hasUniform("normalMatrix"))
 			transmitNormalMatrix();
-		if (__shader->hasUniform("viewMatrix"))
+		if (m_shader->hasUniform("viewMatrix"))
 			transmitViewMatrix();
-		if (__shader->hasUniform("mv"))
-			__shader->transmitUniform("mv", __mv);
-		transmitShadowMatrix(__shader->hasUniform("shadowMatrixCascade"));
-		__shader->transmitUniform("lightDir", __lightDir);
-		if (__shader->hasUniform("lightIntensity"))
-			__shader->transmitUniform("lightIntensity", __lightIntensity);
-		__shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
-		__shader->transmitUniform("shadowQuality", Utils::QUALITY);
+		if (m_shader->hasUniform("mv"))
+			m_shader->transmitUniform("mv", m_mv);
+		transmitShadowMatrix(m_shader->hasUniform("shadowMatrixCascade"));
+		m_shader->transmitUniform("lightDir", m_lightDir);
+		if (m_shader->hasUniform("lightIntensity"))
+			m_shader->transmitUniform("lightIntensity", m_lightIntensity);
+		m_shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
+		m_shader->transmitUniform("shadowQuality", Utils::QUALITY.load());
 	}
 
-	__ground->drawWithVBO();
+	m_ground->drawWithVBO();
 
 	popMatrix();
 }
@@ -383,7 +384,7 @@ bool Renderer::cull(Instance* m, float offset) {
 	constexpr float kCullDistSq = 500.0f;
 	constexpr float kCullForwardMargin = 20.0f;
 	glm::vec3 meshPos = m->getPosition();
-	glm::vec3 camPos = __camera->getPosition();
+	glm::vec3 camPos = m_camera->getPosition();
 	glm::vec3 camZ = scene->getCameraZ();
 	glm::vec3 toMesh = meshPos - camPos;
 	return (glm::dot(toMesh, toMesh) > kCullDistSq + offset &&
@@ -392,20 +393,20 @@ bool Renderer::cull(Instance* m, float offset) {
 
 void Renderer::drawMeshes() {
 	for (Mesh* m : scene->getMeshes()) {
-		__material = (materialOverride != nullptr) ? materialOverride
+		m_material = (materialOverride != nullptr) ? materialOverride
 			: m->getMaterial();
-		__shader = __material->bind();
+		m_shader = m_material->bind();
 
 		calcMVP();
 		transmitMVP();
 		if (materialOverride == nullptr) {
-			TransmitShadowState(__shader, shadowFBO, shadowFBOCascade,
+			TransmitShadowState(m_shader, shadowFBO, shadowFBOCascade,
 				useShadowCascade, nullptr);
 
-			__shader->transmitUniform("lightDir", __lightDir);
-			if (__shader->hasUniform("lightIntensity"))
-				__shader->transmitUniform("lightIntensity", __lightIntensity);
-			__shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
+			m_shader->transmitUniform("lightDir", m_lightDir);
+			if (m_shader->hasUniform("lightIntensity"))
+				m_shader->transmitUniform("lightIntensity", m_lightIntensity);
+			m_shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
 		}
 
 		pushMatrix(m->getMatrix());
@@ -414,8 +415,8 @@ void Renderer::drawMeshes() {
 		if (materialOverride == nullptr) {
 			transmitNormalMatrix();
 			transmitViewMatrix();
-			if (__shader->hasUniform("mv"))
-				__shader->transmitUniform("mv", __mv);
+			if (m_shader->hasUniform("mv"))
+				m_shader->transmitUniform("mv", m_mv);
 			transmitShadowMatrix();
 		}
 
@@ -434,8 +435,8 @@ void Renderer::drawMeshes() {
 			if (materialOverride == nullptr) {
 				transmitNormalMatrix();
 				transmitViewMatrix();
-				if (__shader->hasUniform("mv"))
-					__shader->transmitUniform("mv", __mv);
+				if (m_shader->hasUniform("mv"))
+					m_shader->transmitUniform("mv", m_mv);
 				transmitShadowMatrix();
 			}
 
@@ -452,10 +453,10 @@ void Renderer::drawMeshesShadow() {
 			continue;
 		}
 
-		__material = shadowMat;
-		__shader = __material->bind();
+		m_material = shadowMat;
+		m_shader = m_material->bind();
 
-		TransmitShadowState(__shader, shadowFBO, shadowFBOCascade,
+		TransmitShadowState(m_shader, shadowFBO, shadowFBOCascade,
 			useShadowCascade, m->getMaterial());
 
 		pushMatrix(m->getMatrix());
@@ -488,7 +489,8 @@ void Renderer::drawMeshesShadow() {
 }
 
 void Renderer::resize(unsigned int w, unsigned int h) {
-	assert(w > 0 && h > 0);
+	if (w == 0 || h == 0)
+		throw std::runtime_error("Renderer::resize with zero size");
 	finalWidth = w;
 	finalHeight = h;
 	float a = w / static_cast<float>(h);
@@ -517,12 +519,12 @@ void Renderer::resize(unsigned int w, unsigned int h) {
 			ws = MAX_SHADOW_WIDTH;
 		shadowFBOCascade->resize(ws, ws);
 	}
-	if (__sun != 0)
-		__sun->getLight()->resize(1);
+	if (m_sun != 0)
+		m_sun->getLight()->resize(1);
 
-	if (__camera != 0) {
-		__camera->setPerspective(Camera::kDefaultFov, a, Camera::kDefaultNear, Camera::kDefaultFar);
-		matrixProj = __camera->getProjection();
+	if (m_camera != 0) {
+		m_camera->setPerspective(Camera::kDefaultFov, a, Camera::kDefaultNear, Camera::kDefaultFar);
+		matrixProj = m_camera->getProjection();
 	}
 }
 
@@ -543,23 +545,23 @@ void Renderer::popMatrix() {
 }
 
 void Renderer::calcMVP() {
-	__mv = matrixView * matrixModel;
-	__mvp = matrixProj * __mv;
+	m_mv = matrixView * matrixModel;
+	m_mvp = matrixProj * m_mv;
 }
 
 void Renderer::transmitShadowMatrix(bool withCascade) {
 	// Ortho-only: the bias*ortho*view*model chain preserves w == 1, so
 	// the shader-side textureProj divide is a no-op. A perspective
 	// light would need an explicit divide-by-w here instead.
-	__shader->transmitUniform(
-		"shadowMatrix", __sun->getLight()->getTextureProjMatrix(matrixModel));
+	m_shader->transmitUniform(
+		"shadowMatrix", m_sun->getLight()->getTextureProjMatrix(matrixModel));
 	if (withCascade && useShadowCascade)
-		__shader->transmitUniform(
+		m_shader->transmitUniform(
 			"shadowMatrixCascade",
-			__sun->getLight()->getTextureProjMatrixCascade(matrixModel));
+			m_sun->getLight()->getTextureProjMatrixCascade(matrixModel));
 }
 
-void Renderer::transmitMVP() { __shader->transmitUniform("mvp", __mvp); }
+void Renderer::transmitMVP() { m_shader->transmitUniform("mvp", m_mvp); }
 
 namespace {
 // Inverse-transpose of the upper 3x3, falling back to identity on
@@ -573,11 +575,11 @@ glm::mat3 InverseTranspose3x3(const glm::mat4& m) {
 } // namespace
 
 void Renderer::transmitNormalMatrix() {
-	__shader->transmitUniform("normalMatrix", InverseTranspose3x3(__mv));
+	m_shader->transmitUniform("normalMatrix", InverseTranspose3x3(m_mv));
 }
 
 void Renderer::transmitViewMatrix() {
-	__shader->transmitUniform("viewMatrix", InverseTranspose3x3(matrixView));
+	m_shader->transmitUniform("viewMatrix", InverseTranspose3x3(matrixView));
 }
 
 void Renderer::toggleShadowCascade(bool enabled) {

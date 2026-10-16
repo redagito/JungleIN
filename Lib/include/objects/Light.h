@@ -1,5 +1,4 @@
-#ifndef LIGHT_H
-#define LIGHT_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -57,5 +56,3 @@ private:
   glm::mat4 projMatrixCascade;
   glm::mat4 textureProjMatrixCascade;
 };
-
-#endif // LIGHT_H

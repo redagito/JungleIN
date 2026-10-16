@@ -17,7 +17,12 @@ public:
   FrameBuffer(bool storeDepth = false);
   FrameBuffer(std::vector<std::string> textures, unsigned int _width = RT_SIZE_DEFAULT,
               unsigned int _height = RT_SIZE_DEFAULT, bool storeDepth = false);
-  ~FrameBuffer();
+  virtual ~FrameBuffer();
+
+  FrameBuffer(const FrameBuffer&) = delete;
+  FrameBuffer& operator=(const FrameBuffer&) = delete;
+  FrameBuffer(FrameBuffer&&) = delete;
+  FrameBuffer& operator=(FrameBuffer&&) = delete;
 
   void clear();
   void init(int textureUnitOffset = 0, bool linearFilter = false);

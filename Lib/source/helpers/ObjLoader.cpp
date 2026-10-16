@@ -9,7 +9,7 @@
 
 // http://www.limegarden.net/2010/03/02/wavefront-obj-mesh-loader/
 
-Mesh* ObjLoader::loadObj(std::string fileName) 
+std::unique_ptr<Mesh> ObjLoader::loadObj(std::string fileName) 
 {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -37,7 +37,7 @@ Mesh* ObjLoader::loadObj(std::string fileName)
 	geometry->setNormals(flat.normals);
 	geometry->setTexCoords(flat.uvs);
 
-	Mesh* mesh = new Mesh(std::move(geometry),
+	auto mesh = std::make_unique<Mesh>(std::move(geometry),
 		std::make_unique<MaterialBasic>(glm::vec3(0.4f, 0.6f, 0.2f)));
 
 	return mesh;

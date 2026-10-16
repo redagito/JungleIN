@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <unordered_map>
 #include <string>
 
@@ -24,6 +25,7 @@ public:
   // clear message instead of mid-frame at first draw.
   static void validateRegistrations();
 
-private:
+ private:
   static std::unordered_map<std::string, Shader *> shaders;
+  static std::mutex mutex_;
 };

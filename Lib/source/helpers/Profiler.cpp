@@ -6,11 +6,17 @@
 #include <deque>
 #include <fstream>
 #include <iomanip>
+#include <mutex>
 #include <vector>
 
 #include "helpers/Logger.h"
 
 namespace {
+
+std::mutex& ProfilerMutex() {
+  static std::mutex mutex;
+  return mutex;
+}
 
 std::deque<double>& FrameSamples() {
   static std::deque<double> samples;
@@ -45,6 +51,7 @@ double Mean(const std::vector<double>& values) {
 
 void Profiler::mark(const char* stage) {
   using namespace std::chrono;
+  std::lock_guard<std::mutex> lock(ProfilerMutex());
   static const auto start = steady_clock::now();
   static auto previous = start;
   const auto now = steady_clock::now();
@@ -58,6 +65,7 @@ void Profiler::mark(const char* stage) {
 
 void Profiler::recordFrame(double ms) {
   // Hot path: no allocation beyond the bounded deque, no logging.
+  std::lock_guard<std::mutex> lock(ProfilerMutex());
   std::deque<double>& samples = FrameSamples();
   samples.push_back(ms);
   while (samples.size() > kMaxFrameSamples)
@@ -65,8 +73,11 @@ void Profiler::recordFrame(double ms) {
 }
 
 bool Profiler::dumpFrameStats(const std::string& path) {
-  const std::vector<double> samples(
-    FrameSamples().begin(), FrameSamples().end());
+  std::vector<double> samples;
+  {
+    std::lock_guard<std::mutex> lock(ProfilerMutex());
+    samples.assign(FrameSamples().begin(), FrameSamples().end());
+  }
   std::vector<double> sorted = samples;
   std::sort(sorted.begin(), sorted.end());
   double maxMs = 0.0;
@@ -92,6 +103,12 @@ bool Profiler::dumpFrameStats(const std::string& path) {
   return static_cast<bool>(out);
 }
 
-std::size_t Profiler::frameCount() { return FrameSamples().size(); }
+std::size_t Profiler::frameCount() {
+  std::lock_guard<std::mutex> lock(ProfilerMutex());
+  return FrameSamples().size();
+}
 
-void Profiler::clearFrames() { FrameSamples().clear(); }
+void Profiler::clearFrames() {
+  std::lock_guard<std::mutex> lock(ProfilerMutex());
+  FrameSamples().clear();
+}

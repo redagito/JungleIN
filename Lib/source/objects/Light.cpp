@@ -1,5 +1,6 @@
 #include "objects/Light.h"
 #include <cassert>
+#include <cmath>
 #include <limits>
 #include <stdexcept>
 #include <stdio.h>
@@ -55,6 +56,8 @@ void Light::setSize(float s) {
 }
 
 void Light::resize(float ratio) {
+  if (!std::isfinite(ratio) || ratio <= std::numeric_limits<float>::epsilon())
+    throw std::runtime_error("Light::resize with non-positive ratio");
   projMatrix = glm::ortho(-size, size, -size / ratio, size / ratio, 60.0f,
                           200.0f);
   projMatrixCascade = glm::ortho(-sizeCascade, sizeCascade,
@@ -119,26 +122,23 @@ const glm::mat4 &Light::getViewMatrix() const { return viewMatrix; }
 
 glm::mat4 &Light::getTextureProjMatrix(const glm::mat4 &modelMatrix) {
   textureProjMatrix = biasMatrix * projMatrix * viewMatrix * modelMatrix;
-#ifndef NDEBUG
   // Ortho-only invariant: perspective divide must be a no-op (w == 1).
   // A perspective light would break this and needs divide-by-w here.
   // Column-major: the last row is m[0][3], m[1][3], m[2][3], m[3][3].
-  assert(textureProjMatrix[0][3] == 0.0f);
-  assert(textureProjMatrix[1][3] == 0.0f);
-  assert(textureProjMatrix[2][3] == 0.0f);
-  assert(textureProjMatrix[3][3] == 1.0f);
-#endif
+  if (textureProjMatrix[0][3] != 0.0f || textureProjMatrix[1][3] != 0.0f ||
+      textureProjMatrix[2][3] != 0.0f || textureProjMatrix[3][3] != 1.0f)
+    throw std::runtime_error("Light::getTextureProjMatrix non-ortho matrix");
   return textureProjMatrix;
 }
 
 glm::mat4 &Light::getTextureProjMatrixCascade(const glm::mat4 &modelMatrix) {
   textureProjMatrixCascade =
       biasMatrix * projMatrixCascade * viewMatrix * modelMatrix;
-#ifndef NDEBUG
-  assert(textureProjMatrixCascade[0][3] == 0.0f);
-  assert(textureProjMatrixCascade[1][3] == 0.0f);
-  assert(textureProjMatrixCascade[2][3] == 0.0f);
-  assert(textureProjMatrixCascade[3][3] == 1.0f);
-#endif
+  if (textureProjMatrixCascade[0][3] != 0.0f ||
+      textureProjMatrixCascade[1][3] != 0.0f ||
+      textureProjMatrixCascade[2][3] != 0.0f ||
+      textureProjMatrixCascade[3][3] != 1.0f)
+    throw std::runtime_error(
+        "Light::getTextureProjMatrixCascade non-ortho matrix");
   return textureProjMatrixCascade;
 }

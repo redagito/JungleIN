@@ -4,10 +4,17 @@
 
 #include <cmath>
 #include <memory>
+#include <mutex>
+#include <stdexcept>
 
-Scene* SceneBuilder::scene2 = NULL;
-Ground* SceneBuilder::ground2 = NULL;
-int SceneBuilder::NB_INSTANCE = 1400;
+Scene* SceneBuilder::scene2 = nullptr;
+Ground* SceneBuilder::ground2 = nullptr;
+std::atomic<int> SceneBuilder::NB_INSTANCE{1400};
+
+std::mutex& SceneBuilder::registryMutex() {
+  static std::mutex mutex;
+  return mutex;
+}
 
 namespace {
 // One vegetation stanza as data: asset paths, alpha GL filters,
@@ -35,7 +42,7 @@ struct VegetationSpec {
 std::unique_ptr<Mesh> configureVegetation(const VegetationSpec& spec) {
 	auto diffuse = std::make_unique<Texture>(0u);
 	auto alpha = std::make_unique<Texture>(1u);
-	std::unique_ptr<Mesh> mesh(ObjLoader::loadObj(spec.objPath));
+  auto mesh = ObjLoader::loadObj(spec.objPath);
 	diffuse->load(spec.diffusePath);
 	diffuse->setFilters(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	diffuse->init();
@@ -174,7 +181,7 @@ std::unique_ptr<Scene> SceneBuilder::build() {
 	std::unique_ptr<Mesh> veg[6];
 	for (int i = 0; i < 6; ++i) {
 		veg[i] = configureVegetation(kVegetation[i]);
-		createInstances(veg[i].get(), ground.get(), static_cast<int>(std::lround(NB_INSTANCE * veg[i]->getPourcentage())));
+		createInstances(veg[i].get(), ground.get(), static_cast<int>(std::lround(NB_INSTANCE.load() * veg[i]->getPourcentage())));
 	}
 
 	// SMALL PLANT 1
@@ -213,11 +220,14 @@ std::unique_ptr<Scene> SceneBuilder::build() {
 	scene->addMesh(std::move(veg[3]));
 	scene->addMesh(std::move(veg[5]));
 
-	// Borrowed aliases for the legacy statics; Scene owns everything.
-	scene2 = scene.get();
-	ground2 = scene->getGround();
+  // Borrowed aliases for regeneration; Scene owns everything.
+  {
+    std::lock_guard<std::mutex> lock(registryMutex());
+    scene2 = scene.get();
+    ground2 = scene->getGround();
+  }
 
-	return scene;
+  return scene;
 }
 
 void SceneBuilder::createInstances(Mesh* mesh, Ground* ground, int nbInstance) {
@@ -240,20 +250,41 @@ void SceneBuilder::createInstances(Mesh* mesh, Ground* ground, int nbInstance) {
 }
 
 void SceneBuilder::reloadGo(int density, int spacing) {
+  std::lock_guard<std::mutex> lock(registryMutex());
+  if (ground2 == nullptr || scene2 == nullptr)
+    throw std::runtime_error("SceneBuilder::reloadGo without a scene");
 
-	ground2->removeRockPos();
+  ground2->removeRockPos();
 
-	ground2->setMapBounds(static_cast<float>(-spacing),
-		static_cast<float>(spacing));
-	scene2->setRenderAble(false);
+  ground2->setMapBounds(static_cast<float>(-spacing),
+    static_cast<float>(spacing));
+  scene2->setRenderAble(false);
 
-	for (Mesh* mesh : scene2->getMeshes()) {
-		if (mesh->getInstanceType() != Mesh::INSTANCE_NONE) {
-			mesh->clearInstances();
-			createInstances(mesh, ground2, static_cast<int>(std::lround(density * mesh->getPourcentage())));
-		}
-	}
+  for (Mesh* mesh : scene2->getMeshes()) {
+    if (mesh->getInstanceType() != Mesh::INSTANCE_NONE) {
+      mesh->clearInstances();
+      createInstances(mesh, ground2, static_cast<int>(std::lround(density * mesh->getPourcentage())));
+    }
+  }
 
-	NB_INSTANCE = density;
-	scene2->setRenderAble(true);
+  NB_INSTANCE.store(density);
+  scene2->setRenderAble(true);
+}
+
+void SceneBuilder::regenerateFromCurrentBounds() {  Ground* ground = nullptr;
+  int density = 0;
+  {
+    std::lock_guard<std::mutex> lock(registryMutex());
+    ground = ground2;
+    density = NB_INSTANCE.load();
+  }
+  if (ground == nullptr)
+    throw std::runtime_error("Window::exRegenerate without a scene");
+  reloadGo(density, static_cast<int>(ground->getMapMax()));
+}
+
+void SceneBuilder::clearRegistry() {
+  std::lock_guard<std::mutex> lock(registryMutex());
+  scene2 = nullptr;
+  ground2 = nullptr;
 }

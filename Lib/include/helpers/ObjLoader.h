@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -10,7 +11,7 @@
 
 class ObjLoader {
 public:
-  static Mesh* loadObj(std::string fileName);
+  static std::unique_ptr<Mesh> loadObj(std::string fileName);
 
   using FlattenedMesh = ::FlattenedMesh;
 

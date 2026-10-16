@@ -1,5 +1,4 @@
-#ifndef SCENE_H
-#define SCENE_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -58,5 +57,3 @@ private:
   glm::vec3 cameraZ;
   bool renderAble = false;
 };
-
-#endif // SCENE_H

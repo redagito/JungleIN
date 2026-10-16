@@ -1,5 +1,4 @@
-#ifndef INSTANCE_H
-#define INSTANCE_H
+#pragma once
 
 #include "objects/Object3D.h"
 
@@ -16,5 +15,3 @@ private:
   int id;
   Mesh *mesh;
 };
-
-#endif // INSTANCE_H

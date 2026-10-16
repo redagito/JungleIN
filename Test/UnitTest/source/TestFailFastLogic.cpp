@@ -194,8 +194,7 @@ TEST_CASE("ObjLoader::loadObj fails fast on malformed files",
   const auto nofaces =
       WriteTempObj("junglein_nofaces.obj", "v 0 0 0\nv 1 0 0\nv 0 1 0\n");
   try {
-    Mesh *hollow = ObjLoader::loadObj(nofaces.string());
-    delete hollow;
+    auto hollow = ObjLoader::loadObj(nofaces.string());
     FAIL("vertices-only OBJ loaded without error");
   } catch (const std::runtime_error &e) {
     CHECK(std::string(e.what()).find("no geometry") != std::string::npos);
@@ -209,8 +208,7 @@ TEST_CASE("ObjLoader::loadObj fails fast on malformed files",
                                   "vt 0 0\nvt 1 0\nvt 0 1\n"
                                   "f 1/1/1 2/2/1 3/3/1\n");
   try {
-    Mesh *mesh = ObjLoader::loadObj(valid.string());
-    delete mesh;
+    auto mesh = ObjLoader::loadObj(valid.string());
   } catch (const std::runtime_error &e) {
     CHECK(std::string(e.what()).find("Failed to load obj") ==
           std::string::npos);
@@ -249,14 +247,14 @@ TEST_CASE("Ground construction fails fast on bad heightmap",
 TEST_CASE("Utils::movementDelta pins the Renderer delta formula",
           "[helpers][utils]")
 {
-  const double saved = Utils::TARGET_FPS;
-  Utils::TARGET_FPS = 32.0;
+  const double saved = Utils::TARGET_FPS.load();
+  Utils::TARGET_FPS.store(32.0);
   CHECK_THAT(Utils::movementDelta(1.0), WithinAbs(1.0 / 32.0, 1e-12));
   CHECK_THAT(Utils::movementDelta(0.5), WithinAbs(0.5 / 32.0, 1e-12));
   CHECK_THAT(Utils::movementDelta(0.0), WithinAbs(0.0, 1e-12));
-  Utils::TARGET_FPS = 60.0;
+  Utils::TARGET_FPS.store(60.0);
   CHECK_THAT(Utils::movementDelta(1.0), WithinAbs(1.0 / 60.0, 1e-12));
-  Utils::TARGET_FPS = saved;
+  Utils::TARGET_FPS.store(saved);
 }
 
 // Items 6 and 10 need no headless test in this file: item 6 is a

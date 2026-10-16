@@ -1,6 +1,7 @@
 #include "helpers/Logger.h"
 
 #include "objects/Ground.h"
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <memory>
@@ -27,14 +28,7 @@ const float Ground::MAP_SIZE = 900.0;
 const float Ground::MAX_HEIGHT = 10.0;
 
 Ground::Ground(std::string filePath, std::unique_ptr<MaterialGround> mat) : Mesh() {
-	// temporary array initialized here, and then given to a Geometry
-	float* verticesTab;
-	int* indicesTab;
-	float* normalsF;
-	// used as array indice
-	int i = 0;
-
-	// load the heightmap picture (data map: no flip, QImage origin).
+	// Load the heightmap picture (data map: no flip, QImage origin).
 	// The Path mask is allocated only after this succeeds: if the image
 	// load throws, there is no half-built Path left behind to leak (the
 	// destructor never runs on a failed construction).
@@ -43,18 +37,23 @@ Ground::Ground(std::string filePath, std::unique_ptr<MaterialGround> mat) : Mesh
 	// init the size of the loaded picture
 	this->numberVerticesX = img.getWidth();
 	this->numberVerticesZ = img.getHeight();
+	if (this->numberVerticesX < 2 || this->numberVerticesZ < 2)
+		throw std::runtime_error("Ground heightmap too small (need 2x2 minimum)");
 
 	// init the array's sizes
-	verticesTab = new float[this->numberVerticesX * this->numberVerticesZ * 3];
+	std::vector<float> verticesTab(
+		static_cast<size_t>(this->numberVerticesX) * this->numberVerticesZ * 3);
 	// 6 indices for each quad (made with 2 triangles)
-	indicesTab =
-		new int[(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6];
+	std::vector<int> indicesTab(
+		static_cast<size_t>(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6);
 	// 2 normals for each quad (made with 2 triangles)
 	faceNormals.resize(static_cast<size_t>(this->numberVerticesX - 1) *
 		static_cast<size_t>(this->numberVerticesZ - 1) * 2);
 	// there is 3 coordinates for each normal
-	normalsF =
-		new float[(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6];
+	std::vector<float> normalsF(
+		static_cast<size_t>(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6);
+	// used as array indice
+	int i = 0;
 
 	double poolEffect = 0.0;
 	double poolIntensity = kPoolIntensity;
@@ -149,25 +148,20 @@ Ground::Ground(std::string filePath, std::unique_ptr<MaterialGround> mat) : Mesh
 	// middleGrid / lastLine / firstVertex bookkeeping, which averaged
 	// the same adjacent faces without normalizing (and read faces from
 	// the wrong row for the first vertex of the last line).
-	accumulateVertexNormals(indicesTab,
+	accumulateVertexNormals(indicesTab.data(),
 		(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6,
 		faceNormals.data(), this->numberVerticesX * this->numberVerticesZ,
-		normalsF);
+		normalsF.data());
 
 	// set the arrays in the Geometry
 	this->geometry = std::make_unique<Geometry>(
-		verticesTab, indicesTab,
+		verticesTab.data(), indicesTab.data(),
 		this->numberVerticesX * this->numberVerticesZ * 3,
 		(this->numberVerticesX - 1) * (this->numberVerticesZ - 1) * 6);
 
-	this->geometry->setNormals(normalsF);
+	this->geometry->setNormals(normalsF.data());
 	mat->setHeightRange(MAX_HEIGHT);
 	this->material = std::move(mat);
-
-	// release the memory master please!
-	delete[] normalsF;
-	delete[] verticesTab;
-	delete[] indicesTab;
 }
 
 // Add every triangle's face normal to its three vertices, then store
@@ -245,13 +239,23 @@ float Ground::getY(float px, float pz) {
 // compute the approximative value of y, based on the four planes around and the
 // previous Y coordinate
 float Ground::getYApprox(float x, float z, float prevY) {
-	return (prevY +
-		(getY(x, z) + getY(x + MAP_SIZE / (this->numberVerticesX - 1), z) +
-			getY(x - MAP_SIZE / (this->numberVerticesX - 1), z) +
-			getY(x, z + MAP_SIZE / (this->numberVerticesZ - 1)) +
-			getY(x, z - MAP_SIZE / (this->numberVerticesZ - 1))) /
-		5) /
-		2;
+  // Neighbor taps step one texel; at the rim that step leaves the map.
+  // Clamp every tap inside the plane bounds so border pixels average
+  // against the edge instead of throwing out_of_range.
+  const float half = MAP_SIZE / 2.0f;
+  const float lo = -half + 1e-3f;
+  const float hi = half - 1e-3f;
+  const float dx = MAP_SIZE / static_cast<float>(this->numberVerticesX - 1);
+  const float dz = MAP_SIZE / static_cast<float>(this->numberVerticesZ - 1);
+  const float xp = std::clamp(x + dx, lo, hi);
+  const float xm = std::clamp(x - dx, lo, hi);
+  const float zp = std::clamp(z + dz, lo, hi);
+  const float zm = std::clamp(z - dz, lo, hi);
+  return (prevY +
+    (getY(x, z) + getY(xp, z) + getY(xm, z) + getY(x, zp) +
+      getY(x, zm)) /
+    5) /
+    2;
 }
 
 std::optional<glm::vec3> Ground::randomMapPos(double height, bool isRock) {

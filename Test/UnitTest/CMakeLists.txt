@@ -5,10 +5,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TEST_SOURCES})
 
 add_executable(UnitTest ${TEST_SOURCES})
 
-set_target_properties(UnitTest PROPERTIES
-	CXX_STANDARD 23
-	CXX_STANDARD_REQUIRED ON
-)
+target_compile_features(UnitTest PRIVATE cxx_std_23)
 
 target_link_libraries(UnitTest
 	PRIVATE JungleINLib

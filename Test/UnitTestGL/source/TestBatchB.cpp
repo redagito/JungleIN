@@ -29,7 +29,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include "../../UnitTest/source/TestFiles.h"
+#include "TestFiles.h"
 #include "core/Texture.h"
 #include "helpers/SceneBuilder.h"
 #include "materials/MaterialGround.h"
@@ -158,7 +158,7 @@ TEST_CASE("SceneBuilder build vegetation snapshot", "[batch-b][scenebuilder]")
 
   std::unique_ptr<Scene> scene = SceneBuilder::build();
   REQUIRE(scene != nullptr);
-  REQUIRE(SceneBuilder::NB_INSTANCE == 1400);
+  REQUIRE(SceneBuilder::NB_INSTANCE.load() == 1400);
 
   const std::vector<Mesh *> meshes = scene->getMeshes();
   REQUIRE(meshes.size() == 6u);
@@ -210,8 +210,7 @@ TEST_CASE("SceneBuilder build vegetation snapshot", "[batch-b][scenebuilder]")
   CHECK(total == 1400);
 
   scene.reset();
-  SceneBuilder::scene2 = nullptr;
-  SceneBuilder::ground2 = nullptr;
+  SceneBuilder::clearRegistry();
   ShaderLibrary::clear();
 }
 

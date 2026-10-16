@@ -1,6 +1,7 @@
 #include "render/FrameBuffer.h"
 
 #include <cassert>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <glad/gl.h>
@@ -47,18 +48,19 @@ void FrameBuffer::clear() {
 }
 
 void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
-	glGenFramebuffers(1, &uid);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, uid);
-
 	int bcount = static_cast<int>(texturesNames.size()); //+ (hasDepth ? 1 : 0);
 	if (bcount <= 0) {
 		throw std::runtime_error("FrameBuffer::init with no targets");
 	}
-	else {
-		size = bcount;
+	if (uid != 0 || drawBuffers != nullptr || !textures.empty()) {
+		throw std::runtime_error("FrameBuffer::init called twice");
 	}
 
+	glGenFramebuffers(1, &uid);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, uid);
+
+	size = bcount;
 	drawBuffers = new unsigned int[bcount];
 	bcount = 0;
 
@@ -76,7 +78,7 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 
 	if (texturesNames.size() > 0) {
 		for (size_t i = 0; i < texturesNames.size(); ++i) {
-			Texture* tex = new Texture(
+			auto tex = std::make_unique<Texture>(
 				static_cast<unsigned int>(textureUnitOffset) +
 				static_cast<unsigned int>(i));
 			// HDR default (RGBA16F) lives on setupForFramebuffer; no
@@ -92,7 +94,7 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D,
 				tex->gluid, 0);
 
-			textures.push_back(tex);
+			textures.push_back(tex.release());
 			drawBuffers[bcount++] = attachment;
 		}
 	}
@@ -100,7 +102,6 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 	glDrawBuffers(size, drawBuffers);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	assert(status == GL_FRAMEBUFFER_COMPLETE);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 		throw std::runtime_error("Framebuffer incomplete: " +
 			std::to_string(status));
@@ -110,8 +111,10 @@ void FrameBuffer::init(int textureUnitOffset, bool linearFilter) {
 }
 
 void FrameBuffer::bind() {
-	assert(uid != 0);
-	assert(width > 0 && height > 0);
+	if (uid == 0)
+		throw std::runtime_error("FrameBuffer::bind without init");
+	if (width == 0 || height == 0)
+		throw std::runtime_error("FrameBuffer::bind with zero size");
 	glBindFramebuffer(GL_FRAMEBUFFER, uid);
 	glDrawBuffers(size, drawBuffers);
 }
@@ -123,15 +126,17 @@ void FrameBuffer::bindAndViewport() {
 }
 
 void FrameBuffer::assertComplete() const {
-	assert(uid != 0);
-	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) ==
-		GL_FRAMEBUFFER_COMPLETE);
+	if (uid == 0)
+		throw std::runtime_error("FrameBuffer not initialized");
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		throw std::runtime_error("Framebuffer incomplete");
 }
 
 void FrameBuffer::unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 void FrameBuffer::resize(unsigned int _width, unsigned int _height) {
-	assert(_width > 0 && _height > 0);
+	if (_width == 0 || _height == 0)
+		throw std::runtime_error("FrameBuffer::resize with zero size");
 	width = _width;
 	height = _height;
 
@@ -146,7 +151,8 @@ void FrameBuffer::resize(unsigned int _width, unsigned int _height) {
 }
 
 void FrameBuffer::resizeViewport() {
-	assert(width > 0 && height > 0);
+	if (width == 0 || height == 0)
+		throw std::runtime_error("FrameBuffer::resizeViewport with zero size");
 	glViewport(0, 0, width, height);
 }
 

@@ -99,14 +99,14 @@ private:
 	glm::mat4 matrixProj, matrixView, matrixModel;
 
 	// Buffers
-	Camera* __camera = nullptr;
-	Material* __material = nullptr;
-	Shader* __shader = nullptr;
-	SkyBox* __skybox = nullptr;
-	Sun* __sun = nullptr;
-	Ground* __ground = nullptr;
-	glm::mat4 __mvp, __mv;
-	glm::vec3 __lightDir;
-	glm::vec3 __lightIntensity;
-	unsigned int __locPosition, __locColor, __locNormal, __locTexcoord, __locMVP;
+	Camera* m_camera = nullptr;
+	Material* m_material = nullptr;
+	Shader* m_shader = nullptr;
+	SkyBox* m_skybox = nullptr;
+	Sun* m_sun = nullptr;
+	Ground* m_ground = nullptr;
+	glm::mat4 m_mvp, m_mv;
+	glm::vec3 m_lightDir;
+	glm::vec3 m_lightIntensity;
+	unsigned int m_locPosition, m_locColor, m_locNormal, m_locTexcoord, m_locMVP;
 };

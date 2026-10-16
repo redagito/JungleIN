@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -14,17 +15,21 @@
  * Utils
  * Miscellaneous utility functions
  * @static
+ *
+ * Thread safety: the config atoms (window, USE_ANISO, MAX_ANISO,
+ * QUALITY, TARGET_FPS) are lock-free atomic; calculFPS/random are
+ * internally synchronized and safe to call from any thread.
  */
 class Utils {
 public:
-	static char* getFileContent(std::string path);
+  static std::string getFileContent(std::string path);
 
-	static GLFWwindow* window;
-	static bool USE_ANISO;
-	static float MAX_ANISO;
-	static int QUALITY;
+  static std::atomic<GLFWwindow*> window;
+  static std::atomic<bool> USE_ANISO;
+  static std::atomic<float> MAX_ANISO;
+  static std::atomic<int> QUALITY;
 
-	static double TARGET_FPS;
+  static std::atomic<double> TARGET_FPS;
 
 	// Design note: a non-positive clock sample (same-tick or backward
 	// clock) is dropped, so the reported rate freezes instead of

@@ -1,5 +1,4 @@
-#ifndef MATERIALSHADOW_H
-#define MATERIALSHADOW_H
+#pragma once
 
 #include "materials/Material.h"
 
@@ -8,5 +7,3 @@ public:
   MaterialShadow();
   Shader *bind();
 };
-
-#endif // MATERIALSHADOW_H

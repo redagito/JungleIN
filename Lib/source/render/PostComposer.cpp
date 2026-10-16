@@ -16,7 +16,7 @@ namespace {
 // Single formula for the half-resolution post buffers, shared by the
 // constructor, resize and quality changes so the first frames already
 // match every later resize.
-int HalfBuffersRatio() { return Utils::QUALITY == 1 ? 3 : 4; }
+int HalfBuffersRatio() { return Utils::QUALITY.load() == 1 ? 3 : 4; }
 
 // HDR Phase 2: temporal auto-exposure constants.
 // key maps adapted log-average luminance to exposure = key / Ladapt.
@@ -233,7 +233,7 @@ void PostComposer::passLenseFlare() {
 	swapHalfBuffers();
 
 	// Pass 1b : Pre-blur
-	if (Utils::QUALITY == 1)
+	if (Utils::QUALITY.load() == 1)
 		passBlurLinear(true);
 
 	// Pass 2 : Flaring
@@ -256,7 +256,7 @@ void PostComposer::passLenseFlare() {
 	swapHalfBuffers();
 
 	// Pass 3 : Bluring (fast gaussian)
-	if (Utils::QUALITY == 1)
+	if (Utils::QUALITY.load() == 1)
 		passBlurLinear(true);
 
 	// Pass 4 : Upsample + blur + compose

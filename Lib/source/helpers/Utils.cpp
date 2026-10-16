@@ -2,21 +2,30 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <mutex>
+#include <random>
 #include <stdexcept>
 #include "helpers/Logger.h"
 
-GLFWwindow *Utils::window = nullptr;
-bool Utils::USE_ANISO = false;
-float Utils::MAX_ANISO = 1.0f;
-int Utils::QUALITY = 1;
+std::atomic<GLFWwindow*> Utils::window{nullptr};
+std::atomic<bool> Utils::USE_ANISO{false};
+std::atomic<float> Utils::MAX_ANISO{1.0f};
+std::atomic<int> Utils::QUALITY{1};
 
-double Utils::TARGET_FPS = 32.0;
+std::atomic<double> Utils::TARGET_FPS{32.0};
+
+namespace {
+std::mutex& FpsMutex() {
+  static std::mutex mutex;
+  return mutex;
+}
+} // namespace
 
 double Utils::movementDelta(double elapsedSeconds) {
-	return elapsedSeconds / TARGET_FPS;
+  return elapsedSeconds / TARGET_FPS.load();
 }
 
-char *Utils::getFileContent(std::string path) {
+std::string Utils::getFileContent(std::string path) {
   std::ifstream file(path, std::ios::binary | std::ios::ate);
   if (!file)
     throw std::runtime_error("Failed to read file: " + path);
@@ -26,21 +35,19 @@ char *Utils::getFileContent(std::string path) {
     throw std::runtime_error("Failed to size file: " + path);
 
   const size_t length = static_cast<size_t>(end);
-  char *content = new char[length + 1];
+  std::string content(length, '\0');
   if (length > 0) {
-    file.read(content, static_cast<std::streamsize>(length));
-    if (!file) {
-      delete[] content;
+    file.read(content.data(), static_cast<std::streamsize>(length));
+    if (!file)
       throw std::runtime_error("Failed to read file content: " + path);
-    }
   }
-  content[length] = '\0';
 
   return content;
 }
 
 double Utils::calculFPS() {
   using namespace std::chrono;
+  std::lock_guard<std::mutex> lock(FpsMutex());
   static steady_clock::time_point lastCall = steady_clock::now();
   static double rateTotal = 0.0;
   static int sampleCount = 0;
@@ -63,7 +70,9 @@ double Utils::calculFPS() {
 }
 
 double Utils::random(double min, double max) {
-  return (rand() / static_cast<double>(RAND_MAX)) * (max - min) + min;
+  thread_local std::mt19937 engine{std::random_device{}()};
+  std::uniform_real_distribution<double> dist(min, max);
+  return dist(engine);
 }
 
 std::vector<std::string> &operator<<(std::vector<std::string> &stringList,

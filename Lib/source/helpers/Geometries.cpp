@@ -1,6 +1,7 @@
 #include "helpers/Geometries.h"
 
 #include <glad/gl.h>
+#include <memory>
 
 /*
     4_______7
@@ -13,7 +14,7 @@
 |________|/
 1        2
 */
-Geometry* Geometries::cube(float size) {
+std::unique_ptr<Geometry> Geometries::cube(float size) {
 	float vertices[] = {
 		-size, size,  size, // 0
 		-size, -size, size, // 1
@@ -34,7 +35,7 @@ Geometry* Geometries::cube(float size) {
 		1, 2, 6, 1, 6, 5
 	};
 
-	Geometry* g = new Geometry(vertices, indices, 24, 36);
+	auto g = std::make_unique<Geometry>(vertices, indices, 24, 36);
 	g->setPrimitive(GL_TRIANGLES);
 
 	return g;
@@ -48,7 +49,7 @@ Geometry* Geometries::cube(float size) {
 // 
 // Winding order counter clockwise
 // 
-Geometry* Geometries::quad(float size) {
+std::unique_ptr<Geometry> Geometries::quad(float size) {
 	float vertices[] = {
 		-size, size,  0.0, // 0
 		-size, -size, 0.0, // 1 
@@ -65,18 +66,18 @@ Geometry* Geometries::quad(float size) {
 		1, 2, 3
 	};
 
-	Geometry* g = new Geometry(vertices, indices, 12, 6);
+	auto g = std::make_unique<Geometry>(vertices, indices, 12, 6);
 	g->setTexCoords(texcoords);
 	g->setPrimitive(GL_TRIANGLES);
 
 	return g;
 }
 
-Geometry* Geometries::point() {
+std::unique_ptr<Geometry> Geometries::point() {
 	float tab_vertices[] = { 0, 0, 0 };
 	int tab_indices[] = { 0 };
 
-	Geometry* g = new Geometry(tab_vertices, tab_indices, 3, 1);
+	auto g = std::make_unique<Geometry>(tab_vertices, tab_indices, 3, 1);
 
 	return g;
 }

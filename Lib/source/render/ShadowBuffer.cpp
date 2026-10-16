@@ -1,6 +1,7 @@
 #include "render/ShadowBuffer.h"
 
 #include <cassert>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -15,6 +16,9 @@ ShadowBuffer::ShadowBuffer(std::string texname, int width, int height) {
 
 void ShadowBuffer::init(unsigned int textureUnitOffset) 
 {
+	if (uid != 0 || drawBuffers != nullptr || !textures.empty()) {
+		throw std::runtime_error("ShadowBuffer::init called twice");
+	}
 	glGenFramebuffers(1, &uid);
 	glBindFramebuffer(GL_FRAMEBUFFER, uid);
 
@@ -22,7 +26,7 @@ void ShadowBuffer::init(unsigned int textureUnitOffset)
 
 	drawBuffers = new unsigned int[size];
 
-	Texture* tex = new Texture(textureUnitOffset);
+	auto tex = std::make_unique<Texture>(textureUnitOffset);
 	tex->setupForDepthShadow(width, height);
 	tex->setFilters(GL_LINEAR, GL_LINEAR);
 	tex->init();
@@ -31,14 +35,13 @@ void ShadowBuffer::init(unsigned int textureUnitOffset)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
 		tex->gluid, 0);
 
-	textures.push_back(tex);
+	textures.push_back(tex.release());
 
 	drawBuffers[0] = GL_NONE;
 
 	glDrawBuffers(size, drawBuffers);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	assert(status == GL_FRAMEBUFFER_COMPLETE);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 		throw std::runtime_error("Shadow framebuffer incomplete: " +
 			std::to_string(status));

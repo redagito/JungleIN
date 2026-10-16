@@ -30,7 +30,7 @@ glm::vec3 safeNormalize(const glm::vec3 &v) {
 } // namespace
 
 Sun::Sun(std::unique_ptr<MaterialSun> mat) : Mesh() {
-  geometry.reset(Geometries::quad(2.0));
+  geometry = Geometries::quad(2.0);
   material = std::move(mat);
   light = std::make_unique<Light>();
   // Tuned below unity: at 1.0 the direct sun outranges ambient/fog by

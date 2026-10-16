@@ -9,6 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # out of our warning budget.
 if (MSVC)
 	add_compile_options(/WX /W4 /external:W0)
+else()
+	add_compile_options(-Werror -Wall -Wextra)
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

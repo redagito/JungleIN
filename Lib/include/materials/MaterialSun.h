@@ -1,5 +1,4 @@
-#ifndef MATERIAL_SUN_H
-#define MATERIAL_SUN_H
+#pragma once
 
 #include <memory>
 
@@ -17,5 +16,3 @@ protected:
   std::unique_ptr<Texture> diffuse;
   std::unique_ptr<Texture> alpha;
 };
-
-#endif // MATERIAL_SUN_H

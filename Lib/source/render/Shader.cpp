@@ -38,8 +38,6 @@ void Shader::resetActiveShader() { s_activeShaderUid = 0; }
 Shader::Shader(std::string name) {
 	this->name = name;
 	this->uid = static_cast<GLuint>(-1);
-	this->vertex = NULL;
-	this->fragment = NULL;
 }
 
 Shader::~Shader() {
@@ -51,8 +49,6 @@ Shader::~Shader() {
 	}
 	attributes.clear();
 	uniforms.clear();
-	delete[] vertex;
-	delete[] fragment;
 }
 
 Shader& Shader::load(std::string shaderPrefix,
@@ -69,7 +65,7 @@ Shader& Shader::load(std::string shaderPrefix,
 }
 
 Shader& Shader::setup() {
-	if (vertex == NULL || fragment == NULL) {
+	if (vertex.empty() || fragment.empty()) {
 		logi("Error: Unable to load shader {}", name);
 		throw std::runtime_error("Failed to load shader");
 	}
@@ -82,7 +78,8 @@ Shader& Shader::setup() {
 	unsigned int fshader = 0;
 
 	vshader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vshader, 1, &vertex, NULL);
+	const char* vertexSrc = vertex.c_str();
+	glShaderSource(vshader, 1, &vertexSrc, nullptr);
 	glCompileShader(vshader);
 	glGetShaderiv(vshader, GL_COMPILE_STATUS, &status);
 	if (status != GL_TRUE) {
@@ -100,7 +97,8 @@ Shader& Shader::setup() {
 		logw("Vertex shader info log of {}: {}", name, info);
 
 	fshader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fshader, 1, &fragment, NULL);
+	const char* fragmentSrc = fragment.c_str();
+	glShaderSource(fshader, 1, &fragmentSrc, nullptr);
 	glCompileShader(fshader);
 	glGetShaderiv(fshader, GL_COMPILE_STATUS, &status);
 	if (status != GL_TRUE) {

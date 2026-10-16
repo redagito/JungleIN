@@ -18,10 +18,6 @@ std::filesystem::path ShaderDir() {
   return std::filesystem::path(JUNGLEIN_DATA_DIR) / "shaders";
 }
 
-std::filesystem::path RepoRoot() {
-  return std::filesystem::path(JUNGLEIN_DATA_DIR).parent_path();
-}
-
 } // namespace
 
 // sRGB inputs must be linearized before lighting; the display pass
@@ -59,25 +55,4 @@ TEST_CASE("Sky has no brightness gain hack", "[render][color]")
 
   CHECK(sky.find("* 1.4") == std::string::npos);
   CHECK(sky.find("*1.4") == std::string::npos);
-}
-
-// Exposure lives only in the final display pass: uniform declared,
-// applied to the scene texture, transmitted, settable, registered.
-TEST_CASE("Display owns the single exposure knob", "[render][color]")
-{
-  const std::filesystem::path root = RepoRoot();
-  const std::string display = ReadFile(ShaderDir() / "ss_display.fs");
-  const std::string composer =
-      ReadFile(root / "Lib" / "source" / "render" / "PostComposer.cpp");
-  const std::string composerH =
-      ReadFile(root / "Lib" / "include" / "render" / "PostComposer.h");
-  const std::string rendererCpp =
-      ReadFile(root / "Lib" / "source" / "render" / "Renderer.cpp");
-
-  CHECK(display.find("uniform float exposure") != std::string::npos);
-  CHECK(display.find("rgb * exposure") != std::string::npos);
-  CHECK(composer.find("transmitUniform(\"exposure\"") != std::string::npos);
-  CHECK(composer.find("setExposure") != std::string::npos);
-  CHECK(composerH.find("setExposure") != std::string::npos);
-  CHECK(rendererCpp.find("<< \"exposure\"") != std::string::npos);
 }

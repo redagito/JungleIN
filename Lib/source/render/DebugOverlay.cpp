@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <fstream>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -164,6 +165,11 @@ std::string& FontPathOverride() {
   return override;
 }
 
+std::mutex& FontPathMutex() {
+  static std::mutex mutex;
+  return mutex;
+}
+
 const GlyphRaster& GetRaster() {
   static const GlyphRaster raster = [] {
     GlyphRaster r;
@@ -183,10 +189,12 @@ const GlyphRaster& GetRaster() {
 } // namespace
 
 void DebugOverlay::setFontPath(const std::string& path) {
+  std::lock_guard<std::mutex> lock(FontPathMutex());
   FontPathOverride() = path;
 }
 
 std::string DebugOverlay::fontPath() {
+  std::lock_guard<std::mutex> lock(FontPathMutex());
   const std::string& override = FontPathOverride();
   return override.empty() ? kDefaultFontPath : override;
 }

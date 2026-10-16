@@ -1,5 +1,4 @@
-#ifndef MATERIALSKYBOX_H
-#define MATERIALSKYBOX_H
+#pragma once
 
 #include <memory>
 
@@ -17,5 +16,3 @@ public:
 private:
   std::unique_ptr<TextureCube> cubemap;
 };
-
-#endif // MATERIALSKYBOX_H

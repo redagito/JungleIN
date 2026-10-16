@@ -68,8 +68,8 @@ private:
 	static GLuint s_activeShaderUid;
 	std::string name;
 	GLuint uid = 0;
-	const char* vertex = nullptr;
-	const char* fragment = nullptr;
+	std::string vertex;
+	std::string fragment;
 
 	std::unordered_map<std::string, int> attributes;
 	std::unordered_map<std::string, int> uniforms;

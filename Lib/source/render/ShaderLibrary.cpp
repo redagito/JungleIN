@@ -1,5 +1,6 @@
 #include "render/ShaderLibrary.h"
 
+#include <mutex>
 #include <stdexcept>
 
 #include "helpers/Logger.h"
@@ -7,8 +8,10 @@
 #include "helpers/Utils.h"
 
 std::unordered_map<std::string, Shader*> ShaderLibrary::shaders;
+std::mutex ShaderLibrary::mutex_;
 
 Shader* ShaderLibrary::getShader(std::string name) {
+	std::lock_guard<std::mutex> lock(mutex_);
 	if (shaders.count(name) != 0) {
 		return shaders.at(name);
 	}
@@ -19,6 +22,7 @@ Shader* ShaderLibrary::getShader(std::string name) {
 Shader* ShaderLibrary::addShader(std::string name, std::string shaderPrefix,
 	std::vector<std::string> attributes,
 	std::vector<std::string> uniforms) {
+	std::lock_guard<std::mutex> lock(mutex_);
 	if (shaders.count(name) != 0) {
 		logi("Warning: Duplicate shader '{}' in ShaderLibrary.", name);
 		return shaders.at(name);
@@ -39,6 +43,7 @@ Shader* ShaderLibrary::addShader(std::string name, std::string shaderPrefix,
 }
 
 void ShaderLibrary::clear() {
+	std::lock_guard<std::mutex> lock(mutex_);
 	for (auto entry : shaders) {
 		delete entry.second;
 	}
@@ -50,6 +55,7 @@ void ShaderLibrary::clear() {
 }
 
 void ShaderLibrary::validateRegistrations() {
+	std::lock_guard<std::mutex> lock(mutex_);
 	for (const auto& entry : shaders) {
 		for (const std::string& uniform : entry.second->uniformNames()) {
 			if (!entry.second->hasUniform(uniform))

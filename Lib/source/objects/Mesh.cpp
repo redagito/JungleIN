@@ -35,6 +35,46 @@ void Mesh::initVBO() {
 		throw std::runtime_error("Mesh::initVBO without geometry");
 	if (material == nullptr)
 		throw std::runtime_error("Mesh::initVBO without material");
+	try {
+	initVBOOrThrow();
+	}
+	catch (...) {
+		cleanupVBO();
+		throw;
+	}
+}
+
+void Mesh::cleanupVBO() {
+	if (VAO != 0) {
+		glDeleteVertexArrays(1, &VAO);
+		VAO = 0;
+	}
+	if (vertices != 0) {
+		glDeleteBuffers(1, &vertices);
+		vertices = 0;
+	}
+	if (indices != 0) {
+		glDeleteBuffers(1, &indices);
+		indices = 0;
+	}
+	if (normals != 0) {
+		glDeleteBuffers(1, &normals);
+		normals = 0;
+	}
+	if (texcoords != 0) {
+		glDeleteBuffers(1, &texcoords);
+		texcoords = 0;
+	}
+	locVertices = -1;
+	locNormals = -1;
+	locTexCoords = -1;
+}
+
+void Mesh::initVBOOrThrow() {
+	if (geometry == nullptr)
+		throw std::runtime_error("Mesh::initVBO without geometry");
+	if (material == nullptr)
+		throw std::runtime_error("Mesh::initVBO without material");
 	hasNormals =
 		(geometry->hasNormals() && material->getShader()->hasAttribute("normal"));
 	hasTexCoords = (geometry->hasTexCoords() &&
@@ -112,12 +152,14 @@ void Mesh::initVBO() {
 	glBindVertexArray(VAO);
 
 	glEnableVertexAttribArray(locVertices);
-	assert(vertices != 0);
+	if (vertices == 0)
+		throw std::runtime_error("Mesh::initVBO vertex buffer not created");
 	glBindBuffer(GL_ARRAY_BUFFER, vertices);
 
 	glVertexAttribPointer(locVertices, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	if (hasNormals) {
-		assert(normals != 0);
+		if (normals == 0)
+			throw std::runtime_error("Mesh::initVBO normal buffer not created");
 		glEnableVertexAttribArray(locNormals);
 
 		glBindBuffer(GL_ARRAY_BUFFER, normals);
@@ -125,14 +167,16 @@ void Mesh::initVBO() {
 
 	}
 	if (hasTexCoords) {
-		assert(texcoords != 0);
+		if (texcoords == 0)
+			throw std::runtime_error("Mesh::initVBO texcoord buffer not created");
 		glEnableVertexAttribArray(locTexCoords);
 
 		glBindBuffer(GL_ARRAY_BUFFER, texcoords);
 		glVertexAttribPointer(locTexCoords, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	}
 
-	assert(indices != 0);
+	if (indices == 0)
+		throw std::runtime_error("Mesh::initVBO index buffer not created");
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
 
 	glBindVertexArray(0);
@@ -219,16 +263,7 @@ void Mesh::setScaleRdn(float sRdn) { this->scaleRdn = sRdn; }
 float Mesh::getHeightRdn() const { return this->heightRdn; }
 
 Mesh::~Mesh() {
-	if (VAO != 0)
-		glDeleteVertexArrays(1, &VAO);
-	if (vertices != 0)
-		glDeleteBuffers(1, &vertices);
-	if (indices != 0)
-		glDeleteBuffers(1, &indices);
-	if (normals != 0)
-		glDeleteBuffers(1, &normals);
-	if (texcoords != 0)
-		glDeleteBuffers(1, &texcoords);
+	cleanupVBO();
 }
 
 void Mesh::setPourcentage(float pct) { this->pourcentage = pct; }

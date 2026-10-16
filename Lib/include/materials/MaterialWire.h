@@ -1,5 +1,4 @@
-#ifndef MATERIALWIRE_H
-#define MATERIALWIRE_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -19,5 +18,3 @@ public:
 private:
   glm::vec3 wireColor;
 };
-
-#endif // MATERIALWIRE_H

@@ -1,6 +1,8 @@
 #include "core/Texture.h"
 
-#include <stb_image.h>
+#include <stdexcept>
+
+#include "core/Image.h"
 
 namespace {
 // Sized and unsized depth internal formats all upload as float depth;
@@ -77,31 +79,25 @@ Texture::Texture(unsigned int _index) {
 	shadowCompare = false;
 }
 
-Texture::~Texture() { glDeleteTextures(1, &gluid); }
+Texture::~Texture() {
+  if (gluid != 0)
+    glDeleteTextures(1, &gluid);
+}
 
 bool Texture::load(std::string path)
 {
-	// TODO Duplicate code, see Image class
-	// Flip for opengl textures
-	stbi_set_flip_vertically_on_load(true);
-	int channels = 0;
-	int x = 0;
-	int y = 0;
+  // Single stb call site lives in Image::load; Texture only copies the
+  // decoded RGBA pixels (GL textures keep the flipped orientation).
+  Image img(path, true);
+  const size_t count =
+    static_cast<size_t>(img.getWidth()) * img.getHeight() * 4;
+  image.assign(img.getData(), img.getData() + count);
+  width = img.getWidth();
+  height = img.getHeight();
 
-	// Load as RGBA
-	auto data = stbi_load(path.c_str(), &x, &y, &channels, STBI_rgb_alpha);
-	if (data == nullptr)
-	{
-		throw std::runtime_error("Failed to load image");
-	}
-	image.assign(data, data + x * y * 4);
-	width = x;
-	height = y;
-	stbi_image_free(data);
-
-	format = GL_RGBA;
-	hasImage = true;
-	return true;
+  format = GL_RGBA;
+  hasImage = true;
+  return true;
 }
 
 void Texture::setupForFramebuffer(unsigned int _width, unsigned int _height,
@@ -156,7 +152,12 @@ void Texture::enableShadowCompare() {
 }
 
 void Texture::init() {
-	
+	if (gluid != 0)
+		throw std::runtime_error("Texture::init called twice");
+	GLint maxUnits = 0;
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxUnits);
+	if (maxUnits > 0 && index >= static_cast<unsigned int>(maxUnits))
+		throw std::runtime_error("Texture unit index out of range");
 	glActiveTexture(glunit);
 	
 	glGenTextures(1, &gluid);
@@ -179,14 +180,14 @@ void Texture::init() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapModeT);
 		
 
-		if (Utils::USE_ANISO) {
+		if (Utils::USE_ANISO.load()) {
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY,
-				Utils::MAX_ANISO);
+				Utils::MAX_ANISO.load());
 		}
 	}
 	else {
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
-			pixelType, NULL);
+			pixelType, nullptr);
 		
 		if (IsDepthFormat(format)) {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -224,14 +225,14 @@ void Texture::bind() {
 	glActiveTexture(glunit);
 	glBindTexture(GL_TEXTURE_2D, gluid);
 
-	if (Texture::needsUpdate)
+	if (Texture::needsUpdate.load())
 		update();
 }
 
 void Texture::update() {
-	if (Utils::USE_ANISO) {
+	if (Utils::USE_ANISO.load()) {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY,
-			Utils::MAX_ANISO);
+			Utils::MAX_ANISO.load());
 	}
 	else {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 1.0f);
@@ -245,7 +246,7 @@ void Texture::resize(unsigned int _width, unsigned int _height) {
 	if (!hasImage) {
 		bind();
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, globalFormat,
-			pixelType, NULL);
+			pixelType, nullptr);
 	}
 }
 
@@ -257,7 +258,7 @@ int Texture::getWidth() { return width; }
  * @static
  */
 
-bool Texture::needsUpdate = false;
+std::atomic<bool> Texture::needsUpdate{false};
 
 float Texture::borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 float Texture::borderColorB[] = { 0.0f, 0.0f, 0.0f, 0.0f };

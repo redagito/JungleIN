@@ -1,5 +1,4 @@
-#ifndef MATERIAL_H
-#define MATERIAL_H
+#pragma once
 
 #include "render/Shader.h"
 
@@ -29,5 +28,3 @@ public:
 protected:
   Shader *shader;
 };
-
-#endif // MATERIAL_H

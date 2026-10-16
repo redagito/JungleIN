@@ -1,5 +1,4 @@
-#ifndef MATERIALGROUND_H
-#define MATERIALGROUND_H
+#pragma once
 
 #include <memory>
 
@@ -33,5 +32,3 @@ protected:
   std::unique_ptr<Texture> earthNormal;
   std::unique_ptr<Texture> shatterNormal;
 };
-
-#endif // MATERIALGROUND_H
