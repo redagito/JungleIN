@@ -35,8 +35,13 @@ TEST_CASE("Phase3 rt_basic unified lit material", "[render][material]")
   CHECK(vs.find("normalMatrix * normal, 1") == std::string::npos);
   CHECK(vs.find("viewMatrix * lightDir, 1") == std::string::npos);
   // VS: fog input comes from a view-depth varying (Phase 4 owns formula).
+  // Instanced: per-instance matrices forbid a shared mv uniform, so the
+  // view-space position is built from the view matrix and the instance
+  // matrix instead (same value the old mv varying carried).
   CHECK(vs.find("vViewDepth") != std::string::npos);
-  CHECK(vs.find("uniform mat4 mv") != std::string::npos);
+  CHECK(vs.find("uniform mat4 mv") == std::string::npos);
+  CHECK(vs.find("uniform mat4 view") != std::string::npos);
+  CHECK(vs.find("in mat4 instanceModel") != std::string::npos);
 
   // FS: linear workflow, no gamma round-trip hacks.
   CHECK(fs.find("texelDiffuse * texelDiffuse") == std::string::npos);

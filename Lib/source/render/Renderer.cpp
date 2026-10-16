@@ -15,11 +15,6 @@
 #define MAX_SHADOW_WIDTH 2048
 
 namespace {
-// Inverse-transpose of the upper 3x3 (normal matrix); declared here,
-// defined with the other transmit helpers below, so the per-instance
-// draw loops above can share it.
-glm::mat3 InverseTranspose3x3(const glm::mat4& m);
-
 // Debug-only: after binding a target, the GL viewport must match that
 // target exactly. Catches passes that render with a leftover viewport.
 void AssertViewport(unsigned int width, unsigned int height) {
@@ -426,83 +421,78 @@ void Renderer::drawMeshes() {
 			: m->getMaterial();
 		m_shader = m_material->bind();
 
-		calcMVP();
-		transmitMVP();
-		// Locations resolved once per bind for the instance loop below:
-		// the transmits above already threw for this shader when
-		// something is missing, so the loop can skip both the active
-		// check and the string-keyed lookup. Valid only while this
-		// program stays bound, which the loop guarantees (no binds in
-		// it, draws bind VAOs, never programs).
-		int locMvp = -1;
-		int locNormal = -1;
-		int locMv = -1;
-		int locShadow = -1;
-		int locShadowCascade = -1;
-		if (materialOverride == nullptr) {
-			TransmitShadowState(m_shader, shadowFBO, shadowFBOCascade,
-				useShadowCascade, nullptr);
-
-			m_shader->transmitUniform("lightDir", m_lightDir);
-			if (m_shader->hasUniform("lightIntensity"))
-				m_shader->transmitUniform("lightIntensity", m_lightIntensity);
-			m_shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
-
-			locMvp = m_shader->requireLocation("mvp");
-			locNormal = m_shader->requireLocation("normalMatrix");
-			locMv = m_shader->hasUniform("mv") ?
-				m_shader->requireLocation("mv") : -1;
-			locShadow = m_shader->requireLocation("shadowMatrix");
-			if (useShadowCascade)
-				locShadowCascade =
-					m_shader->requireLocation("shadowMatrixCascade");
-		}
-
-		pushMatrix(m->getMatrix());
-		calcMVP();
-		transmitMVP();
-		if (materialOverride == nullptr) {
-			transmitNormalMatrix();
-			transmitViewMatrix();
-			if (m_shader->hasUniform("mv"))
-				m_shader->transmitUniform("mv", m_mv);
-			transmitShadowMatrix();
-		}
-
-		m->drawWithVBO();
-
-		popMatrix();
-
-		for (Instance* i : m->getInstances()) {
-			if (cull(i, 250)) {
-				continue;
-			}
-
-			pushMatrix(i->getMatrix());
+		if (materialOverride != nullptr) {
+			// Diagnostic wireframe (key 0): legacy per-draw path,
+			// verbatim. ss_wire has no instance support and this mode
+			// is draw-diagnostic only, so it keeps one draw per
+			// instance with per-instance MVP like always.
 			calcMVP();
-			glUniformMatrix4fv(locMvp, 1, GL_FALSE, glm::value_ptr(m_mvp));
-			if (materialOverride == nullptr) {
-				glUniformMatrix3fv(locNormal, 1, GL_FALSE,
-					glm::value_ptr(InverseTranspose3x3(m_mv)));
-				// No view matrix here: matrixView is constant for the
-				// whole drawMeshes call and was already transmitted
-				// to this same shader above. Only per-model state
-				// (normal, mv, shadow matrices) is refreshed per instance.
-				if (locMv != -1)
-					glUniformMatrix4fv(locMv, 1, GL_FALSE,
-						glm::value_ptr(m_mv));
-				glUniformMatrix4fv(locShadow, 1, GL_FALSE,
-					glm::value_ptr(m_sun->getLight()->getTextureProjMatrix(
-						matrixModel)));
-				if (locShadowCascade != -1)
-					glUniformMatrix4fv(locShadowCascade, 1, GL_FALSE,
-						glm::value_ptr(m_sun->getLight()
-							->getTextureProjMatrixCascade(matrixModel)));
-			}
+			transmitMVP();
+
+			pushMatrix(m->getMatrix());
+			calcMVP();
+			transmitMVP();
 
 			m->drawWithVBO();
 
 			popMatrix();
+
+			for (Instance* i : m->getInstances()) {
+				if (cull(i, 250)) {
+					continue;
+				}
+
+				pushMatrix(i->getMatrix());
+				calcMVP();
+				transmitMVP();
+
+				m->drawWithVBO();
+
+				popMatrix();
+			}
+			continue;
+		}
+
+		// Shared fragment state (per mesh, unchanged legacy transmits).
+		TransmitShadowState(m_shader, shadowFBO, shadowFBOCascade,
+			useShadowCascade, nullptr);
+
+		m_shader->transmitUniform("lightDir", m_lightDir);
+		if (m_shader->hasUniform("lightIntensity"))
+			m_shader->transmitUniform("lightIntensity", m_lightIntensity);
+		m_shader->transmitUniform("shadowsOn", useShadows ? 1 : 0);
+		// Frame-constant vertex state for the instanced shader. The
+		// light clip chains (bias folded in) replace the old per-draw
+		// shadowMatrix uniforms; identity model keeps just the shared
+		// bias*proj*view half here, the instance half multiplies in
+		// the vertex shader.
+		transmitViewMatrix();
+		m_shader->transmitUniform("proj", matrixProj);
+		m_shader->transmitUniform("view", matrixView);
+		m_shader->transmitUniform("shadowViewProj",
+			m_sun->getLight()->getTextureProjMatrix(glm::mat4(1.0f)));
+		if (useShadowCascade)
+			m_shader->transmitUniform("shadowViewProjCascade",
+				m_sun->getLight()->getTextureProjMatrixCascade(
+					glm::mat4(1.0f)));
+
+		// matrixModel is the scene base here (pushed once around the
+		// loop by the caller): composing it explicitly keeps instance
+		// matrices identical to the old pushMatrix-per-instance
+		// products, including cull order.
+		instanceStaging_.clear();
+		for (Instance* i : m->getInstances()) {
+			if (cull(i, 250)) {
+				continue;
+			}
+			instanceStaging_.push_back(matrixModel * i->getMatrix());
+		}
+		// The mesh-level template draw is skipped: zero-scale model
+		// means degenerate triangles, provably zero fragments.
+		if (!instanceStaging_.empty()) {
+			m->uploadInstances(instanceStaging_.data(),
+				instanceStaging_.size(), m_shader);
+			m->drawInstanced(instanceStaging_.size());
 		}
 	}
 }
@@ -519,36 +509,26 @@ void Renderer::drawMeshesShadow() {
 		TransmitShadowState(m_shader, shadowFBO, shadowFBOCascade,
 			useShadowCascade, m->getMaterial());
 
-		pushMatrix(m->getMatrix());
+		// Frame-constant vertex state for the instanced shadow shader
+		// (light clip space for this cascade pass).
+		m_shader->transmitUniform("proj", matrixProj);
+		m_shader->transmitUniform("view", matrixView);
 
-		calcMVP();
-
-		transmitMVP();
-
-		// Resolved once per bind for the instance loop below (same
-		// shader, already validated by the transmit above).
-		const int locShadowMvp = m_shader->requireLocation("mvp");
-
-		m->drawWithVBO();
-
-		popMatrix();
-
+		// matrixModel is the scene base here, same product the old
+		// pushMatrix-per-instance loop computed.
+		instanceStaging_.clear();
 		for (Instance* i : m->getInstances()) {
 			if (cull(i, 2000)) {
 				continue;
 			}
-
-			pushMatrix(i->getMatrix());
-
-			calcMVP();
-
-			glUniformMatrix4fv(locShadowMvp, 1, GL_FALSE,
-				glm::value_ptr(m_mvp));
-
-			m->drawWithVBO();
-
-			popMatrix();
-
+			instanceStaging_.push_back(matrixModel * i->getMatrix());
+		}
+		// The mesh-level template draw is skipped: zero-scale model
+		// means degenerate triangles, provably zero fragments.
+		if (!instanceStaging_.empty()) {
+			m->uploadInstances(instanceStaging_.data(),
+				instanceStaging_.size(), m_shader);
+			m->drawInstanced(instanceStaging_.size());
 		}
 	}
 }
@@ -672,10 +652,10 @@ void Renderer::loadShaders() {
 	ShaderLibrary::addShader("rt_basic", "data/shaders/rt_basic",
 		std::vector<std::string>() << "position"
 		<< "normal"
-		<< "texcoord",
-		std::vector<std::string>() << "mvp"
-		<< "mv"
-		<< "normalMatrix"
+		<< "texcoord"
+		<< "instanceModel",
+		std::vector<std::string>() << "proj"
+		<< "view"
 		<< "viewMatrix"
 		<< "lightDir"
 		<< "lightIntensity"
@@ -687,9 +667,9 @@ void Renderer::loadShaders() {
 		<< "diffuseColor"
 		<< "shadowQuality"
 		<< "texShadow"
-		<< "shadowMatrix"
+		<< "shadowViewProj"
 		<< "texShadowCascade"
-		<< "shadowMatrixCascade"
+		<< "shadowViewProjCascade"
 		<< "cascadeShadow"
 		<< "shadowsOn");
 
@@ -727,8 +707,10 @@ void Renderer::loadShaders() {
 
 	ShaderLibrary::addShader("rt_shadow", "data/shaders/rt_shadow",
 		std::vector<std::string>() << "position"
-		<< "texcoord",
-		std::vector<std::string>() << "mvp"
+		<< "texcoord"
+		<< "instanceModel",
+		std::vector<std::string>() << "proj"
+		<< "view"
 		<< "texAlpha"
 		<< "alphaCutoff"
 		<< "useAlpha");

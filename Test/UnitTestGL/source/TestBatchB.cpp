@@ -31,7 +31,9 @@
 
 #include "TestFiles.h"
 #include "core/Texture.h"
+#include "helpers/Geometries.h"
 #include "helpers/SceneBuilder.h"
+#include "materials/MaterialBasic.h"
 #include "materials/MaterialGround.h"
 #include "objects/Ground.h"
 #include "objects/Mesh.h"
@@ -99,12 +101,12 @@ void RegisterBuildShaders() {
   const std::string dir = std::string(JUNGLEIN_DATA_DIR) + "/shaders/";
   ShaderLibrary::addShader(
       "rt_basic", dir + "rt_basic",
-      {"position", "normal", "texcoord"},
-      {"mvp", "mv", "normalMatrix", "viewMatrix", "lightDir",
+      {"position", "normal", "texcoord", "instanceModel"},
+      {"proj", "view", "viewMatrix", "lightDir",
        "lightIntensity", "texDiffuse", "texAlpha", "alphaCutoff",
        "useDiffuse", "useAlpha", "diffuseColor", "shadowQuality",
-       "texShadow", "shadowMatrix", "texShadowCascade",
-       "shadowMatrixCascade", "cascadeShadow"});
+       "texShadow", "shadowViewProj", "texShadowCascade",
+       "shadowViewProjCascade", "cascadeShadow"});
   ShaderLibrary::addShader("rt_sun", dir + "rt_sun",
                            {"position", "texcoord"},
                            {"mvp", "texDiffuse", "texAlpha"});
@@ -324,6 +326,32 @@ TEST_CASE("Ground flat heightmap normals point up", "[batch-b][ground]")
   delete ground;
   ShaderLibrary::clear();
   std::filesystem::remove(file);
+}
+
+// Instanced draw path: one upload plus one instanced draw covers N
+// visible instances (replacing N per-instance draws). Exercises the
+// VAO divisor setup and the instanced vertex shader end to end;
+// driver errors surface through glGetError.
+TEST_CASE("Mesh draws visible instances instanced", "[batch-b][mesh][gl]")
+{
+  HiddenGL gl;
+  if (!gl.ok)
+    SKIP("No GL context available for instanced draw test");
+  RepoRootCwd cwd;
+  RegisterBuildShaders();
+
+  auto geometry = Geometries::quad(1.0f);
+  auto material =
+      std::make_unique<MaterialBasic>(glm::vec3(0.4f, 0.6f, 0.2f));
+  Mesh mesh(std::move(geometry), std::move(material));
+  mesh.initVBO();
+  Shader* shader = ShaderLibrary::getShader("rt_basic");
+  shader->bind();
+  const glm::mat4 models[2] = {glm::mat4(1.0f), glm::mat4(1.0f)};
+  REQUIRE_NOTHROW(mesh.uploadInstances(models, 2, shader));
+  REQUIRE_NOTHROW(mesh.drawInstanced(2));
+  CHECK(glGetError() == GL_NO_ERROR);
+  ShaderLibrary::clear();
 }
 
 // Item 3, real-data smoke: the shipped heightmap must yield finite,

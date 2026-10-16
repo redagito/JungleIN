@@ -27,6 +27,17 @@ public:
   void drawWithVBO();
   void debugDrawWithVBO();
 
+  // Uploads per-instance world matrices for one instanced draw. The
+  // shader resolves instanceModel locations (divisor 1 on four slots);
+  // a missing attribute throws like the initVBO lookups do. Reuses the
+  // GL buffer across frames (reallocates only on growth). VAO must
+  // exist (initVBO first). Models are copied during the call.
+  void uploadInstances(const glm::mat4* models, size_t count,
+    Shader* shader);
+  // Single glDrawElementsInstanced over the uploaded instances.
+  // Throws without geometry/initVBO like drawWithVBO; count 0 no-ops.
+  void drawInstanced(size_t count);
+
   // Borrowed: the Mesh keeps ownership. Never null after initVBO.
   Geometry *getGeometry();
   const Geometry *getGeometry() const;
@@ -76,6 +87,11 @@ protected:
   GLuint normals = 0;
   GLuint texcoords = 0;
   GLuint VAO = 0;
+
+  // Instanced-draw buffer for per-instance world matrices (divisor 1).
+  // Grows on demand, never shrinks: regenerate (R key) reuses it.
+  GLuint instanceVBO = 0;
+  size_t instanceVBOCapacity = 0;
 
   bool hasNormals = false;
   bool hasTexCoords = false;

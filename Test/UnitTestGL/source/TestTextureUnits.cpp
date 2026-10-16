@@ -57,12 +57,13 @@ struct HiddenGL {
 void RegisterBasicShader() {
   const std::string dir = std::string(JUNGLEIN_DATA_DIR) + "/shaders/";
   ShaderLibrary::addShader(
-      "rt_basic", dir + "rt_basic", {"position", "normal", "texcoord"},
-      {"mvp", "mv", "normalMatrix", "viewMatrix", "lightDir",
+      "rt_basic", dir + "rt_basic",
+      {"position", "normal", "texcoord", "instanceModel"},
+      {"proj", "view", "viewMatrix", "lightDir",
        "lightIntensity", "texDiffuse", "texAlpha", "alphaCutoff",
        "useDiffuse", "useAlpha", "diffuseColor", "shadowQuality",
-       "texShadow", "shadowMatrix", "texShadowCascade",
-       "shadowMatrixCascade", "cascadeShadow"});
+       "texShadow", "shadowViewProj", "texShadowCascade",
+       "shadowViewProjCascade", "cascadeShadow"});
 }
 
 } // namespace

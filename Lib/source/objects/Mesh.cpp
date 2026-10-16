@@ -65,6 +65,11 @@ void Mesh::cleanupVBO() {
 		glDeleteBuffers(1, &texcoords);
 		texcoords = 0;
 	}
+	if (instanceVBO != 0) {
+		glDeleteBuffers(1, &instanceVBO);
+		instanceVBO = 0;
+	}
+	instanceVBOCapacity = 0;
 	locVertices = -1;
 	locNormals = -1;
 	locTexCoords = -1;
@@ -206,6 +211,65 @@ void Mesh::debugDrawWithVBO() {
 	glDrawElements(GL_POINTS, geometry->getIndicesCount(),
 		GL_UNSIGNED_INT, 0);
 
+	glBindVertexArray(0);
+}
+
+void Mesh::uploadInstances(const glm::mat4* models, size_t count,
+	Shader* shader) {
+	if (shader == nullptr)
+		throw std::runtime_error("Mesh::uploadInstances without shader");
+	if (VAO == 0)
+		throw std::runtime_error("Mesh::uploadInstances without initVBO");
+	if (count == 0)
+		return;
+	if (models == nullptr)
+		throw std::runtime_error("Mesh::uploadInstances without models");
+	const int base = static_cast<int>(
+		shader->attribute("instanceModel"));
+	if (base < 0)
+		throw std::runtime_error(
+			"Mesh::uploadInstances without instanceModel attribute");
+	if (instanceVBO == 0) {
+		glGenBuffers(1, &instanceVBO);
+		instanceVBOCapacity = 0;
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+	if (count > instanceVBOCapacity) {
+		glBufferData(GL_ARRAY_BUFFER,
+			count * sizeof(glm::mat4), models, GL_DYNAMIC_DRAW);
+		instanceVBOCapacity = count;
+	}
+	else {
+		glBufferSubData(GL_ARRAY_BUFFER, 0,
+			count * sizeof(glm::mat4), models);
+	}
+	// Divisor state lives in the VAO: one setup per upload keeps the
+	// instanced draw correct even if the VAO was rebuilt since.
+	glBindVertexArray(VAO);
+	for (int k = 0; k < 4; ++k) {
+		const unsigned int loc = static_cast<unsigned int>(base + k);
+		glEnableVertexAttribArray(loc);
+		glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE,
+			sizeof(glm::mat4),
+			reinterpret_cast<void*>(k * 4 * sizeof(float)));
+		glVertexAttribDivisor(loc, 1);
+	}
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Mesh::drawInstanced(size_t count) {
+	if (geometry == nullptr)
+		throw std::runtime_error("Mesh::drawInstanced without geometry");
+	if (VAO == 0)
+		throw std::runtime_error("Mesh::drawInstanced without initVBO");
+	if (count == 0)
+		return;
+
+	glBindVertexArray(VAO);
+	glDrawElementsInstanced(geometry->getPrimitive(),
+		geometry->getIndicesCount(), GL_UNSIGNED_INT, 0,
+		static_cast<GLsizei>(count));
 	glBindVertexArray(0);
 }
 

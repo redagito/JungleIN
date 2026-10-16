@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <stack>
+#include <vector>
 
 #include <glm/glm.hpp>
 
@@ -65,8 +66,7 @@ private:
 
 	bool cull(Instance* m, float offset = 0.0);
 
-	void calcMVP();
-	void transmitShadowMatrix(bool withCascade = true);
+	void calcMVP();	void transmitShadowMatrix(bool withCascade = true);
 	void transmitMVP();
 	void transmitNormalMatrix();
 	void transmitViewMatrix();
@@ -97,6 +97,10 @@ private:
 
 	std::stack<glm::mat4> xform;
 	glm::mat4 matrixProj, matrixView, matrixModel;
+
+	// Reused visible-instance staging for the instanced draws below:
+	// cleared per mesh, capacity persists, so frames allocate nothing.
+	std::vector<glm::mat4> instanceStaging_;
 
 	// Buffers
 	Camera* m_camera = nullptr;
