@@ -12,6 +12,10 @@ int Utils::QUALITY = 1;
 
 double Utils::TARGET_FPS = 32.0;
 
+double Utils::movementDelta(double elapsedSeconds) {
+	return elapsedSeconds / TARGET_FPS;
+}
+
 char *Utils::getFileContent(std::string path) {
   std::ifstream file(path, std::ios::binary | std::ios::ate);
   if (!file)

@@ -1,5 +1,6 @@
 #include "objects/Scene.h"
 
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
@@ -38,6 +39,14 @@ void Scene::init() {
 void Scene::update(float delta) {
   if (ground == nullptr || currentCamera == nullptr)
     throw std::runtime_error("Scene::update without ground or camera");
+  // Gameplay boundary (not an error): the heightfield only answers
+  // inside +-MAP_SIZE/2, so clamp the camera into bounds before querying.
+  // getY still throws on genuine bugs; this keeps normal edge-walking
+  // from ever reaching it.
+  const float half = Ground::MAP_SIZE / 2.0f - 1.0f;
+  glm::vec3 &camPos = currentCamera->getPosition();
+  camPos.x = std::clamp(camPos.x, -half, half);
+  camPos.z = std::clamp(camPos.z, -half, half);
   float groundY = ground->getYApprox(currentCamera->getPosition().x,
                                      currentCamera->getPosition().z,
                                      currentCamera->getPosition().y);
@@ -81,14 +90,6 @@ void Scene::addCamera(Camera *camera) { cameras.push_back(camera); }
 void Scene::setSky(SkyBox *v) { this->sky = v; }
 
 void Scene::setGround(Ground *v) { this->ground = v; }
-
-// void Scene::removeMesh(Mesh *mesh) { meshes.removeOne(mesh); }
-
-// void Scene::removeCamera(Camera *camera) { cameras.removeOne(camera); }
-
-// void Scene::removeMeshAt(int index) { meshes.removeAt(index); }
-
-// void Scene::removeCameraAt(int index) { cameras.removeAt(index); }
 
 bool Scene::getRenderAble() { return this->renderAble; }
 

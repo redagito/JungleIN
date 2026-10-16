@@ -18,13 +18,19 @@ Mesh* ObjLoader::loadObj(std::string fileName)
 	auto result = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, fileName.c_str());
 
 	if (!warn.empty()) logw("{}", warn);
-	if (!err.empty()) logw("{}", err);
-	if (!result)
+	// Single contract: any loader error throws. An error string without a
+	// failure flag is still an error, never a downgrade to a warning.
+	if (!result || !err.empty())
 		throw std::runtime_error("Failed to load obj from file: " + fileName +
 			(err.empty() ? "" : " (" + err + ")"));
 
 	// tinyobj produces separate indices for vertices, normals and uvs which we need to "fix"
 	FlattenedMesh flat = flatten(attrib, shapes, fileName);
+	// A parse that yields no geometry is an asset bug: fail here instead
+	// of handing a hollow Mesh to the GL pipeline.
+	if (flat.vertices.empty())
+		throw std::runtime_error(
+			"OBJ file contains no geometry: " + fileName);
 
 	Geometry* geometry = new Geometry(flat.vertices, flat.indices);
 	geometry->setNormals(flat.normals);

@@ -30,6 +30,13 @@ public:
 	void lastLineNormals(float* normalsF);
 	float getY(float x, float z);
 	float getYApprox(float x, float z, float prevY);
+	// Plane-height solver behind getY, exposed for headless testing: a
+	// full Ground needs GL materials, so the guard contract (vertical
+	// normal, off-map coordinates) is pinned here instead of on a fixture.
+	// Throws std::runtime_error on a vertical normal (|n.y| ~= 0) and
+	// std::out_of_range on off-map coordinates.
+	static float planeHeightAt(const glm::vec3& p, const glm::vec3& n,
+		float x, float z);
 	std::optional<glm::vec3> randomMapPos(double height = 0, bool isRock = false);
 	bool containInBoundingBox(double x, double z);
 	std::vector<glm::vec3> getRockPos();

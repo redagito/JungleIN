@@ -1,5 +1,5 @@
-#ifndef METERIALSUN_H
-#define METERIALSUN_H
+#ifndef MATERIAL_SUN_H
+#define MATERIAL_SUN_H
 
 #include "materials/Material.h"
 #include "core/Texture.h"
@@ -15,4 +15,4 @@ protected:
   Texture *alpha = nullptr;
 };
 
-#endif // METERIALSUN_H
+#endif // MATERIAL_SUN_H

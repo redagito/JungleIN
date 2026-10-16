@@ -1,6 +1,7 @@
 #include "objects/Light.h"
 #include <cassert>
 #include <limits>
+#include <stdexcept>
 #include <stdio.h>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -68,6 +69,11 @@ void Light::setDirection(const glm::vec3 &v) {
 glm::vec3 &Light::getDirection() { return direction; }
 
 void Light::lookAt(const glm::vec3 &target) {
+  // Degenerate target: throw before mutating any state. The old code
+  // zeroed the direction and silently kept the previous viewMatrix.
+  if (glm::length(target - position) <=
+      std::numeric_limits<float>::epsilon())
+    throw std::runtime_error("Light::lookAt target coincides with position");
   direction = safeNormalize(target - position);
 
   // lookAt convention == glm::lookAt. The overhead fallback
@@ -76,9 +82,6 @@ void Light::lookAt(const glm::vec3 &target) {
   glm::vec3 up(0.0f, 1.0f, 0.0f);
   if (std::fabs(glm::dot(direction, up)) > 0.9999f)
     up = glm::vec3(0.0f, 0.0f, 1.0f);
-  if (glm::length(target - position) <=
-      std::numeric_limits<float>::epsilon())
-    return;
   viewMatrix = glm::lookAt(position, target, up);
 }
 

@@ -8,5 +8,7 @@ public:
   double restart();
 
 private:
-  std::chrono::system_clock::time_point m_start;
+  // Monotonic: wall-clock jumps (NTP, suspend) must never produce a
+  // negative or truncated frame delta.
+  std::chrono::steady_clock::time_point m_start;
 };

@@ -29,6 +29,12 @@ public:
 	static double calculFPS();
 
 	static double random(double min, double max);
+
+	// Movement integration scale: Renderer::delta is elapsed wall seconds
+	// divided by TARGET_FPS, co-tuned with Camera::moveSpeed (200). Do not
+	// change this scale without retuning every movement speed, and keep
+	// TARGET_FPS as the single source of truth (no parallel constant).
+	static double movementDelta(double elapsedSeconds);
 };
 
 template <typename T> size_t indexOf(const std::vector<T>& values, T value) {
@@ -42,12 +48,10 @@ template <typename T> size_t indexOf(const std::vector<T>& values, T value) {
 }
 
 template <typename K, typename V>
-V value(std::unordered_map<K, V>& data, K key, V def) {
+V value(std::unordered_map<K, V>& data, const K& key) {
 	auto iter = data.find(key);
 	if (iter == data.end()) {
-		logw("Failed to find value {}, inserting default {}", key, def);
-		data[key] = def;
-		return def;
+		throw std::runtime_error("Value not found");
 	}
 	return iter->second;
 }

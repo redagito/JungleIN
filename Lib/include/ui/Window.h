@@ -30,12 +30,6 @@ public:
 
 	void run();
 
-	//  void keyPressEvent(QKeyEvent *event);
-	//  void keyReleaseEvent(QKeyEvent *event);
-	//
-	//  void mousePressEvent(QMouseEvent *);
-	//  void mouseReleaseEvent(QMouseEvent *);
-
 	void initializeGL();
 	void initializeObjects();
 	void paintGL();
@@ -78,8 +72,6 @@ public:
 	void onKeyPress(int key, int code, int action, int mods);
 
 private:
-	//  void timerEvent(QTimerEvent *);
-
 	static Window* s_window;
 	GLFWwindow* window = nullptr;
 

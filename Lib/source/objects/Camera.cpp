@@ -28,6 +28,18 @@ void Camera::reset() {
 	pitch = 0.0;
 	heightOffset = 0.0;
 	position = glm::vec3(0.0f, 6.0f, -1.0f);
+	// Drop every input bit: a stale key would keep moving the camera and
+	// a stale look/accel would kick the view on the next update.
+	leftKey = false;
+	rightKey = false;
+	upKey = false;
+	downKey = false;
+	sprintKey = false;
+	eKey = false;
+	qKey = false;
+	look = false;
+	accelX = 0.f;
+	accelY = 0.f;
 	logi("Reset Camera");
 }
 

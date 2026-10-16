@@ -11,7 +11,6 @@
  * Texture
  * Data structure storing the index, GL_TEXTUREX and uid
  * of an OpenGL texture.
- * May also hold a QImage if loaded externally.
  */
 class Texture {
 public:

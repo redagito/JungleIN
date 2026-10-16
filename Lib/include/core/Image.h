@@ -13,7 +13,9 @@ public:
   // flipVertically preserves the historical QImage top-left origin when
   // false (used for data maps like heightmaps); GL textures keep true.
   Image(const std::string &file, bool flipVertically = true);
-  bool load(const std::string &path, bool flipVertically = true);
+  // Single contract: throws std::runtime_error on failure, like the
+  // constructor. Check the logger for the driver reason.
+  void load(const std::string &path, bool flipVertically = true);
 
   const unsigned char *getData() const;
 

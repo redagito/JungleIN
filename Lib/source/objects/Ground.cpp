@@ -22,8 +22,6 @@ float Ground::MAP_MAX = 120.0;
 const float Ground::MAX_HEIGHT = 10.0;
 
 Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
-	this->path = new Path("data/resources/path/path.png");
-
 	// temporary array initialized here, and then given to a Geometry
 	float* verticesTab;
 	int* indicesTab;
@@ -31,8 +29,12 @@ Ground::Ground(std::string filePath, MaterialGround* mat) : Mesh(NULL, NULL) {
 	// used as array indice
 	int i = 0;
 
-	// load the heightmap picture (data map: no flip, QImage origin)
+	// load the heightmap picture (data map: no flip, QImage origin).
+	// The Path mask is allocated only after this succeeds: if the image
+	// load throws, there is no half-built Path left behind to leak (the
+	// destructor never runs on a failed construction).
 	Image img(filePath, false);
+	this->path = new Path("data/resources/path/path.png");
 	// init the size of the loaded picture
 	this->numberVerticesX = img.getWidth();
 	this->numberVerticesZ = img.getHeight();
@@ -245,6 +247,21 @@ void Ground::firstVertexNormal(float* normalsF, int lineNumber) {
 	setVectorToFloat(tmp, normalsF, this->numberVerticesX * lineNumber * 3);
 }
 
+// Height of the plane (p, n) above (x, z). Fails fast instead of
+// dividing by a vertical normal or returning a magic fallback height.
+float Ground::planeHeightAt(const glm::vec3& p, const glm::vec3& n,
+	float x, float z) {
+	if (x <= -MAP_SIZE / 2 || x >= MAP_SIZE / 2 || z <= -MAP_SIZE / 2 ||
+		z >= MAP_SIZE / 2)
+		throw std::out_of_range("Ground::getY coordinates off the map");
+	if (std::fabs(n.y) <= std::numeric_limits<float>::epsilon())
+		throw std::runtime_error("Ground::getY vertical face normal");
+	// constant of the plane equation
+	double d = -(p.x * n.x + p.y * n.y + p.z * n.z);
+	// compute and return the interpolation
+	return static_cast<float>(-(d + n.z * z + n.x * x) / n.y);
+}
+
 // return the y value depenting of the x and z values
 float Ground::getY(float px, float pz) {
 	// check if the camera inside the ground square
@@ -274,14 +291,9 @@ float Ground::getY(float px, float pz) {
 
 		// get the normal of the current plane to construct the plane equation
 		n = this->faceNormals[(this->numberVerticesX - 1) * 2 * indz + indx * 2];
-		// constant of the plane equation
-		double d = -(p.x * n.x + p.y * n.y + p.z * n.z);
-		// compute and return the interpolation
-		//        qDebug() << -(d + n.z * pz + n.x * px)/n.y;
-		return static_cast<float>(-(d + n.z * pz + n.x * px) / n.y);
+		return planeHeightAt(p, n, px, pz);
 	}
-	// default result returned if the camera is not above the ground
-	return MAX_HEIGHT / 2;
+	throw std::out_of_range("Ground::getY coordinates off the map");
 }
 
 // compute the approximative value of y, based on the four planes around and the

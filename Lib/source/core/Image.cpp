@@ -1,7 +1,5 @@
 #include "core/Image.h"
 
-#include "helpers/Logger.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -9,11 +7,10 @@
 
 Image::Image(const std::string& file, bool flipVertically)
 {
-	if (!load(file, flipVertically))
-		throw std::runtime_error("Failed to load image from file: " + file);
+	load(file, flipVertically);
 }
 
-bool Image::load(const std::string& file, bool flipVertically)
+void Image::load(const std::string& file, bool flipVertically)
 {
 	// Flip for opengl textures
 	stbi_set_flip_vertically_on_load(flipVertically);
@@ -25,15 +22,13 @@ bool Image::load(const std::string& file, bool flipVertically)
 	auto data = stbi_load(file.c_str(), &x, &y, &channels, STBI_rgb_alpha);
 	if (data == nullptr)
 	{
-		logw("Failed to load image {}", file);
-		return false;
+		throw std::runtime_error("Failed to load image " + file);
 	}
 	m_data.assign(data, data + x * y * 4);
 	m_width = x;
 	m_height = y;
 
 	stbi_image_free(data);
-	return true;
 }
 
 const unsigned char* Image::getData() const { return m_data.data(); }
