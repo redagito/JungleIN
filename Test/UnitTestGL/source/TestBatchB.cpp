@@ -29,7 +29,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include "TestFiles.h"
+#include "../../UnitTest/source/TestFiles.h"
 #include "core/Texture.h"
 #include "helpers/SceneBuilder.h"
 #include "materials/MaterialGround.h"
