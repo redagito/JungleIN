@@ -459,15 +459,21 @@ std::vector<std::string> Window::overlayStatusLines(bool fxaa, bool flares,
 		std::string("3 AutoExp ") + onOff(autoExp) +
 			"  7/8 Bias " + biasText,
 		std::string("F1 Mouse  F3 Overlay  F4 VSync ") + onOff(vsync),
+		"R Regen",
 	};
 }
 
 void Window::playBtn(bool /*active*/) {
 }
 
-void Window::reGenerate() {
-	ReloadWindow helper;
-	helper.reGenerate();
+void Window::exRegenerate() {
+	// Rescatter vegetation with the build defaults: ReloadWindow (and its
+	// settings dialog) is gone, so regeneration reuses the current map
+	// bounds. Regenerating before the scene exists is a bug: fail fast.
+	if (SceneBuilder::ground2 == nullptr)
+		throw std::runtime_error("Window::exRegenerate without a scene");
+	SceneBuilder::reloadGo(SceneBuilder::NB_INSTANCE,
+		static_cast<int>(SceneBuilder::ground2->getMapMax()));
 }
 
 void Window::onCursorMove(double x, double y)
@@ -561,6 +567,9 @@ void Window::onKeyPress(int key, int /*code*/, int action, int /*mods*/)
 			break;
 		case GLFW_KEY_8:
 			exExposureBias(exposureBias * 1.25f);
+			break;
+		case GLFW_KEY_R:
+			exRegenerate();
 			break;
 
 			// Mouse capture: F1 toggles (no F1/F2 pair).

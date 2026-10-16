@@ -11,7 +11,6 @@
 #include "render/DebugOverlay.h"
 #include "audio/AudioClip.h"
 #include "audio/AudioEngine.h"
-#include "ui/ReloadWindow.h"
 
 #include <future>
 #include <string>
@@ -54,6 +53,7 @@ public:
 	void exRenderRatio(int value);
 	void exDebugOverlay(bool active);
 	void exVSync(bool active);
+	void exRegenerate();
 
 	// Pure status-line builder for the overlay cheat-sheet (unit-tested).
 	// Shows live toggle states; movement keys are deliberately excluded.
@@ -65,7 +65,6 @@ public:
 	static bool keepLookOnButtonRelease(int cursorMode);
 
 	void playBtn(bool active);
-	void reGenerate();
 
 	void onCursorMove(double x, double y);
 	void onMouseButton(int button, int action, int mods);

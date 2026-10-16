@@ -50,10 +50,6 @@ public:
 	std::vector<glm::vec3> getRockPos();
 	void removeRockPos();
 
-	static const float MAP_SIZE;
-	static const float MAX_HEIGHT;
-	// Default instance bounds (also the member initializers above):
-	// the pre-build fallback when no Ground exists yet.
-	static constexpr float kDefaultMapMin = -120.0f;
-	static constexpr float kDefaultMapMax = 120.0f;
+  static const float MAP_SIZE;
+  static const float MAX_HEIGHT;
 };

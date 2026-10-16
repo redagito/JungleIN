@@ -140,12 +140,13 @@ TEST_CASE("DebugOverlay defaults hidden with toggle API", "[ui][overlay]") {
 TEST_CASE("Overlay status lines spell toggle states", "[ui][overlay]") {
   const std::vector<std::string> on =
     Window::overlayStatusLines(true, true, true, 1.0f, true);
-  REQUIRE(on.size() == 3);
+  REQUIRE(on.size() == 4);
   CHECK(on[0].find("1 FXAA on") != std::string::npos);
   CHECK(on[0].find("2 Flares on") != std::string::npos);
   CHECK(on[1].find("3 AutoExp on") != std::string::npos);
   CHECK(on[1].find("7/8 Bias 1.00") != std::string::npos);
   CHECK(on[2].find("F4 VSync on") != std::string::npos);
+  CHECK(on[3] == "R Regen");
 
   const std::vector<std::string> off =
     Window::overlayStatusLines(false, false, false, 0.5f, false);

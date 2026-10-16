@@ -59,7 +59,7 @@ Effects - 1 (FXAA), 2 (lens flares), 3 (auto-exposure)
 
 Exposure - 7 / 8 (bias down / up)
 
-Debug - F3 (FPS overlay), F4 (uncapped FPS)
+Debug - F3 (FPS overlay), F4 (uncapped FPS), R (regenerate vegetation)
 
 Quit - Escape
 
