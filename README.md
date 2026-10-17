@@ -1,3 +1,5 @@
+![Screen](doc/screen1.jpg)
+
 # Refactor of the JungleIN project
 
 Modernized OpenGL jungle viewer: `App` holds the executable entry point,
@@ -13,6 +15,8 @@ Development is done with
 
 Dependencies are managed with Conan; see `conanfile.txt` for the
 pinned versions.
+
+![Screen](doc/screen2.jpg)
 
 ## Layout
 
@@ -46,6 +50,8 @@ Run the tests
 ```
 ctest --preset conan-debug --output-on-failure
 ```
+
+![Screen](doc/screen3.jpg)
 
 ## Controls
 
