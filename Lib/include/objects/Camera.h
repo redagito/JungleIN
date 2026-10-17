@@ -79,8 +79,4 @@ private:
   float yaw = 0.f;
   float pitch = 0.f;
   float height = 0.f;
-  // Extra eye height above the terrain, adjusted with E/Q. Walking
-  // always tracks groundY + height + heightOffset, so the camera
-  // sticks to the terrain downhill too instead of floating.
-  float heightOffset = 0.f;
 };

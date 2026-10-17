@@ -36,7 +36,6 @@ Camera::Camera() : Object3D() {
 void Camera::reset() {
 	yaw = 0.0;
 	pitch = 0.0;
-	heightOffset = 0.0;
 	position = glm::vec3(0.0f, 6.0f, -1.0f);
 	// Drop every input bit: a stale key would keep moving the camera and
 	// a stale look/accel would kick the view on the next update.
@@ -129,21 +128,28 @@ void Camera::update(double groundY, double delta) {
 		position.z += static_cast<float>(speed * std::cos(yaw * DEG_TO_RAD) * delta);
 	}
 
-	// Fly higher / lower: adjusts the offset above the terrain.
+	// Fly up / down: E/Q move the camera itself, capped by a ceiling
+	// that follows the terrain (no space flight above the peaks).
 	if (eKey)
 	{
-		heightOffset += static_cast<float>(moveSpeed * delta);
-		if (heightOffset > kMaxHeightOffset) heightOffset = kMaxHeightOffset;
+		position.y += static_cast<float>(moveSpeed * delta);
+		const float ceilingY =
+			static_cast<float>(groundY) + height + kMaxHeightOffset;
+		if (position.y > ceilingY)
+			position.y = ceilingY;
 	}
 
 	if (qKey)
 	{
-		heightOffset -= static_cast<float>(moveSpeed * delta);
-		if (heightOffset < 0.f) heightOffset = 0.f;
+		position.y -= static_cast<float>(moveSpeed * delta);
 	}
 
-	// Walking stays glued to the terrain, uphill and downhill.
-	position.y = static_cast<float>(groundY + height + heightOffset);
+	// Terrain is a floor, not a rail: rising ground lifts the camera
+	// (collision), but level flight over falling terrain keeps its
+	// altitude instead of bobbing with every bump.
+	const float floorY = static_cast<float>(groundY) + height;
+	if (position.y < floorY)
+		position.y = floorY;
 
 	// View matrix order: view = Rx * Ry * T(-p).
 	matrix = glm::rotate(glm::mat4(1.0f), glm::radians(pitch), glm::vec3(1, 0, 0))

@@ -157,7 +157,9 @@ TEST_CASE("Camera::reset clears all input state", "[objects][camera]")
   const glm::vec3 pos = camera.getPosition();
   CHECK_THAT(pos.x, WithinAbs(0.0f, 1e-5f));
   CHECK_THAT(pos.z, WithinAbs(-1.0f, 1e-5f));
-  CHECK_THAT(pos.y, WithinAbs(2.2f, 1e-5f));
+  // Reset altitude preserved: with no input the camera holds still
+  // (floor is at 2.2 here, well below), instead of snapping to it.
+  CHECK_THAT(pos.y, WithinAbs(6.0f, 1e-5f));
   CHECK_THAT(camera.getYaw(), WithinAbs(0.0f, 1e-6f));
 
   // Sprint was cleared: fresh forward input walks at moveSpeed, not double.

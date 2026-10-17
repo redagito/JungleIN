@@ -5,9 +5,11 @@
 
 using Catch::Matchers::WithinAbs;
 
-// Walking must keep the camera above the terrain: the original game set
-// every frame. Mouse deltas must be consumed once so the view does not
-// keep spinning after the mouse stops.
+// Terrain is a floor, not a rail: the camera never sinks below
+// ground plus eye height, but level flight over falling terrain keeps
+// its altitude instead of bobbing with every bump. Mouse deltas must
+// be consumed once so the view does not keep spinning after the mouse
+// stops.
 TEST_CASE("Camera follows terrain and consumes look input", "[objects][camera]")
 {
   SECTION("never sinks below ground plus eye height")
@@ -18,41 +20,62 @@ TEST_CASE("Camera follows terrain and consumes look input", "[objects][camera]")
     CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f, 1e-4f));
   }
 
-  SECTION("sticks to terrain downhill, not just uphill")
+  SECTION("stays level downhill instead of sticking to terrain")
   {
     Camera camera;
     camera.reset();
     camera.setPositionY(150.0f);
     camera.update(/*groundY=*/100.0, /*delta=*/1.0);
-    CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f, 1e-4f));
+    CHECK_THAT(camera.getPosition().y, WithinAbs(150.0f, 1e-4f));
+    // Falling terrain below leaves the altitude alone...
+    camera.update(/*groundY=*/0.0, /*delta=*/1.0);
+    CHECK_THAT(camera.getPosition().y, WithinAbs(150.0f, 1e-4f));
+    // ...while rising terrain lifts the camera (collision floor).
+    camera.update(/*groundY=*/200.0, /*delta=*/1.0);
+    CHECK_THAT(camera.getPosition().y, WithinAbs(200.0f + 2.2f, 1e-4f));
   }
 
-  SECTION("E raises a persistent offset that follows terrain")
+  SECTION("E climbs freely and ignores terrain changes")
+  {
+    Camera camera;
+    camera.reset(); // y = 6, above the floor for groundY = 0.
+    camera.setEKey(true);
+    camera.update(/*groundY=*/0.0, /*delta=*/0.5f);
+    camera.setEKey(false);
+    // Climbs from the current altitude: 6 + 200 * 0.5.
+    CHECK_THAT(camera.getPosition().y, WithinAbs(106.0f, 1e-3f));
+    // Terrain changing below changes nothing at altitude.
+    camera.update(/*groundY=*/0.0, /*delta=*/1.0);
+    CHECK_THAT(camera.getPosition().y, WithinAbs(106.0f, 1e-3f));
+  }
+
+  SECTION("E respects a ceiling that follows the terrain")
   {
     Camera camera;
     camera.reset();
     camera.setEKey(true);
-    camera.update(/*groundY=*/100.0, /*delta=*/0.5f);
+    camera.update(/*groundY=*/100.0, /*delta=*/10.0);
     camera.setEKey(false);
-    // offset = 200 * 0.5 = 100 above the eye height...
-    CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f + 100.0f, 1e-3f));
-    // ...and the offset survives terrain changes instead of floating.
-    camera.update(/*groundY=*/50.0, /*delta=*/1.0);
-    CHECK_THAT(camera.getPosition().y, WithinAbs(50.0f + 2.2f + 100.0f, 1e-3f));
+    CHECK_THAT(camera.getPosition().y,
+      WithinAbs(100.0f + 2.2f + 200.0f, 1e-3f));
   }
 
-  SECTION("Q lowers back to terrain, never below it")
+  SECTION("Q descends to the floor, never below it")
   {
     Camera camera;
     camera.reset();
-    camera.setEKey(true);
-    camera.update(/*groundY=*/100.0, /*delta=*/0.5f);
-    camera.setEKey(false);
+    camera.setPositionY(150.0f);
     camera.setQKey(true);
-    camera.update(/*groundY=*/100.0, /*delta=*/0.5f);
+    camera.update(/*groundY=*/100.0, /*delta=*/0.1f);
+    camera.setQKey(false);
+    // Free descent while above the floor: 150 - 200 * 0.1.
+    CHECK_THAT(camera.getPosition().y, WithinAbs(130.0f, 1e-3f));
+    // Down to the floor, then the floor stops further descent.
+    camera.setQKey(true);
+    camera.update(/*groundY=*/100.0, /*delta=*/1.0);
     camera.setQKey(false);
     CHECK_THAT(camera.getPosition().y, WithinAbs(100.0f + 2.2f, 1e-3f));
-    // Pressing Q on the ground changes nothing.
+    // Pressing Q on the floor changes nothing.
     camera.setQKey(true);
     camera.update(/*groundY=*/100.0, /*delta=*/1.0);
     camera.setQKey(false);
